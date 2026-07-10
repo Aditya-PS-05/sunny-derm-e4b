@@ -3,6 +3,7 @@ package com.sunny.skin.ui.screens
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,11 +22,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CenterFocusStrong
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -36,8 +42,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -52,17 +62,29 @@ import com.sunny.skin.ui.components.ScreenScaffold
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.util.AlignTransform
 import com.sunny.skin.util.Format
+import com.sunny.skin.util.ImageAlignment
 import java.io.File
 
 private enum class CompareMode(val label: String) { FADE("Fade"), WIPE("Slide"), SIDE("Side by side") }
 
+/** Applies a resolution-independent [AlignTransform] about the image centre. */
+private fun Modifier.applyAlign(t: AlignTransform): Modifier = graphicsLayer {
+    translationX = t.tx * size.width
+    translationY = t.ty * size.height
+    scaleX = t.scale
+    scaleY = t.scale
+    rotationZ = t.rotationDeg
+    transformOrigin = TransformOrigin(0.5f, 0.5f)
+}
+
 /**
- * Compares two dated photos of the same tracked spot. Three modes:
- *  - Fade: crossfade slider (onion-skin) so subtle change "pops".
- *  - Slide: drag a divider to wipe between the older and newer photo.
- *  - Side by side: both photos next to each other.
- * The two photos being compared are pickable from the timeline.
+ * Compares two dated photos of the same tracked spot. The newer photo is
+ * auto-aligned onto the older one (translation + scale + rotation) so the same
+ * spot overlaps — the change then "pops" instead of being lost in reframing.
+ * Three modes: Fade (onion-skin), Slide (wipe divider), Side by side
+ * (size-normalised). Alignment can be toggled off and nudged by hand.
  */
 @Composable
 fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
@@ -87,8 +109,29 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
         var fade by remember { mutableFloatStateOf(0.5f) }
         var wipe by remember { mutableFloatStateOf(0.5f) }
 
+        // Auto-alignment state for the selected pair.
+        var alignOn by remember { mutableStateOf(true) }
+        var aligning by remember { mutableStateOf(false) }
+        var auto by remember { mutableStateOf(AlignTransform.Identity) }
+        var nudge by remember { mutableStateOf(Offset.Zero) } // manual fine-tune (normalised)
+
         val before = obs[beforeIdx]
         val after = obs[afterIdx]
+
+        // Recompute registration whenever the compared pair changes.
+        LaunchedEffect(before.imagePath, after.imagePath) {
+            nudge = Offset.Zero
+            aligning = true
+            auto = ImageAlignment.compute(before.imagePath, after.imagePath)
+            aligning = false
+        }
+
+        // Effective transform applied to the "after" photo.
+        val eff = if (alignOn) {
+            auto.copy(tx = auto.tx + nudge.x, ty = auto.ty + nudge.y)
+        } else {
+            AlignTransform.Identity
+        }
 
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState())
@@ -113,12 +156,48 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
                     }
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
+
+            // Auto-align control row
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SunnyChip(
+                    if (alignOn) "Auto-aligned" else "Align: off",
+                    selected = alignOn,
+                    onClick = { alignOn = !alignOn },
+                )
+                Spacer(Modifier.width(10.dp))
+                when {
+                    aligning -> {
+                        CircularProgressIndicator(Modifier.size(16.dp),
+                            color = SunnyColors.Orange, strokeWidth = 2.dp)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Aligning…", style = MaterialTheme.typography.bodyMedium,
+                            color = SunnyColors.TextSecondary)
+                    }
+                    alignOn -> {
+                        Icon(Icons.Filled.CenterFocusStrong, null, tint = SunnyColors.Orange,
+                            modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Spot matched" + if (nudge != Offset.Zero) " · nudged" else "",
+                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
+                    }
+                    else -> Text("Showing raw photos", style = MaterialTheme.typography.bodyMedium,
+                        color = SunnyColors.TextSecondary)
+                }
+            }
+            Spacer(Modifier.height(12.dp))
 
             when (mode) {
-                CompareMode.FADE -> FadeCompare(before, after, fade) { fade = it }
-                CompareMode.WIPE -> WipeCompare(before, after, wipe) { wipe = it }
-                CompareMode.SIDE -> SideCompare(before, after)
+                CompareMode.FADE -> FadeCompare(before, after, eff, alignOn, fade,
+                    onFade = { fade = it }, onNudge = { nudge += it })
+                CompareMode.WIPE -> WipeCompare(before, after, eff, wipe) { wipe = it }
+                CompareMode.SIDE -> SideCompare(before, after, eff)
+            }
+
+            if (alignOn && mode == CompareMode.FADE) {
+                Spacer(Modifier.height(6.dp))
+                Text("Drag the top photo to fine-tune the match.",
+                    style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextTertiary)
             }
 
             Spacer(Modifier.height(20.dp))
@@ -154,12 +233,31 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
 }
 
 @Composable
-private fun FadeCompare(before: ObservationEntity, after: ObservationEntity, fade: Float, onFade: (Float) -> Unit) {
-    Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(20.dp))
-        .background(SunnyColors.SurfaceMuted)) {
+private fun FadeCompare(
+    before: ObservationEntity,
+    after: ObservationEntity,
+    transform: AlignTransform,
+    alignOn: Boolean,
+    fade: Float,
+    onFade: (Float) -> Unit,
+    onNudge: (Offset) -> Unit,
+) {
+    BoxWithConstraints(
+        Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(20.dp))
+            .background(SunnyColors.SurfaceMuted),
+    ) {
+        val wPx = with(LocalDensity.current) { maxWidth.toPx() }
+        val hPx = with(LocalDensity.current) { maxHeight.toPx() }
         AsyncImage(File(before.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        AsyncImage(File(after.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop,
-            alpha = fade)
+        val overlay = Modifier.fillMaxSize().applyAlign(transform).let {
+            if (alignOn) it.pointerInput(before.imagePath, after.imagePath) {
+                detectDragGestures { change, drag ->
+                    change.consume()
+                    onNudge(Offset(drag.x / wPx, drag.y / hPx))
+                }
+            } else it
+        }
+        AsyncImage(File(after.imagePath), null, overlay, contentScale = ContentScale.Crop, alpha = fade)
         DateTag(Format.date(before.capturedAt), Alignment.TopStart, faded = fade > 0.5f)
         DateTag(Format.date(after.capturedAt), Alignment.TopEnd, faded = fade < 0.5f)
     }
@@ -175,16 +273,27 @@ private fun FadeCompare(before: ObservationEntity, after: ObservationEntity, fad
 }
 
 @Composable
-private fun WipeCompare(before: ObservationEntity, after: ObservationEntity, wipe: Float, onWipe: (Float) -> Unit) {
+private fun WipeCompare(
+    before: ObservationEntity,
+    after: ObservationEntity,
+    transform: AlignTransform,
+    wipe: Float,
+    onWipe: (Float) -> Unit,
+) {
     val density = LocalDensity.current
     BoxWithConstraints(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(20.dp))
         .background(SunnyColors.SurfaceMuted)) {
-        val fullW = maxWidth
-        val fullWpx = with(density) { fullW.toPx() }
-        // After fills the whole area; before is revealed on the left up to the divider.
-        AsyncImage(File(after.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-        Box(Modifier.width(fullW * wipe).fillMaxSize().clipToBounds()) {
-            AsyncImage(File(before.imagePath), null, Modifier.width(fullW).fillMaxSize(),
+        val fullWpx = with(density) { maxWidth.toPx() }
+        // Before is the fixed base; the aligned "after" is revealed on the right.
+        AsyncImage(File(before.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        Box(
+            Modifier.fillMaxSize().drawWithContent {
+                clipRect(left = size.width * wipe, top = 0f, right = size.width, bottom = size.height) {
+                    this@drawWithContent.drawContent()
+                }
+            },
+        ) {
+            AsyncImage(File(after.imagePath), null, Modifier.fillMaxSize().applyAlign(transform),
                 contentScale = ContentScale.Crop)
         }
         DateTag(Format.date(before.capturedAt), Alignment.TopStart, faded = false)
@@ -207,19 +316,31 @@ private fun WipeCompare(before: ObservationEntity, after: ObservationEntity, wip
 }
 
 @Composable
-private fun SideCompare(before: ObservationEntity, after: ObservationEntity) {
+private fun SideCompare(before: ObservationEntity, after: ObservationEntity, transform: AlignTransform) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        listOf("Before" to before, "After" to after).forEach { (label, o) ->
-            Column(Modifier.weight(1f)) {
-                Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp))
-                    .background(SunnyColors.SurfaceMuted)) {
-                    AsyncImage(File(o.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                }
-                Spacer(Modifier.height(6.dp))
-                Text(label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-                Text(Format.date(o.capturedAt), style = MaterialTheme.typography.bodyMedium,
-                    color = SunnyColors.TextSecondary)
+        // Older on the left (untransformed reference).
+        Column(Modifier.weight(1f)) {
+            Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp))
+                .background(SunnyColors.SurfaceMuted)) {
+                AsyncImage(File(before.imagePath), null, Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop)
             }
+            Spacer(Modifier.height(6.dp))
+            Text("Before", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Text(Format.date(before.capturedAt), style = MaterialTheme.typography.bodyMedium,
+                color = SunnyColors.TextSecondary)
+        }
+        // Newer on the right, size-normalised to match the reference framing.
+        Column(Modifier.weight(1f)) {
+            Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp))
+                .background(SunnyColors.SurfaceMuted).clipToBounds()) {
+                AsyncImage(File(after.imagePath), null, Modifier.fillMaxSize().applyAlign(transform),
+                    contentScale = ContentScale.Crop)
+            }
+            Spacer(Modifier.height(6.dp))
+            Text("After", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Text(Format.date(after.capturedAt), style = MaterialTheme.typography.bodyMedium,
+                color = SunnyColors.TextSecondary)
         }
     }
 }
