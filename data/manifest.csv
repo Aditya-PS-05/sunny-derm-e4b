@@ -1,0 +1,1344 @@
+image_path,image_id,lesion_id,dx,dx_human,dx_type,age,sex,localization,split,tier
+images/melanocytic_Nevi/ISIC_0033016.jpg,ISIC_0033016,HAM_0005135,melanocytic_Nevi,melanocytic nevus (mole),histo,15.0,male,back,test,1
+images/benign_keratosis-like_lesions/ISIC_0025842.jpg,ISIC_0025842,HAM_0004274,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,neck,train,2
+images/basal_cell_carcinoma/ISIC_0027744.jpg,ISIC_0027744,HAM_0005309,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024581.jpg,ISIC_0024581,HAM_0001995,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,lower extremity,train,2
+images/melanocytic_Nevi/ISIC_0024599.jpg,ISIC_0024599,HAM_0004839,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0026453.jpg,ISIC_0026453,HAM_0003328,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,female,back,train,1
+images/vascular_lesions/ISIC_0032839.jpg,ISIC_0032839,HAM_0002498,vascular_lesions,vascular lesion,consensus,70.0,male,back,test,3
+images/vascular_lesions/ISIC_0032538.jpg,ISIC_0032538,HAM_0004791,vascular_lesions,vascular lesion,histo,80.0,female,lower extremity,test,3
+images/benign_keratosis-like_lesions/ISIC_0024883.jpg,ISIC_0024883,HAM_0006541,benign_keratosis-like_lesions,benign keratosis,histo,35.0,female,lower extremity,train,2
+images/dermatofibroma/ISIC_0024845.jpg,ISIC_0024845,HAM_0003487,dermatofibroma,dermatofibroma,consensus,40.0,male,lower extremity,validation,3
+images/melanoma/ISIC_0024679.jpg,ISIC_0024679,HAM_0000593,melanoma,melanoma,histo,50.0,male,back,train,1
+images/dermatofibroma/ISIC_0031257.jpg,ISIC_0031257,HAM_0003023,dermatofibroma,dermatofibroma,consensus,55.0,female,upper extremity,test,3
+images/actinic_keratoses/ISIC_0026388.jpg,ISIC_0026388,HAM_0003105,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,upper extremity,train,1
+images/melanoma/ISIC_0025303.jpg,ISIC_0025303,HAM_0003558,melanoma,melanoma,histo,55.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0024596.jpg,ISIC_0024596,HAM_0004802,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,back,train,1
+images/vascular_lesions/ISIC_0029889.jpg,ISIC_0029889,HAM_0006324,vascular_lesions,vascular lesion,histo,40.0,female,chest,train,3
+images/melanocytic_Nevi/ISIC_0024356.jpg,ISIC_0024356,HAM_0000689,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,female,foot,train,1
+images/dermatofibroma/ISIC_0032468.jpg,ISIC_0032468,HAM_0005684,dermatofibroma,dermatofibroma,histo,75.0,female,lower extremity,validation,3
+images/benign_keratosis-like_lesions/ISIC_0025659.jpg,ISIC_0025659,HAM_0004988,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,lower extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0025830.jpg,ISIC_0025830,HAM_0007232,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,back,train,2
+images/benign_keratosis-like_lesions/ISIC_0028100.jpg,ISIC_0028100,HAM_0001510,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,lower extremity,test,2
+images/melanocytic_Nevi/ISIC_0032023.jpg,ISIC_0032023,HAM_0002698,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,female,foot,test,1
+images/vascular_lesions/ISIC_0032557.jpg,ISIC_0032557,HAM_0000494,vascular_lesions,vascular lesion,histo,55.0,male,lower extremity,validation,3
+images/actinic_keratoses/ISIC_0026457.jpg,ISIC_0026457,HAM_0007303,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024422.jpg,ISIC_0024422,HAM_0001605,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,upper extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0025986.jpg,ISIC_0025986,HAM_0006123,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,back,train,2
+images/melanoma/ISIC_0025592.jpg,ISIC_0025592,HAM_0001105,melanoma,melanoma,histo,55.0,female,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0033650.jpg,ISIC_0033650,HAM_0001218,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,trunk,test,1
+images/basal_cell_carcinoma/ISIC_0025826.jpg,ISIC_0025826,HAM_0005585,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,back,train,1
+images/melanoma/ISIC_0026694.jpg,ISIC_0026694,HAM_0002869,melanoma,melanoma,histo,50.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0028035.jpg,ISIC_0028035,HAM_0002577,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,upper extremity,train,1
+images/melanoma/ISIC_0024688.jpg,ISIC_0024688,HAM_0001444,melanoma,melanoma,histo,40.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025743.jpg,ISIC_0025743,HAM_0004382,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,face,train,2
+images/basal_cell_carcinoma/ISIC_0024436.jpg,ISIC_0024436,HAM_0005392,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0030580.jpg,ISIC_0030580,HAM_0006702,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,neck,train,1
+images/basal_cell_carcinoma/ISIC_0026687.jpg,ISIC_0026687,HAM_0002689,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0025144.jpg,ISIC_0025144,HAM_0004831,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025937.jpg,ISIC_0025937,HAM_0004884,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,upper extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0025519.jpg,ISIC_0025519,HAM_0006211,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,neck,train,2
+images/actinic_keratoses/ISIC_0025712.jpg,ISIC_0025712,HAM_0005117,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,chest,train,1
+images/actinic_keratoses/ISIC_0025182.jpg,ISIC_0025182,HAM_0006213,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,hand,train,1
+images/melanoma/ISIC_0025238.jpg,ISIC_0025238,HAM_0004817,melanoma,melanoma,histo,55.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0024573.jpg,ISIC_0024573,HAM_0005804,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,face,train,1
+images/actinic_keratoses/ISIC_0029533.jpg,ISIC_0029533,HAM_0005389,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,lower extremity,train,1
+images/dermatofibroma/ISIC_0031457.jpg,ISIC_0031457,HAM_0007410,dermatofibroma,dermatofibroma,histo,65.0,male,foot,train,3
+images/vascular_lesions/ISIC_0032866.jpg,ISIC_0032866,HAM_0006946,vascular_lesions,vascular lesion,histo,55.0,female,back,train,3
+images/actinic_keratoses/ISIC_0025790.jpg,ISIC_0025790,HAM_0001004,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027090.jpg,ISIC_0027090,HAM_0001018,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,male,chest,train,1
+images/actinic_keratoses/ISIC_0029715.jpg,ISIC_0029715,HAM_0000859,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0027256.jpg,ISIC_0027256,HAM_0004542,vascular_lesions,vascular lesion,consensus,0.0,female,back,train,3
+images/basal_cell_carcinoma/ISIC_0028316.jpg,ISIC_0028316,HAM_0001296,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0029962.jpg,ISIC_0029962,HAM_0007410,dermatofibroma,dermatofibroma,histo,65.0,male,foot,train,3
+images/melanocytic_Nevi/ISIC_0030378.jpg,ISIC_0030378,HAM_0004128,melanocytic_Nevi,melanocytic nevus (mole),histo,20.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0030283.jpg,ISIC_0030283,HAM_0007372,vascular_lesions,vascular lesion,consensus,55.0,male,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0024825.jpg,ISIC_0024825,HAM_0000893,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,lower extremity,train,2
+images/basal_cell_carcinoma/ISIC_0026156.jpg,ISIC_0026156,HAM_0005068,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,face,train,1
+images/actinic_keratoses/ISIC_0027084.jpg,ISIC_0027084,HAM_0006893,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0025557.jpg,ISIC_0025557,HAM_0001900,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,female,chest,train,1
+images/dermatofibroma/ISIC_0026417.jpg,ISIC_0026417,HAM_0005663,dermatofibroma,dermatofibroma,consensus,30.0,male,lower extremity,train,3
+images/dermatofibroma/ISIC_0025504.jpg,ISIC_0025504,HAM_0004317,dermatofibroma,dermatofibroma,histo,50.0,female,lower extremity,validation,3
+images/melanoma/ISIC_0026647.jpg,ISIC_0026647,HAM_0001095,melanoma,melanoma,histo,75.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0024904.jpg,ISIC_0024904,HAM_0002914,vascular_lesions,vascular lesion,histo,75.0,male,upper extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0024881.jpg,ISIC_0024881,HAM_0004696,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,back,train,2
+images/basal_cell_carcinoma/ISIC_0027819.jpg,ISIC_0027819,HAM_0004827,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,female,back,train,1
+images/melanoma/ISIC_0026516.jpg,ISIC_0026516,HAM_0003520,melanoma,melanoma,histo,45.0,female,abdomen,train,1
+images/actinic_keratoses/ISIC_0026083.jpg,ISIC_0026083,HAM_0000552,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0029608.jpg,ISIC_0029608,HAM_0000502,vascular_lesions,vascular lesion,consensus,70.0,male,back,train,3
+images/dermatofibroma/ISIC_0032410.jpg,ISIC_0032410,HAM_0005518,dermatofibroma,dermatofibroma,histo,30.0,male,lower extremity,validation,3
+images/benign_keratosis-like_lesions/ISIC_0024740.jpg,ISIC_0024740,HAM_0005420,benign_keratosis-like_lesions,benign keratosis,histo,55.0,male,back,train,2
+images/dermatofibroma/ISIC_0031735.jpg,ISIC_0031735,HAM_0003290,dermatofibroma,dermatofibroma,histo,80.0,male,upper extremity,train,3
+images/actinic_keratoses/ISIC_0025539.jpg,ISIC_0025539,HAM_0000967,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,lower extremity,train,1
+images/melanoma/ISIC_0025188.jpg,ISIC_0025188,HAM_0002525,melanoma,melanoma,histo,55.0,male,face,train,1
+images/dermatofibroma/ISIC_0028880.jpg,ISIC_0028880,HAM_0004103,dermatofibroma,dermatofibroma,histo,55.0,male,lower extremity,train,3
+images/melanoma/ISIC_0024767.jpg,ISIC_0024767,HAM_0003212,melanoma,melanoma,histo,80.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0025019.jpg,ISIC_0025019,HAM_0001415,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,chest,train,1
+images/actinic_keratoses/ISIC_0029309.jpg,ISIC_0029309,HAM_0005579,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0026477.jpg,ISIC_0026477,HAM_0006563,benign_keratosis-like_lesions,benign keratosis,histo,50.0,female,lower extremity,test,2
+images/melanocytic_Nevi/ISIC_0031079.jpg,ISIC_0031079,HAM_0003387,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,abdomen,test,1
+images/basal_cell_carcinoma/ISIC_0024984.jpg,ISIC_0024984,HAM_0005856,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,female,back,train,1
+images/melanoma/ISIC_0025927.jpg,ISIC_0025927,HAM_0002557,melanoma,melanoma,histo,50.0,female,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027966.jpg,ISIC_0027966,HAM_0005417,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0025630.jpg,ISIC_0025630,HAM_0002017,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0027609.jpg,ISIC_0027609,HAM_0000994,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,scalp,train,1
+images/vascular_lesions/ISIC_0030104.jpg,ISIC_0030104,HAM_0001122,vascular_lesions,vascular lesion,consensus,65.0,female,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0025136.jpg,ISIC_0025136,HAM_0000308,benign_keratosis-like_lesions,benign keratosis,histo,55.0,female,abdomen,train,2
+images/melanocytic_Nevi/ISIC_0033425.jpg,ISIC_0033425,HAM_0002502,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,abdomen,test,1
+images/vascular_lesions/ISIC_0030275.jpg,ISIC_0030275,HAM_0002692,vascular_lesions,vascular lesion,histo,10.0,male,trunk,train,3
+images/melanocytic_Nevi/ISIC_0024363.jpg,ISIC_0024363,HAM_0004534,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0030399.jpg,ISIC_0030399,HAM_0005870,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,male,upper extremity,train,1
+images/dermatofibroma/ISIC_0027044.jpg,ISIC_0027044,HAM_0002871,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0025076.jpg,ISIC_0025076,HAM_0007409,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,upper extremity,train,2
+images/dermatofibroma/ISIC_0030011.jpg,ISIC_0030011,HAM_0004371,dermatofibroma,dermatofibroma,histo,45.0,female,upper extremity,train,3
+images/melanoma/ISIC_0025235.jpg,ISIC_0025235,HAM_0000534,melanoma,melanoma,histo,45.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0025807.jpg,ISIC_0025807,HAM_0003771,vascular_lesions,vascular lesion,histo,50.0,female,hand,train,3
+images/melanoma/ISIC_0024940.jpg,ISIC_0024940,HAM_0002375,melanoma,melanoma,histo,80.0,male,neck,train,1
+images/dermatofibroma/ISIC_0025980.jpg,ISIC_0025980,HAM_0005529,dermatofibroma,dermatofibroma,consensus,55.0,female,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0024324.jpg,ISIC_0024324,HAM_0000351,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,back,train,2
+images/benign_keratosis-like_lesions/ISIC_0025066.jpg,ISIC_0025066,HAM_0002749,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,upper extremity,train,2
+images/vascular_lesions/ISIC_0027269.jpg,ISIC_0027269,HAM_0005560,vascular_lesions,vascular lesion,consensus,60.0,female,trunk,validation,3
+images/benign_keratosis-like_lesions/ISIC_0029396.jpg,ISIC_0029396,HAM_0004234,benign_keratosis-like_lesions,benign keratosis,histo,85.0,female,chest,test,2
+images/basal_cell_carcinoma/ISIC_0024833.jpg,ISIC_0024833,HAM_0005617,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,back,train,1
+images/actinic_keratoses/ISIC_0026132.jpg,ISIC_0026132,HAM_0004992,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,chest,train,1
+images/benign_keratosis-like_lesions/ISIC_0025033.jpg,ISIC_0025033,HAM_0003301,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,back,train,2
+images/vascular_lesions/ISIC_0031950.jpg,ISIC_0031950,HAM_0005158,vascular_lesions,vascular lesion,histo,40.0,male,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0027365.jpg,ISIC_0027365,HAM_0002346,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0032176.jpg,ISIC_0032176,HAM_0001769,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,male,unknown,test,1
+images/melanocytic_Nevi/ISIC_0030361.jpg,ISIC_0030361,HAM_0001470,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0024328.jpg,ISIC_0024328,HAM_0002701,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,back,train,1
+images/dermatofibroma/ISIC_0025954.jpg,ISIC_0025954,HAM_0002706,dermatofibroma,dermatofibroma,histo,40.0,male,lower extremity,test,3
+images/actinic_keratoses/ISIC_0025953.jpg,ISIC_0025953,HAM_0002461,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0033506.jpg,ISIC_0033506,HAM_0003542,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,back,test,1
+images/benign_keratosis-like_lesions/ISIC_0025661.jpg,ISIC_0025661,HAM_0002730,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,scalp,train,2
+images/benign_keratosis-like_lesions/ISIC_0033952.jpg,ISIC_0033952,HAM_0000516,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,back,train,2
+images/actinic_keratoses/ISIC_0024923.jpg,ISIC_0024923,HAM_0001004,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0024931.jpg,ISIC_0024931,HAM_0005488,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0024538.jpg,ISIC_0024538,HAM_0000397,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,trunk,train,1
+images/actinic_keratoses/ISIC_0027536.jpg,ISIC_0027536,HAM_0007601,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,upper extremity,train,1
+images/vascular_lesions/ISIC_0030070.jpg,ISIC_0030070,HAM_0007020,vascular_lesions,vascular lesion,consensus,75.0,female,hand,train,3
+images/actinic_keratoses/ISIC_0025471.jpg,ISIC_0025471,HAM_0001967,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,chest,train,1
+images/benign_keratosis-like_lesions/ISIC_0027982.jpg,ISIC_0027982,HAM_0004423,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,upper extremity,test,2
+images/dermatofibroma/ISIC_0025668.jpg,ISIC_0025668,HAM_0007051,dermatofibroma,dermatofibroma,histo,65.0,male,upper extremity,train,3
+images/melanocytic_Nevi/ISIC_0030621.jpg,ISIC_0030621,HAM_0001101,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,female,upper extremity,train,1
+images/vascular_lesions/ISIC_0024662.jpg,ISIC_0024662,HAM_0007532,vascular_lesions,vascular lesion,consensus,75.0,male,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0029418.jpg,ISIC_0029418,HAM_0004673,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,back,test,2
+images/vascular_lesions/ISIC_0031103.jpg,ISIC_0031103,HAM_0001372,vascular_lesions,vascular lesion,consensus,35.0,female,trunk,validation,3
+images/basal_cell_carcinoma/ISIC_0026766.jpg,ISIC_0026766,HAM_0005982,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0027983.jpg,ISIC_0027983,HAM_0003839,vascular_lesions,vascular lesion,histo,75.0,male,abdomen,train,3
+images/vascular_lesions/ISIC_0025244.jpg,ISIC_0025244,HAM_0000845,vascular_lesions,vascular lesion,consensus,45.0,female,trunk,validation,3
+images/melanocytic_Nevi/ISIC_0031476.jpg,ISIC_0031476,HAM_0004170,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,male,abdomen,test,1
+images/basal_cell_carcinoma/ISIC_0025285.jpg,ISIC_0025285,HAM_0004084,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,upper extremity,train,1
+images/vascular_lesions/ISIC_0025677.jpg,ISIC_0025677,HAM_0004097,vascular_lesions,vascular lesion,consensus,50.0,female,abdomen,validation,3
+images/basal_cell_carcinoma/ISIC_0026350.jpg,ISIC_0026350,HAM_0003039,basal_cell_carcinoma,basal cell carcinoma,histo,30.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0024799.jpg,ISIC_0024799,HAM_0001573,basal_cell_carcinoma,basal cell carcinoma,histo,45.0,male,chest,train,1
+images/melanoma/ISIC_0026500.jpg,ISIC_0026500,HAM_0002834,melanoma,melanoma,histo,75.0,female,back,train,1
+images/actinic_keratoses/ISIC_0026492.jpg,ISIC_0026492,HAM_0006481,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024893.jpg,ISIC_0024893,HAM_0002058,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,ear,train,2
+images/melanocytic_Nevi/ISIC_0030858.jpg,ISIC_0030858,HAM_0001813,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,trunk,test,1
+images/melanocytic_Nevi/ISIC_0024604.jpg,ISIC_0024604,HAM_0003767,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,upper extremity,train,1
+images/vascular_lesions/ISIC_0031955.jpg,ISIC_0031955,HAM_0001091,vascular_lesions,vascular lesion,consensus,30.0,female,lower extremity,test,3
+images/dermatofibroma/ISIC_0034169.jpg,ISIC_0034169,HAM_0001785,dermatofibroma,dermatofibroma,histo,50.0,male,upper extremity,train,3
+images/melanocytic_Nevi/ISIC_0024658.jpg,ISIC_0024658,HAM_0003127,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0034108.jpg,ISIC_0034108,HAM_0005997,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,face,test,1
+images/benign_keratosis-like_lesions/ISIC_0025434.jpg,ISIC_0025434,HAM_0001878,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,chest,train,2
+images/actinic_keratoses/ISIC_0029634.jpg,ISIC_0029634,HAM_0003971,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0033908.jpg,ISIC_0033908,HAM_0003978,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,trunk,train,2
+images/benign_keratosis-like_lesions/ISIC_0031686.jpg,ISIC_0031686,HAM_0007261,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,face,test,2
+images/melanocytic_Nevi/ISIC_0033077.jpg,ISIC_0033077,HAM_0007433,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,male,back,test,1
+images/melanoma/ISIC_0024701.jpg,ISIC_0024701,HAM_0000917,melanoma,melanoma,histo,55.0,female,back,train,1
+images/dermatofibroma/ISIC_0024845.jpg,ISIC_0024845,HAM_0003487,dermatofibroma,dermatofibroma,consensus,40.0,male,lower extremity,test,3
+images/melanoma/ISIC_0025394.jpg,ISIC_0025394,HAM_0003376,melanoma,melanoma,histo,45.0,male,trunk,train,1
+images/melanocytic_Nevi/ISIC_0024587.jpg,ISIC_0024587,HAM_0002645,melanocytic_Nevi,melanocytic nevus (mole),histo,15.0,female,back,train,1
+images/melanocytic_Nevi/ISIC_0030553.jpg,ISIC_0030553,HAM_0005848,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,abdomen,train,1
+images/basal_cell_carcinoma/ISIC_0025433.jpg,ISIC_0025433,HAM_0005410,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0028990.jpg,ISIC_0028990,HAM_0006180,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/melanoma/ISIC_0026150.jpg,ISIC_0026150,HAM_0004607,melanoma,melanoma,histo,50.0,female,back,train,1
+images/melanocytic_Nevi/ISIC_0031160.jpg,ISIC_0031160,HAM_0000068,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,upper extremity,test,1
+images/basal_cell_carcinoma/ISIC_0025711.jpg,ISIC_0025711,HAM_0005501,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/melanoma/ISIC_0025709.jpg,ISIC_0025709,HAM_0003102,melanoma,melanoma,histo,65.0,male,face,train,1
+images/dermatofibroma/ISIC_0030021.jpg,ISIC_0030021,HAM_0001164,dermatofibroma,dermatofibroma,histo,50.0,female,upper extremity,train,3
+images/melanoma/ISIC_0026545.jpg,ISIC_0026545,HAM_0001299,melanoma,melanoma,histo,55.0,female,back,train,1
+images/melanoma/ISIC_0026314.jpg,ISIC_0026314,HAM_0000233,melanoma,melanoma,histo,45.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0025831.jpg,ISIC_0025831,HAM_0004012,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,female,face,train,1
+images/melanoma/ISIC_0025018.jpg,ISIC_0025018,HAM_0004265,melanoma,melanoma,histo,45.0,male,unknown,train,1
+images/benign_keratosis-like_lesions/ISIC_0025906.jpg,ISIC_0025906,HAM_0007179,benign_keratosis-like_lesions,benign keratosis,histo,0.0,female,back,train,2
+images/benign_keratosis-like_lesions/ISIC_0025985.jpg,ISIC_0025985,HAM_0004545,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,back,train,2
+images/dermatofibroma/ISIC_0030015.jpg,ISIC_0030015,HAM_0006542,dermatofibroma,dermatofibroma,consensus,65.0,male,upper extremity,validation,3
+images/melanoma/ISIC_0024900.jpg,ISIC_0024900,HAM_0004593,melanoma,melanoma,histo,65.0,female,back,train,1
+images/melanocytic_Nevi/ISIC_0024366.jpg,ISIC_0024366,HAM_0002300,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,back,train,1
+images/actinic_keratoses/ISIC_0026625.jpg,ISIC_0026625,HAM_0005354,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/actinic_keratoses/ISIC_0027678.jpg,ISIC_0027678,HAM_0003586,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025716.jpg,ISIC_0025716,HAM_0001200,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,face,train,2
+images/vascular_lesions/ISIC_0030606.jpg,ISIC_0030606,HAM_0002610,vascular_lesions,vascular lesion,consensus,0.0,female,abdomen,train,3
+images/vascular_lesions/ISIC_0032890.jpg,ISIC_0032890,HAM_0003480,vascular_lesions,vascular lesion,consensus,70.0,female,lower extremity,train,3
+images/vascular_lesions/ISIC_0024375.jpg,ISIC_0024375,HAM_0005245,vascular_lesions,vascular lesion,consensus,70.0,female,abdomen,train,3
+images/vascular_lesions/ISIC_0031719.jpg,ISIC_0031719,HAM_0007020,vascular_lesions,vascular lesion,consensus,75.0,female,hand,validation,3
+images/dermatofibroma/ISIC_0027008.jpg,ISIC_0027008,HAM_0005276,dermatofibroma,dermatofibroma,histo,75.0,male,back,train,3
+images/basal_cell_carcinoma/ISIC_0025576.jpg,ISIC_0025576,HAM_0006115,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0034115.jpg,ISIC_0034115,HAM_0000581,benign_keratosis-like_lesions,benign keratosis,histo,40.0,female,chest,test,2
+images/dermatofibroma/ISIC_0030015.jpg,ISIC_0030015,HAM_0006542,dermatofibroma,dermatofibroma,consensus,65.0,male,upper extremity,train,3
+images/actinic_keratoses/ISIC_0027767.jpg,ISIC_0027767,HAM_0003934,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0027544.jpg,ISIC_0027544,HAM_0000998,basal_cell_carcinoma,basal cell carcinoma,histo,20.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0024448.jpg,ISIC_0024448,HAM_0005417,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,upper extremity,train,1
+images/melanoma/ISIC_0024806.jpg,ISIC_0024806,HAM_0000373,melanoma,melanoma,histo,70.0,female,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0026553.jpg,ISIC_0026553,HAM_0007024,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,lower extremity,test,2
+images/basal_cell_carcinoma/ISIC_0024582.jpg,ISIC_0024582,HAM_0006727,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,back,train,1
+images/vascular_lesions/ISIC_0025924.jpg,ISIC_0025924,HAM_0006748,vascular_lesions,vascular lesion,consensus,30.0,female,lower extremity,train,3
+images/actinic_keratoses/ISIC_0029279.jpg,ISIC_0029279,HAM_0000769,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027425.jpg,ISIC_0027425,HAM_0007346,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,upper extremity,train,1
+images/dermatofibroma/ISIC_0030442.jpg,ISIC_0030442,HAM_0004756,dermatofibroma,dermatofibroma,histo,55.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0031996.jpg,ISIC_0031996,HAM_0003480,vascular_lesions,vascular lesion,consensus,70.0,female,lower extremity,train,3
+images/melanoma/ISIC_0025512.jpg,ISIC_0025512,HAM_0001986,melanoma,melanoma,histo,50.0,male,upper extremity,train,1
+images/melanoma/ISIC_0024823.jpg,ISIC_0024823,HAM_0004779,melanoma,melanoma,histo,35.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0024458.jpg,ISIC_0024458,HAM_0005590,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,male,chest,train,1
+images/melanoma/ISIC_0024700.jpg,ISIC_0024700,HAM_0001726,melanoma,melanoma,histo,35.0,female,trunk,train,1
+images/actinic_keratoses/ISIC_0025089.jpg,ISIC_0025089,HAM_0002705,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,scalp,train,1
+images/basal_cell_carcinoma/ISIC_0026343.jpg,ISIC_0026343,HAM_0002346,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,face,train,1
+images/melanoma/ISIC_0026369.jpg,ISIC_0026369,HAM_0006522,melanoma,melanoma,histo,30.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0031799.jpg,ISIC_0031799,HAM_0003348,dermatofibroma,dermatofibroma,consensus,70.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0028714.jpg,ISIC_0028714,HAM_0005713,vascular_lesions,vascular lesion,histo,60.0,female,neck,train,3
+images/actinic_keratoses/ISIC_0025178.jpg,ISIC_0025178,HAM_0005282,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027545.jpg,ISIC_0027545,HAM_0000994,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,scalp,train,1
+images/melanocytic_Nevi/ISIC_0033128.jpg,ISIC_0033128,HAM_0007348,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,female,lower extremity,test,1
+images/benign_keratosis-like_lesions/ISIC_0025419.jpg,ISIC_0025419,HAM_0007010,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,trunk,train,2
+images/basal_cell_carcinoma/ISIC_0027526.jpg,ISIC_0027526,HAM_0006834,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0025973.jpg,ISIC_0025973,HAM_0003943,benign_keratosis-like_lesions,benign keratosis,histo,80.0,female,lower extremity,train,2
+images/melanoma/ISIC_0026586.jpg,ISIC_0026586,HAM_0001976,melanoma,melanoma,histo,85.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0026194.jpg,ISIC_0026194,HAM_0003910,actinic_keratoses,actinic keratosis / Bowen's,histo,30.0,male,face,train,1
+images/vascular_lesions/ISIC_0027256.jpg,ISIC_0027256,HAM_0004542,vascular_lesions,vascular lesion,consensus,0.0,female,back,validation,3
+images/vascular_lesions/ISIC_0031215.jpg,ISIC_0031215,HAM_0005885,vascular_lesions,vascular lesion,consensus,75.0,male,trunk,train,3
+images/vascular_lesions/ISIC_0032715.jpg,ISIC_0032715,HAM_0006852,vascular_lesions,vascular lesion,consensus,45.0,female,abdomen,train,3
+images/melanoma/ISIC_0025313.jpg,ISIC_0025313,HAM_0001378,melanoma,melanoma,histo,35.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025075.jpg,ISIC_0025075,HAM_0007563,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,upper extremity,train,2
+images/melanocytic_Nevi/ISIC_0030429.jpg,ISIC_0030429,HAM_0006146,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,scalp,train,1
+images/benign_keratosis-like_lesions/ISIC_0024495.jpg,ISIC_0024495,HAM_0006466,benign_keratosis-like_lesions,benign keratosis,histo,45.0,female,lower extremity,train,2
+images/basal_cell_carcinoma/ISIC_0026593.jpg,ISIC_0026593,HAM_0004970,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,female,face,train,1
+images/dermatofibroma/ISIC_0024330.jpg,ISIC_0024330,HAM_0006188,dermatofibroma,dermatofibroma,consensus,40.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0029897.jpg,ISIC_0029897,HAM_0001809,benign_keratosis-like_lesions,benign keratosis,histo,80.0,female,unknown,test,2
+images/benign_keratosis-like_lesions/ISIC_0026104.jpg,ISIC_0026104,HAM_0004569,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,upper extremity,train,2
+images/melanocytic_Nevi/ISIC_0032144.jpg,ISIC_0032144,HAM_0007176,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,male,lower extremity,test,1
+images/actinic_keratoses/ISIC_0025696.jpg,ISIC_0025696,HAM_0002472,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/melanoma/ISIC_0024952.jpg,ISIC_0024952,HAM_0007488,melanoma,melanoma,histo,60.0,male,back,train,1
+images/actinic_keratoses/ISIC_0027506.jpg,ISIC_0027506,HAM_0006482,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,female,hand,train,1
+images/actinic_keratoses/ISIC_0028659.jpg,ISIC_0028659,HAM_0002070,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,upper extremity,train,1
+images/melanoma/ISIC_0026697.jpg,ISIC_0026697,HAM_0004364,melanoma,melanoma,histo,75.0,male,face,train,1
+images/vascular_lesions/ISIC_0025244.jpg,ISIC_0025244,HAM_0000845,vascular_lesions,vascular lesion,consensus,45.0,female,trunk,train,3
+images/basal_cell_carcinoma/ISIC_0026117.jpg,ISIC_0026117,HAM_0005984,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0027704.jpg,ISIC_0027704,HAM_0001440,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,back,train,1
+images/melanoma/ISIC_0025234.jpg,ISIC_0025234,HAM_0004739,melanoma,melanoma,histo,70.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0026072.jpg,ISIC_0026072,HAM_0006622,benign_keratosis-like_lesions,benign keratosis,histo,45.0,male,face,train,2
+images/vascular_lesions/ISIC_0033991.jpg,ISIC_0033991,HAM_0006852,vascular_lesions,vascular lesion,consensus,45.0,female,abdomen,validation,3
+images/vascular_lesions/ISIC_0028431.jpg,ISIC_0028431,HAM_0004653,vascular_lesions,vascular lesion,consensus,50.0,male,abdomen,train,3
+images/melanoma/ISIC_0026120.jpg,ISIC_0026120,HAM_0007310,melanoma,melanoma,histo,55.0,male,back,train,1
+images/actinic_keratoses/ISIC_0029811.jpg,ISIC_0029811,HAM_0003157,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0031045.jpg,ISIC_0031045,HAM_0001454,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,upper extremity,test,1
+images/benign_keratosis-like_lesions/ISIC_0024971.jpg,ISIC_0024971,HAM_0005325,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,neck,train,2
+images/melanocytic_Nevi/ISIC_0032893.jpg,ISIC_0032893,HAM_0005383,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,back,test,1
+images/melanocytic_Nevi/ISIC_0032886.jpg,ISIC_0032886,HAM_0006782,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,female,abdomen,test,1
+images/actinic_keratoses/ISIC_0027294.jpg,ISIC_0027294,HAM_0001520,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0029404.jpg,ISIC_0029404,HAM_0002692,vascular_lesions,vascular lesion,histo,10.0,male,trunk,train,3
+images/basal_cell_carcinoma/ISIC_0025818.jpg,ISIC_0025818,HAM_0004621,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,back,train,1
+images/vascular_lesions/ISIC_0031217.jpg,ISIC_0031217,HAM_0004765,vascular_lesions,vascular lesion,histo,15.0,male,face,train,3
+images/melanoma/ISIC_0025744.jpg,ISIC_0025744,HAM_0006453,melanoma,melanoma,histo,70.0,male,abdomen,train,1
+images/dermatofibroma/ISIC_0024396.jpg,ISIC_0024396,HAM_0002450,dermatofibroma,dermatofibroma,consensus,65.0,female,lower extremity,test,3
+images/vascular_lesions/ISIC_0025628.jpg,ISIC_0025628,HAM_0005475,vascular_lesions,vascular lesion,consensus,80.0,male,abdomen,train,3
+images/basal_cell_carcinoma/ISIC_0024550.jpg,ISIC_0024550,HAM_0005721,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0032914.jpg,ISIC_0032914,HAM_0002136,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,male,upper extremity,test,1
+images/vascular_lesions/ISIC_0029889.jpg,ISIC_0029889,HAM_0006324,vascular_lesions,vascular lesion,histo,40.0,female,chest,validation,3
+images/basal_cell_carcinoma/ISIC_0026337.jpg,ISIC_0026337,HAM_0000719,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,abdomen,train,1
+images/basal_cell_carcinoma/ISIC_0027675.jpg,ISIC_0027675,HAM_0004621,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,back,train,1
+images/melanoma/ISIC_0024972.jpg,ISIC_0024972,HAM_0001284,melanoma,melanoma,histo,75.0,female,ear,train,1
+images/dermatofibroma/ISIC_0033256.jpg,ISIC_0033256,HAM_0005584,dermatofibroma,dermatofibroma,consensus,25.0,female,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0030350.jpg,ISIC_0030350,HAM_0006822,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0025102.jpg,ISIC_0025102,HAM_0007248,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027229.jpg,ISIC_0027229,HAM_0003826,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,chest,train,1
+images/basal_cell_carcinoma/ISIC_0027858.jpg,ISIC_0027858,HAM_0003094,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0029059.jpg,ISIC_0029059,HAM_0002771,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0029967.jpg,ISIC_0029967,HAM_0004960,dermatofibroma,dermatofibroma,histo,65.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0026471.jpg,ISIC_0026471,HAM_0006787,dermatofibroma,dermatofibroma,consensus,60.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0025680.jpg,ISIC_0025680,HAM_0000415,vascular_lesions,vascular lesion,consensus,55.0,female,trunk,train,3
+images/melanoma/ISIC_0024410.jpg,ISIC_0024410,HAM_0007530,melanoma,melanoma,histo,30.0,male,chest,train,1
+images/dermatofibroma/ISIC_0030870.jpg,ISIC_0030870,HAM_0006707,dermatofibroma,dermatofibroma,consensus,45.0,female,lower extremity,validation,3
+images/actinic_keratoses/ISIC_0025811.jpg,ISIC_0025811,HAM_0005255,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025928.jpg,ISIC_0025928,HAM_0005606,benign_keratosis-like_lesions,benign keratosis,histo,85.0,female,back,train,2
+images/dermatofibroma/ISIC_0033780.jpg,ISIC_0033780,HAM_0006371,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,validation,3
+images/actinic_keratoses/ISIC_0027334.jpg,ISIC_0027334,HAM_0004462,actinic_keratoses,actinic keratosis / Bowen's,histo,45.0,male,trunk,train,1
+images/basal_cell_carcinoma/ISIC_0028122.jpg,ISIC_0028122,HAM_0004621,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,back,train,1
+images/vascular_lesions/ISIC_0031197.jpg,ISIC_0031197,HAM_0006889,vascular_lesions,vascular lesion,histo,20.0,male,upper extremity,train,3
+images/melanocytic_Nevi/ISIC_0033188.jpg,ISIC_0033188,HAM_0001935,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,chest,test,1
+images/benign_keratosis-like_lesions/ISIC_0025867.jpg,ISIC_0025867,HAM_0007220,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,lower extremity,train,2
+images/melanocytic_Nevi/ISIC_0030406.jpg,ISIC_0030406,HAM_0007548,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,male,foot,train,1
+images/melanocytic_Nevi/ISIC_0024566.jpg,ISIC_0024566,HAM_0005755,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,face,train,1
+images/vascular_lesions/ISIC_0032839.jpg,ISIC_0032839,HAM_0002498,vascular_lesions,vascular lesion,consensus,70.0,male,back,train,3
+images/vascular_lesions/ISIC_0026068.jpg,ISIC_0026068,HAM_0004413,vascular_lesions,vascular lesion,consensus,55.0,female,abdomen,train,3
+images/melanoma/ISIC_0024571.jpg,ISIC_0024571,HAM_0006699,melanoma,melanoma,histo,65.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0024338.jpg,ISIC_0024338,HAM_0002809,benign_keratosis-like_lesions,benign keratosis,histo,45.0,female,face,train,2
+images/actinic_keratoses/ISIC_0029133.jpg,ISIC_0029133,HAM_0000918,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,female,face,train,1
+images/melanoma/ISIC_0025616.jpg,ISIC_0025616,HAM_0007031,melanoma,melanoma,histo,70.0,female,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0031894.jpg,ISIC_0031894,HAM_0006613,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,male,back,test,1
+images/basal_cell_carcinoma/ISIC_0024443.jpg,ISIC_0024443,HAM_0002269,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,back,train,1
+images/vascular_lesions/ISIC_0027159.jpg,ISIC_0027159,HAM_0004877,vascular_lesions,vascular lesion,histo,85.0,female,upper extremity,test,3
+images/actinic_keratoses/ISIC_0028158.jpg,ISIC_0028158,HAM_0002343,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,back,train,1
+images/melanocytic_Nevi/ISIC_0031115.jpg,ISIC_0031115,HAM_0000217,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,chest,test,1
+images/melanocytic_Nevi/ISIC_0031220.jpg,ISIC_0031220,HAM_0001028,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,upper extremity,test,1
+images/actinic_keratoses/ISIC_0029827.jpg,ISIC_0029827,HAM_0002699,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0027681.jpg,ISIC_0027681,HAM_0006531,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,face,test,2
+images/melanoma/ISIC_0024962.jpg,ISIC_0024962,HAM_0004779,melanoma,melanoma,histo,35.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0026845.jpg,ISIC_0026845,HAM_0001283,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,chest,train,1
+images/actinic_keratoses/ISIC_0024539.jpg,ISIC_0024539,HAM_0002551,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,face,train,1
+images/actinic_keratoses/ISIC_0028372.jpg,ISIC_0028372,HAM_0006482,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,female,hand,train,1
+images/basal_cell_carcinoma/ISIC_0028059.jpg,ISIC_0028059,HAM_0004273,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0026056.jpg,ISIC_0026056,HAM_0005304,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0025337.jpg,ISIC_0025337,HAM_0002988,benign_keratosis-like_lesions,benign keratosis,histo,35.0,male,face,train,2
+images/basal_cell_carcinoma/ISIC_0026230.jpg,ISIC_0026230,HAM_0005382,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,female,back,train,1
+images/vascular_lesions/ISIC_0031759.jpg,ISIC_0031759,HAM_0003925,vascular_lesions,vascular lesion,histo,80.0,male,back,train,3
+images/melanocytic_Nevi/ISIC_0032813.jpg,ISIC_0032813,HAM_0002582,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,abdomen,test,1
+images/dermatofibroma/ISIC_0032247.jpg,ISIC_0032247,HAM_0007225,dermatofibroma,dermatofibroma,histo,75.0,male,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0028197.jpg,ISIC_0028197,HAM_0004711,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024336.jpg,ISIC_0024336,HAM_0006732,benign_keratosis-like_lesions,benign keratosis,histo,50.0,female,lower extremity,train,2
+images/melanocytic_Nevi/ISIC_0032519.jpg,ISIC_0032519,HAM_0005715,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,male,back,test,1
+images/benign_keratosis-like_lesions/ISIC_0026493.jpg,ISIC_0026493,HAM_0000259,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,back,test,2
+images/melanoma/ISIC_0026266.jpg,ISIC_0026266,HAM_0002436,melanoma,melanoma,histo,60.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0027950.jpg,ISIC_0027950,HAM_0000193,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,face,train,1
+images/vascular_lesions/ISIC_0031346.jpg,ISIC_0031346,HAM_0001566,vascular_lesions,vascular lesion,consensus,70.0,female,face,validation,3
+images/melanocytic_Nevi/ISIC_0032184.jpg,ISIC_0032184,HAM_0004866,melanocytic_Nevi,melanocytic nevus (mole),histo,70.0,female,back,test,1
+images/melanocytic_Nevi/ISIC_0034137.jpg,ISIC_0034137,HAM_0000439,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,male,back,test,1
+images/dermatofibroma/ISIC_0030665.jpg,ISIC_0030665,HAM_0005359,dermatofibroma,dermatofibroma,consensus,55.0,female,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0030346.jpg,ISIC_0030346,HAM_0005146,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,face,test,2
+images/melanoma/ISIC_0025363.jpg,ISIC_0025363,HAM_0001796,melanoma,melanoma,histo,70.0,male,abdomen,train,1
+images/actinic_keratoses/ISIC_0028795.jpg,ISIC_0028795,HAM_0004568,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,upper extremity,train,1
+images/vascular_lesions/ISIC_0026336.jpg,ISIC_0026336,HAM_0006406,vascular_lesions,vascular lesion,consensus,50.0,male,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0025276.jpg,ISIC_0025276,HAM_0001396,benign_keratosis-like_lesions,benign keratosis,histo,55.0,female,trunk,train,2
+images/vascular_lesions/ISIC_0027672.jpg,ISIC_0027672,HAM_0007614,vascular_lesions,vascular lesion,histo,55.0,female,face,train,3
+images/melanocytic_Nevi/ISIC_0030370.jpg,ISIC_0030370,HAM_0000889,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,lower extremity,train,1
+images/melanoma/ISIC_0026045.jpg,ISIC_0026045,HAM_0005909,melanoma,melanoma,histo,65.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025642.jpg,ISIC_0025642,HAM_0007409,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,upper extremity,train,2
+images/melanocytic_Nevi/ISIC_0032851.jpg,ISIC_0032851,HAM_0001908,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,abdomen,test,1
+images/melanocytic_Nevi/ISIC_0031435.jpg,ISIC_0031435,HAM_0004747,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,female,unknown,test,1
+images/basal_cell_carcinoma/ISIC_0026957.jpg,ISIC_0026957,HAM_0001369,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/actinic_keratoses/ISIC_0026927.jpg,ISIC_0026927,HAM_0003501,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0033380.jpg,ISIC_0033380,HAM_0000262,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,abdomen,test,1
+images/melanocytic_Nevi/ISIC_0034109.jpg,ISIC_0034109,HAM_0006567,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,back,test,1
+images/benign_keratosis-like_lesions/ISIC_0025627.jpg,ISIC_0025627,HAM_0005335,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,upper extremity,train,2
+images/melanoma/ISIC_0026604.jpg,ISIC_0026604,HAM_0002906,melanoma,melanoma,histo,70.0,male,ear,train,1
+images/actinic_keratoses/ISIC_0028730.jpg,ISIC_0028730,HAM_0005282,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025140.jpg,ISIC_0025140,HAM_0000907,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,ear,train,2
+images/vascular_lesions/ISIC_0028680.jpg,ISIC_0028680,HAM_0007150,vascular_lesions,vascular lesion,consensus,45.0,female,trunk,train,3
+images/basal_cell_carcinoma/ISIC_0027525.jpg,ISIC_0027525,HAM_0005721,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027297.jpg,ISIC_0027297,HAM_0003186,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,face,train,1
+images/vascular_lesions/ISIC_0033135.jpg,ISIC_0033135,HAM_0004791,vascular_lesions,vascular lesion,histo,80.0,female,lower extremity,validation,3
+images/dermatofibroma/ISIC_0031271.jpg,ISIC_0031271,HAM_0004090,dermatofibroma,dermatofibroma,consensus,45.0,female,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0030473.jpg,ISIC_0030473,HAM_0005244,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,abdomen,train,1
+images/vascular_lesions/ISIC_0028163.jpg,ISIC_0028163,HAM_0006617,vascular_lesions,vascular lesion,histo,25.0,female,abdomen,train,3
+images/melanocytic_Nevi/ISIC_0032165.jpg,ISIC_0032165,HAM_0003345,melanocytic_Nevi,melanocytic nevus (mole),histo,70.0,male,chest,test,1
+images/vascular_lesions/ISIC_0033031.jpg,ISIC_0033031,HAM_0003862,vascular_lesions,vascular lesion,histo,45.0,male,upper extremity,train,3
+images/basal_cell_carcinoma/ISIC_0026668.jpg,ISIC_0026668,HAM_0001666,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024612.jpg,ISIC_0024612,HAM_0000383,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,back,train,2
+images/vascular_lesions/ISIC_0031955.jpg,ISIC_0031955,HAM_0001091,vascular_lesions,vascular lesion,consensus,30.0,female,lower extremity,train,3
+images/melanoma/ISIC_0026229.jpg,ISIC_0026229,HAM_0003445,melanoma,melanoma,histo,65.0,male,abdomen,train,1
+images/melanocytic_Nevi/ISIC_0033049.jpg,ISIC_0033049,HAM_0001948,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,foot,test,1
+images/dermatofibroma/ISIC_0031827.jpg,ISIC_0031827,HAM_0007526,dermatofibroma,dermatofibroma,histo,50.0,male,lower extremity,train,3
+images/melanoma/ISIC_0026094.jpg,ISIC_0026094,HAM_0006696,melanoma,melanoma,histo,20.0,male,back,train,1
+images/actinic_keratoses/ISIC_0027700.jpg,ISIC_0027700,HAM_0001383,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0029362.jpg,ISIC_0029362,HAM_0005413,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0026118.jpg,ISIC_0026118,HAM_0007627,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,chest,train,1
+images/vascular_lesions/ISIC_0031093.jpg,ISIC_0031093,HAM_0000502,vascular_lesions,vascular lesion,consensus,70.0,male,back,test,3
+images/melanoma/ISIC_0026258.jpg,ISIC_0026258,HAM_0000534,melanoma,melanoma,histo,45.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0026321.jpg,ISIC_0026321,HAM_0006047,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,scalp,train,1
+images/basal_cell_carcinoma/ISIC_0027774.jpg,ISIC_0027774,HAM_0004970,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,female,face,train,1
+images/vascular_lesions/ISIC_0029099.jpg,ISIC_0029099,HAM_0000286,vascular_lesions,vascular lesion,consensus,70.0,female,abdomen,train,3
+images/basal_cell_carcinoma/ISIC_0027531.jpg,ISIC_0027531,HAM_0004662,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,lower extremity,train,1
+images/melanoma/ISIC_0026268.jpg,ISIC_0026268,HAM_0001428,melanoma,melanoma,histo,80.0,male,face,train,1
+images/melanoma/ISIC_0025800.jpg,ISIC_0025800,HAM_0004021,melanoma,melanoma,histo,65.0,male,back,train,1
+images/actinic_keratoses/ISIC_0026702.jpg,ISIC_0026702,HAM_0005228,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,face,train,1
+images/vascular_lesions/ISIC_0026163.jpg,ISIC_0026163,HAM_0003771,vascular_lesions,vascular lesion,histo,50.0,female,hand,train,3
+images/benign_keratosis-like_lesions/ISIC_0024851.jpg,ISIC_0024851,HAM_0007078,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,back,train,2
+images/benign_keratosis-like_lesions/ISIC_0025781.jpg,ISIC_0025781,HAM_0005728,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,upper extremity,train,2
+images/melanocytic_Nevi/ISIC_0030425.jpg,ISIC_0030425,HAM_0004946,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,female,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0033131.jpg,ISIC_0033131,HAM_0001870,melanocytic_Nevi,melanocytic nevus (mole),histo,70.0,male,back,test,1
+images/melanocytic_Nevi/ISIC_0030416.jpg,ISIC_0030416,HAM_0003026,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,female,face,train,1
+images/dermatofibroma/ISIC_0033554.jpg,ISIC_0033554,HAM_0007396,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0026213.jpg,ISIC_0026213,HAM_0000953,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,chest,train,1
+images/basal_cell_carcinoma/ISIC_0026091.jpg,ISIC_0026091,HAM_0006572,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,back,train,1
+images/dermatofibroma/ISIC_0024318.jpg,ISIC_0024318,HAM_0002450,dermatofibroma,dermatofibroma,consensus,65.0,female,lower extremity,train,3
+images/vascular_lesions/ISIC_0025452.jpg,ISIC_0025452,HAM_0004257,vascular_lesions,vascular lesion,consensus,55.0,female,abdomen,train,3
+images/dermatofibroma/ISIC_0033847.jpg,ISIC_0033847,HAM_0003081,dermatofibroma,dermatofibroma,consensus,45.0,male,abdomen,train,3
+images/dermatofibroma/ISIC_0029973.jpg,ISIC_0029973,HAM_0002045,dermatofibroma,dermatofibroma,consensus,60.0,male,lower extremity,validation,3
+images/basal_cell_carcinoma/ISIC_0025644.jpg,ISIC_0025644,HAM_0004536,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0027038.jpg,ISIC_0027038,HAM_0005985,basal_cell_carcinoma,basal cell carcinoma,histo,45.0,male,chest,train,1
+images/basal_cell_carcinoma/ISIC_0027473.jpg,ISIC_0027473,HAM_0002959,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0027825.jpg,ISIC_0027825,HAM_0005268,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,chest,train,1
+images/actinic_keratoses/ISIC_0025957.jpg,ISIC_0025957,HAM_0007047,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0029439.jpg,ISIC_0029439,HAM_0002390,vascular_lesions,vascular lesion,consensus,50.0,male,abdomen,validation,3
+images/vascular_lesions/ISIC_0026393.jpg,ISIC_0026393,HAM_0005011,vascular_lesions,vascular lesion,consensus,80.0,male,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0033868.jpg,ISIC_0033868,HAM_0001837,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,trunk,train,2
+images/melanocytic_Nevi/ISIC_0032459.jpg,ISIC_0032459,HAM_0003590,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,lower extremity,test,1
+images/melanocytic_Nevi/ISIC_0033308.jpg,ISIC_0033308,HAM_0004706,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,abdomen,test,1
+images/vascular_lesions/ISIC_0032545.jpg,ISIC_0032545,HAM_0004776,vascular_lesions,vascular lesion,histo,45.0,female,chest,train,3
+images/melanocytic_Nevi/ISIC_0033006.jpg,ISIC_0033006,HAM_0003744,melanocytic_Nevi,melanocytic nevus (mole),histo,5.0,female,foot,test,1
+images/melanoma/ISIC_0025472.jpg,ISIC_0025472,HAM_0000433,melanoma,melanoma,histo,55.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0027117.jpg,ISIC_0027117,HAM_0006351,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,face,train,1
+images/melanoma/ISIC_0025413.jpg,ISIC_0025413,HAM_0007054,melanoma,melanoma,histo,50.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0024910.jpg,ISIC_0024910,HAM_0000238,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,face,train,2
+images/benign_keratosis-like_lesions/ISIC_0027760.jpg,ISIC_0027760,HAM_0003766,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,face,test,2
+images/dermatofibroma/ISIC_0031443.jpg,ISIC_0031443,HAM_0000827,dermatofibroma,dermatofibroma,consensus,60.0,male,upper extremity,train,3
+images/melanoma/ISIC_0026081.jpg,ISIC_0026081,HAM_0000337,melanoma,melanoma,histo,50.0,female,back,train,1
+images/melanoma/ISIC_0024932.jpg,ISIC_0024932,HAM_0004898,melanoma,melanoma,histo,55.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0033913.jpg,ISIC_0033913,HAM_0001855,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,back,train,2
+images/melanoma/ISIC_0025766.jpg,ISIC_0025766,HAM_0003869,melanoma,melanoma,histo,50.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0032692.jpg,ISIC_0032692,HAM_0000940,vascular_lesions,vascular lesion,histo,35.0,female,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0027046.jpg,ISIC_0027046,HAM_0005371,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0025286.jpg,ISIC_0025286,HAM_0000728,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,lower extremity,train,2
+images/basal_cell_carcinoma/ISIC_0026865.jpg,ISIC_0026865,HAM_0005509,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,upper extremity,train,1
+images/melanoma/ISIC_0025248.jpg,ISIC_0025248,HAM_0006196,melanoma,melanoma,histo,70.0,male,back,train,1
+images/actinic_keratoses/ISIC_0026525.jpg,ISIC_0026525,HAM_0001048,actinic_keratoses,actinic keratosis / Bowen's,histo,45.0,male,face,train,1
+images/actinic_keratoses/ISIC_0027795.jpg,ISIC_0027795,HAM_0001526,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,ear,train,1
+images/melanocytic_Nevi/ISIC_0024319.jpg,ISIC_0024319,HAM_0003062,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,lower extremity,train,1
+images/dermatofibroma/ISIC_0033790.jpg,ISIC_0033790,HAM_0002909,dermatofibroma,dermatofibroma,histo,50.0,male,lower extremity,test,3
+images/vascular_lesions/ISIC_0034214.jpg,ISIC_0034214,HAM_0007097,vascular_lesions,vascular lesion,histo,60.0,male,trunk,train,3
+images/actinic_keratoses/ISIC_0029141.jpg,ISIC_0029141,HAM_0004592,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0026139.jpg,ISIC_0026139,HAM_0002809,benign_keratosis-like_lesions,benign keratosis,histo,45.0,female,face,train,2
+images/basal_cell_carcinoma/ISIC_0025564.jpg,ISIC_0025564,HAM_0004161,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,male,back,train,1
+images/melanoma/ISIC_0024875.jpg,ISIC_0024875,HAM_0007617,melanoma,melanoma,histo,85.0,female,face,train,1
+images/dermatofibroma/ISIC_0024386.jpg,ISIC_0024386,HAM_0005112,dermatofibroma,dermatofibroma,consensus,40.0,female,lower extremity,train,3
+images/vascular_lesions/ISIC_0025197.jpg,ISIC_0025197,HAM_0000460,vascular_lesions,vascular lesion,consensus,50.0,female,abdomen,train,3
+images/melanoma/ISIC_0026131.jpg,ISIC_0026131,HAM_0006171,melanoma,melanoma,histo,75.0,female,upper extremity,train,1
+images/dermatofibroma/ISIC_0026629.jpg,ISIC_0026629,HAM_0004065,dermatofibroma,dermatofibroma,consensus,65.0,female,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0027093.jpg,ISIC_0027093,HAM_0002959,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0027546.jpg,ISIC_0027546,HAM_0005617,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,back,train,1
+images/actinic_keratoses/ISIC_0028076.jpg,ISIC_0028076,HAM_0006434,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0028050.jpg,ISIC_0028050,HAM_0003191,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,hand,train,1
+images/basal_cell_carcinoma/ISIC_0026275.jpg,ISIC_0026275,HAM_0005804,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,face,train,1
+images/melanoma/ISIC_0025964.jpg,ISIC_0025964,HAM_0000871,melanoma,melanoma,histo,40.0,female,chest,train,1
+images/benign_keratosis-like_lesions/ISIC_0025345.jpg,ISIC_0025345,HAM_0000893,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,lower extremity,train,2
+images/actinic_keratoses/ISIC_0028190.jpg,ISIC_0028190,HAM_0002734,actinic_keratoses,actinic keratosis / Bowen's,histo,45.0,male,face,train,1
+images/dermatofibroma/ISIC_0025771.jpg,ISIC_0025771,HAM_0001841,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0025302.jpg,ISIC_0025302,HAM_0007421,dermatofibroma,dermatofibroma,histo,60.0,female,lower extremity,validation,3
+images/dermatofibroma/ISIC_0029039.jpg,ISIC_0029039,HAM_0004317,dermatofibroma,dermatofibroma,histo,50.0,female,lower extremity,train,3
+images/actinic_keratoses/ISIC_0028132.jpg,ISIC_0028132,HAM_0005413,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,face,train,1
+images/vascular_lesions/ISIC_0031270.jpg,ISIC_0031270,HAM_0006889,vascular_lesions,vascular lesion,histo,20.0,male,upper extremity,train,3
+images/vascular_lesions/ISIC_0033749.jpg,ISIC_0033749,HAM_0001852,vascular_lesions,vascular lesion,histo,80.0,male,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0024632.jpg,ISIC_0024632,HAM_0001666,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0029559.jpg,ISIC_0029559,HAM_0000351,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,back,test,2
+images/basal_cell_carcinoma/ISIC_0025793.jpg,ISIC_0025793,HAM_0004603,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,male,trunk,train,1
+images/basal_cell_carcinoma/ISIC_0026968.jpg,ISIC_0026968,HAM_0000612,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,neck,train,1
+images/benign_keratosis-like_lesions/ISIC_0025068.jpg,ISIC_0025068,HAM_0000542,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,face,train,2
+images/benign_keratosis-like_lesions/ISIC_0024358.jpg,ISIC_0024358,HAM_0000933,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,back,train,2
+images/basal_cell_carcinoma/ISIC_0026978.jpg,ISIC_0026978,HAM_0004042,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0026107.jpg,ISIC_0026107,HAM_0003265,benign_keratosis-like_lesions,benign keratosis,histo,35.0,female,chest,train,2
+images/vascular_lesions/ISIC_0033092.jpg,ISIC_0033092,HAM_0000494,vascular_lesions,vascular lesion,histo,55.0,male,lower extremity,train,3
+images/dermatofibroma/ISIC_0025594.jpg,ISIC_0025594,HAM_0005983,dermatofibroma,dermatofibroma,consensus,65.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0028880.jpg,ISIC_0028880,HAM_0004103,dermatofibroma,dermatofibroma,histo,55.0,male,lower extremity,test,3
+images/vascular_lesions/ISIC_0025873.jpg,ISIC_0025873,HAM_0006501,vascular_lesions,vascular lesion,consensus,50.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0033780.jpg,ISIC_0033780,HAM_0006371,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0031483.jpg,ISIC_0031483,HAM_0002298,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,male,lower extremity,test,1
+images/melanocytic_Nevi/ISIC_0034153.jpg,ISIC_0034153,HAM_0000067,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,female,ear,test,1
+images/melanocytic_Nevi/ISIC_0024514.jpg,ISIC_0024514,HAM_0002201,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,back,train,1
+images/melanoma/ISIC_0025439.jpg,ISIC_0025439,HAM_0001214,melanoma,melanoma,histo,55.0,male,chest,train,1
+images/melanocytic_Nevi/ISIC_0031654.jpg,ISIC_0031654,HAM_0005428,melanocytic_Nevi,melanocytic nevus (mole),histo,15.0,female,trunk,test,1
+images/benign_keratosis-like_lesions/ISIC_0025199.jpg,ISIC_0025199,HAM_0003206,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,lower extremity,train,2
+images/dermatofibroma/ISIC_0029760.jpg,ISIC_0029760,HAM_0004330,dermatofibroma,dermatofibroma,histo,70.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0029877.jpg,ISIC_0029877,HAM_0006193,vascular_lesions,vascular lesion,consensus,80.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0026737.jpg,ISIC_0026737,HAM_0004423,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,upper extremity,test,2
+images/benign_keratosis-like_lesions/ISIC_0026085.jpg,ISIC_0026085,HAM_0001858,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,scalp,train,2
+images/melanocytic_Nevi/ISIC_0032107.jpg,ISIC_0032107,HAM_0003313,melanocytic_Nevi,melanocytic nevus (mole),histo,70.0,female,back,test,1
+images/dermatofibroma/ISIC_0033808.jpg,ISIC_0033808,HAM_0003081,dermatofibroma,dermatofibroma,consensus,45.0,male,abdomen,train,3
+images/basal_cell_carcinoma/ISIC_0026952.jpg,ISIC_0026952,HAM_0002167,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0034320.jpg,ISIC_0034320,HAM_0002244,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,chest,test,1
+images/vascular_lesions/ISIC_0027790.jpg,ISIC_0027790,HAM_0004943,vascular_lesions,vascular lesion,consensus,50.0,female,face,train,3
+images/melanoma/ISIC_0026086.jpg,ISIC_0026086,HAM_0005403,melanoma,melanoma,histo,55.0,male,upper extremity,train,1
+images/melanoma/ISIC_0025277.jpg,ISIC_0025277,HAM_0002720,melanoma,melanoma,histo,75.0,male,ear,train,1
+images/melanocytic_Nevi/ISIC_0032096.jpg,ISIC_0032096,HAM_0003848,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,female,abdomen,test,1
+images/actinic_keratoses/ISIC_0025358.jpg,ISIC_0025358,HAM_0004398,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,face,train,1
+images/actinic_keratoses/ISIC_0025130.jpg,ISIC_0025130,HAM_0000718,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0025046.jpg,ISIC_0025046,HAM_0003866,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,abdomen,train,1
+images/melanocytic_Nevi/ISIC_0024476.jpg,ISIC_0024476,HAM_0002007,melanocytic_Nevi,melanocytic nevus (mole),histo,85.0,male,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0024664.jpg,ISIC_0024664,HAM_0001604,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0027958.jpg,ISIC_0027958,HAM_0003455,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,hand,train,1
+images/basal_cell_carcinoma/ISIC_0026716.jpg,ISIC_0026716,HAM_0000504,basal_cell_carcinoma,basal cell carcinoma,histo,45.0,male,back,train,1
+images/melanoma/ISIC_0026296.jpg,ISIC_0026296,HAM_0004265,melanoma,melanoma,histo,45.0,male,unknown,train,1
+images/melanoma/ISIC_0025132.jpg,ISIC_0025132,HAM_0000247,melanoma,melanoma,histo,80.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025099.jpg,ISIC_0025099,HAM_0004641,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,abdomen,train,2
+images/vascular_lesions/ISIC_0032270.jpg,ISIC_0032270,HAM_0005270,vascular_lesions,vascular lesion,histo,70.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0030427.jpg,ISIC_0030427,HAM_0004371,dermatofibroma,dermatofibroma,histo,45.0,female,upper extremity,train,3
+images/vascular_lesions/ISIC_0026490.jpg,ISIC_0026490,HAM_0006291,vascular_lesions,vascular lesion,consensus,65.0,female,trunk,test,3
+images/benign_keratosis-like_lesions/ISIC_0029340.jpg,ISIC_0029340,HAM_0005157,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,chest,test,2
+images/actinic_keratoses/ISIC_0024450.jpg,ISIC_0024450,HAM_0005505,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0027447.jpg,ISIC_0027447,HAM_0007601,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0034257.jpg,ISIC_0034257,HAM_0005905,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,back,test,1
+images/vascular_lesions/ISIC_0026092.jpg,ISIC_0026092,HAM_0002914,vascular_lesions,vascular lesion,histo,75.0,male,upper extremity,train,3
+images/melanocytic_Nevi/ISIC_0032558.jpg,ISIC_0032558,HAM_0006869,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,back,test,1
+images/melanoma/ISIC_0025128.jpg,ISIC_0025128,HAM_0006899,melanoma,melanoma,histo,80.0,female,lower extremity,train,1
+images/melanoma/ISIC_0025219.jpg,ISIC_0025219,HAM_0005588,melanoma,melanoma,histo,80.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0024904.jpg,ISIC_0024904,HAM_0002914,vascular_lesions,vascular lesion,histo,75.0,male,upper extremity,validation,3
+images/basal_cell_carcinoma/ISIC_0027920.jpg,ISIC_0027920,HAM_0001390,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,face,train,1
+images/vascular_lesions/ISIC_0032240.jpg,ISIC_0032240,HAM_0002538,vascular_lesions,vascular lesion,histo,65.0,female,abdomen,train,3
+images/benign_keratosis-like_lesions/ISIC_0025030.jpg,ISIC_0025030,HAM_0000118,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,scalp,train,2
+images/benign_keratosis-like_lesions/ISIC_0025819.jpg,ISIC_0025819,HAM_0002299,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,face,train,2
+images/basal_cell_carcinoma/ISIC_0026829.jpg,ISIC_0026829,HAM_0007497,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,female,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0024786.jpg,ISIC_0024786,HAM_0002227,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,lower extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0024761.jpg,ISIC_0024761,HAM_0005053,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,face,train,2
+images/melanoma/ISIC_0025891.jpg,ISIC_0025891,HAM_0001600,melanoma,melanoma,histo,65.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0026902.jpg,ISIC_0026902,HAM_0000719,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,abdomen,train,1
+images/dermatofibroma/ISIC_0033810.jpg,ISIC_0033810,HAM_0007396,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0030492.jpg,ISIC_0030492,HAM_0004043,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,female,back,train,1
+images/actinic_keratoses/ISIC_0024468.jpg,ISIC_0024468,HAM_0006301,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,neck,train,1
+images/actinic_keratoses/ISIC_0027047.jpg,ISIC_0027047,HAM_0001786,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024505.jpg,ISIC_0024505,HAM_0000364,benign_keratosis-like_lesions,benign keratosis,histo,40.0,female,face,train,2
+images/melanocytic_Nevi/ISIC_0033702.jpg,ISIC_0033702,HAM_0003884,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,back,test,1
+images/dermatofibroma/ISIC_0025954.jpg,ISIC_0025954,HAM_0002706,dermatofibroma,dermatofibroma,histo,40.0,male,lower extremity,validation,3
+images/dermatofibroma/ISIC_0029891.jpg,ISIC_0029891,HAM_0007227,dermatofibroma,dermatofibroma,histo,75.0,male,lower extremity,train,3
+images/dermatofibroma/ISIC_0026313.jpg,ISIC_0026313,HAM_0007418,dermatofibroma,dermatofibroma,consensus,50.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0024547.jpg,ISIC_0024547,HAM_0005790,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,back,train,2
+images/vascular_lesions/ISIC_0033123.jpg,ISIC_0033123,HAM_0005989,vascular_lesions,vascular lesion,histo,25.0,female,back,train,3
+images/melanocytic_Nevi/ISIC_0031970.jpg,ISIC_0031970,HAM_0005421,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,male,trunk,test,1
+images/dermatofibroma/ISIC_0027727.jpg,ISIC_0027727,HAM_0004036,dermatofibroma,dermatofibroma,histo,55.0,male,upper extremity,train,3
+images/melanoma/ISIC_0026009.jpg,ISIC_0026009,HAM_0000952,melanoma,melanoma,histo,80.0,female,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0032767.jpg,ISIC_0032767,HAM_0006520,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,male,back,test,1
+images/basal_cell_carcinoma/ISIC_0024673.jpg,ISIC_0024673,HAM_0003429,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0024578.jpg,ISIC_0024578,HAM_0004518,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0034030.jpg,ISIC_0034030,HAM_0003181,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,back,test,1
+images/vascular_lesions/ISIC_0027983.jpg,ISIC_0027983,HAM_0003839,vascular_lesions,vascular lesion,histo,75.0,male,abdomen,validation,3
+images/benign_keratosis-like_lesions/ISIC_0028343.jpg,ISIC_0028343,HAM_0004343,benign_keratosis-like_lesions,benign keratosis,histo,30.0,male,face,test,2
+images/actinic_keratoses/ISIC_0026149.jpg,ISIC_0026149,HAM_0005480,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0024503.jpg,ISIC_0024503,HAM_0001142,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,foot,train,1
+images/actinic_keratoses/ISIC_0026152.jpg,ISIC_0026152,HAM_0000549,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/melanoma/ISIC_0026239.jpg,ISIC_0026239,HAM_0002800,melanoma,melanoma,histo,55.0,male,chest,train,1
+images/basal_cell_carcinoma/ISIC_0024452.jpg,ISIC_0024452,HAM_0005971,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,male,back,train,1
+images/actinic_keratoses/ISIC_0024575.jpg,ISIC_0024575,HAM_0004722,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,upper extremity,train,1
+images/melanoma/ISIC_0026531.jpg,ISIC_0026531,HAM_0000876,melanoma,melanoma,histo,55.0,male,abdomen,train,1
+images/melanocytic_Nevi/ISIC_0024406.jpg,ISIC_0024406,HAM_0007480,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,foot,train,1
+images/basal_cell_carcinoma/ISIC_0026395.jpg,ISIC_0026395,HAM_0005382,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,female,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0026142.jpg,ISIC_0026142,HAM_0006945,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,lower extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0025767.jpg,ISIC_0025767,HAM_0001949,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,trunk,train,2
+images/melanocytic_Nevi/ISIC_0024615.jpg,ISIC_0024615,HAM_0003308,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,face,train,1
+images/vascular_lesions/ISIC_0029486.jpg,ISIC_0029486,HAM_0001920,vascular_lesions,vascular lesion,histo,55.0,male,back,train,3
+images/melanoma/ISIC_0024624.jpg,ISIC_0024624,HAM_0000210,melanoma,melanoma,histo,75.0,female,face,train,1
+images/dermatofibroma/ISIC_0034135.jpg,ISIC_0034135,HAM_0006371,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0026070.jpg,ISIC_0026070,HAM_0002268,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,upper extremity,train,2
+images/vascular_lesions/ISIC_0029448.jpg,ISIC_0029448,HAM_0002218,vascular_lesions,vascular lesion,histo,5.0,male,back,train,3
+images/melanocytic_Nevi/ISIC_0030362.jpg,ISIC_0030362,HAM_0000135,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0027856.jpg,ISIC_0027856,HAM_0007118,vascular_lesions,vascular lesion,consensus,45.0,female,trunk,train,3
+images/melanocytic_Nevi/ISIC_0033155.jpg,ISIC_0033155,HAM_0003512,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,back,test,1
+images/basal_cell_carcinoma/ISIC_0025752.jpg,ISIC_0025752,HAM_0005435,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0027706.jpg,ISIC_0027706,HAM_0005596,benign_keratosis-like_lesions,benign keratosis,histo,30.0,female,face,test,2
+images/basal_cell_carcinoma/ISIC_0027677.jpg,ISIC_0027677,HAM_0005617,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,back,train,1
+images/actinic_keratoses/ISIC_0024418.jpg,ISIC_0024418,HAM_0003380,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0024470.jpg,ISIC_0024470,HAM_0006220,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0026760.jpg,ISIC_0026760,HAM_0001884,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025746.jpg,ISIC_0025746,HAM_0005591,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,lower extremity,train,2
+images/melanocytic_Nevi/ISIC_0033950.jpg,ISIC_0033950,HAM_0006334,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,back,test,1
+images/vascular_lesions/ISIC_0024402.jpg,ISIC_0024402,HAM_0004542,vascular_lesions,vascular lesion,consensus,0.0,female,back,validation,3
+images/basal_cell_carcinoma/ISIC_0024472.jpg,ISIC_0024472,HAM_0001654,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0029394.jpg,ISIC_0029394,HAM_0004566,benign_keratosis-like_lesions,benign keratosis,histo,55.0,female,lower extremity,test,2
+images/actinic_keratoses/ISIC_0025029.jpg,ISIC_0025029,HAM_0003105,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0031142.jpg,ISIC_0031142,HAM_0006030,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,male,face,test,1
+images/melanoma/ISIC_0025573.jpg,ISIC_0025573,HAM_0004936,melanoma,melanoma,histo,80.0,male,chest,train,1
+images/melanoma/ISIC_0024732.jpg,ISIC_0024732,HAM_0002509,melanoma,melanoma,histo,50.0,female,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0033067.jpg,ISIC_0033067,HAM_0001935,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,chest,test,1
+images/dermatofibroma/ISIC_0030757.jpg,ISIC_0030757,HAM_0003290,dermatofibroma,dermatofibroma,histo,80.0,male,upper extremity,test,3
+images/dermatofibroma/ISIC_0025223.jpg,ISIC_0025223,HAM_0000827,dermatofibroma,dermatofibroma,consensus,60.0,male,upper extremity,train,3
+images/basal_cell_carcinoma/ISIC_0025509.jpg,ISIC_0025509,HAM_0002269,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,back,train,1
+images/actinic_keratoses/ISIC_0024946.jpg,ISIC_0024946,HAM_0005264,actinic_keratoses,actinic keratosis / Bowen's,histo,45.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0027146.jpg,ISIC_0027146,HAM_0007009,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,male,back,train,1
+images/actinic_keratoses/ISIC_0025637.jpg,ISIC_0025637,HAM_0001460,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,face,train,1
+images/actinic_keratoses/ISIC_0027254.jpg,ISIC_0027254,HAM_0003949,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,face,train,1
+images/melanoma/ISIC_0024865.jpg,ISIC_0024865,HAM_0001734,melanoma,melanoma,histo,55.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0025825.jpg,ISIC_0025825,HAM_0002232,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,face,train,1
+images/dermatofibroma/ISIC_0031309.jpg,ISIC_0031309,HAM_0004103,dermatofibroma,dermatofibroma,histo,55.0,male,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0024457.jpg,ISIC_0024457,HAM_0006843,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,face,train,1
+images/actinic_keratoses/ISIC_0027615.jpg,ISIC_0027615,HAM_0006180,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/vascular_lesions/ISIC_0025425.jpg,ISIC_0025425,HAM_0002787,vascular_lesions,vascular lesion,consensus,50.0,male,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0026539.jpg,ISIC_0026539,HAM_0004696,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,back,test,2
+images/actinic_keratoses/ISIC_0026206.jpg,ISIC_0026206,HAM_0000490,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0031866.jpg,ISIC_0031866,HAM_0003423,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,male,upper extremity,test,1
+images/benign_keratosis-like_lesions/ISIC_0027806.jpg,ISIC_0027806,HAM_0001273,benign_keratosis-like_lesions,benign keratosis,histo,80.0,female,back,test,2
+images/actinic_keratoses/ISIC_0025577.jpg,ISIC_0025577,HAM_0000005,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/melanoma/ISIC_0025531.jpg,ISIC_0025531,HAM_0004767,melanoma,melanoma,histo,80.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0025510.jpg,ISIC_0025510,HAM_0002092,benign_keratosis-like_lesions,benign keratosis,histo,35.0,female,lower extremity,train,2
+images/dermatofibroma/ISIC_0031123.jpg,ISIC_0031123,HAM_0003487,dermatofibroma,dermatofibroma,consensus,40.0,male,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0024618.jpg,ISIC_0024618,HAM_0006030,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,male,face,train,1
+images/dermatofibroma/ISIC_0032410.jpg,ISIC_0032410,HAM_0005518,dermatofibroma,dermatofibroma,histo,30.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0025777.jpg,ISIC_0025777,HAM_0002827,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,lower extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0025086.jpg,ISIC_0025086,HAM_0004050,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,lower extremity,train,2
+images/dermatofibroma/ISIC_0030244.jpg,ISIC_0030244,HAM_0007526,dermatofibroma,dermatofibroma,histo,50.0,male,lower extremity,train,3
+images/melanoma/ISIC_0026738.jpg,ISIC_0026738,HAM_0006137,melanoma,melanoma,histo,85.0,female,face,train,1
+images/dermatofibroma/ISIC_0030321.jpg,ISIC_0030321,HAM_0003555,dermatofibroma,dermatofibroma,histo,30.0,male,upper extremity,train,3
+images/actinic_keratoses/ISIC_0025992.jpg,ISIC_0025992,HAM_0005480,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,face,train,1
+images/actinic_keratoses/ISIC_0026765.jpg,ISIC_0026765,HAM_0001474,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,female,chest,train,1
+images/melanoma/ISIC_0025121.jpg,ISIC_0025121,HAM_0004642,melanoma,melanoma,histo,50.0,female,upper extremity,train,1
+images/actinic_keratoses/ISIC_0029659.jpg,ISIC_0029659,HAM_0000673,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0025971.jpg,ISIC_0025971,HAM_0000504,basal_cell_carcinoma,basal cell carcinoma,histo,45.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0027629.jpg,ISIC_0027629,HAM_0002427,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025554.jpg,ISIC_0025554,HAM_0000907,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,ear,train,2
+images/dermatofibroma/ISIC_0030830.jpg,ISIC_0030830,HAM_0006794,dermatofibroma,dermatofibroma,consensus,50.0,female,genital,train,3
+images/dermatofibroma/ISIC_0027876.jpg,ISIC_0027876,HAM_0004960,dermatofibroma,dermatofibroma,histo,65.0,female,lower extremity,train,3
+images/actinic_keratoses/ISIC_0029462.jpg,ISIC_0029462,HAM_0007349,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,back,train,1
+images/actinic_keratoses/ISIC_0027343.jpg,ISIC_0027343,HAM_0003380,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0032322.jpg,ISIC_0032322,HAM_0004564,melanocytic_Nevi,melanocytic nevus (mole),histo,15.0,female,back,test,1
+images/melanoma/ISIC_0024644.jpg,ISIC_0024644,HAM_0004171,melanoma,melanoma,histo,85.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0024403.jpg,ISIC_0024403,HAM_0003680,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,back,train,1
+images/dermatofibroma/ISIC_0027613.jpg,ISIC_0027613,HAM_0005684,dermatofibroma,dermatofibroma,histo,75.0,female,lower extremity,test,3
+images/melanoma/ISIC_0024958.jpg,ISIC_0024958,HAM_0002613,melanoma,melanoma,histo,45.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025883.jpg,ISIC_0025883,HAM_0007607,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,back,train,2
+images/vascular_lesions/ISIC_0025250.jpg,ISIC_0025250,HAM_0004769,vascular_lesions,vascular lesion,consensus,30.0,male,scalp,validation,3
+images/dermatofibroma/ISIC_0026254.jpg,ISIC_0026254,HAM_0006816,dermatofibroma,dermatofibroma,consensus,45.0,male,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0031982.jpg,ISIC_0031982,HAM_0002345,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,upper extremity,test,1
+images/melanocytic_Nevi/ISIC_0032191.jpg,ISIC_0032191,HAM_0006618,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,female,ear,test,1
+images/actinic_keratoses/ISIC_0029500.jpg,ISIC_0029500,HAM_0006887,actinic_keratoses,actinic keratosis / Bowen's,histo,45.0,male,face,train,1
+images/actinic_keratoses/ISIC_0028063.jpg,ISIC_0028063,HAM_0006560,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0033253.jpg,ISIC_0033253,HAM_0002434,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,back,test,1
+images/actinic_keratoses/ISIC_0026468.jpg,ISIC_0026468,HAM_0001023,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,hand,train,1
+images/melanoma/ISIC_0025955.jpg,ISIC_0025955,HAM_0005481,melanoma,melanoma,histo,45.0,male,lower extremity,train,1
+images/melanoma/ISIC_0024733.jpg,ISIC_0024733,HAM_0001964,melanoma,melanoma,histo,50.0,male,neck,train,1
+images/benign_keratosis-like_lesions/ISIC_0025693.jpg,ISIC_0025693,HAM_0002879,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,scalp,train,2
+images/melanoma/ISIC_0024853.jpg,ISIC_0024853,HAM_0000645,melanoma,melanoma,histo,70.0,male,trunk,train,1
+images/benign_keratosis-like_lesions/ISIC_0025351.jpg,ISIC_0025351,HAM_0007591,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,upper extremity,train,2
+images/actinic_keratoses/ISIC_0029025.jpg,ISIC_0029025,HAM_0004384,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,face,train,1
+images/basal_cell_carcinoma/ISIC_0025299.jpg,ISIC_0025299,HAM_0007313,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0026643.jpg,ISIC_0026643,HAM_0005469,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0030842.jpg,ISIC_0030842,HAM_0006855,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,back,test,1
+images/melanoma/ISIC_0026188.jpg,ISIC_0026188,HAM_0001409,melanoma,melanoma,histo,70.0,male,trunk,train,1
+images/basal_cell_carcinoma/ISIC_0027120.jpg,ISIC_0027120,HAM_0003444,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0026981.jpg,ISIC_0026981,HAM_0000909,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,lower extremity,train,1
+images/dermatofibroma/ISIC_0029783.jpg,ISIC_0029783,HAM_0002706,dermatofibroma,dermatofibroma,histo,40.0,male,lower extremity,train,3
+images/melanoma/ISIC_0026746.jpg,ISIC_0026746,HAM_0000588,melanoma,melanoma,histo,65.0,female,back,train,1
+images/melanoma/ISIC_0024918.jpg,ISIC_0024918,HAM_0007530,melanoma,melanoma,histo,30.0,male,chest,train,1
+images/melanocytic_Nevi/ISIC_0024608.jpg,ISIC_0024608,HAM_0000231,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0032904.jpg,ISIC_0032904,HAM_0006284,melanocytic_Nevi,melanocytic nevus (mole),histo,5.0,female,back,test,1
+images/vascular_lesions/ISIC_0032867.jpg,ISIC_0032867,HAM_0004776,vascular_lesions,vascular lesion,histo,45.0,female,chest,train,3
+images/vascular_lesions/ISIC_0032076.jpg,ISIC_0032076,HAM_0005155,vascular_lesions,vascular lesion,histo,85.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0033608.jpg,ISIC_0033608,HAM_0000940,vascular_lesions,vascular lesion,histo,35.0,female,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0026442.jpg,ISIC_0026442,HAM_0000953,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,chest,train,1
+images/melanoma/ISIC_0026105.jpg,ISIC_0026105,HAM_0003172,melanoma,melanoma,histo,65.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0028107.jpg,ISIC_0028107,HAM_0003135,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,chest,train,1
+images/basal_cell_carcinoma/ISIC_0024885.jpg,ISIC_0024885,HAM_0005243,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,female,back,train,1
+images/vascular_lesions/ISIC_0034196.jpg,ISIC_0034196,HAM_0001852,vascular_lesions,vascular lesion,histo,80.0,male,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0032233.jpg,ISIC_0032233,HAM_0006174,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,male,back,test,1
+images/basal_cell_carcinoma/ISIC_0026574.jpg,ISIC_0026574,HAM_0005660,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,lower extremity,train,1
+images/melanoma/ISIC_0024449.jpg,ISIC_0024449,HAM_0001950,melanoma,melanoma,histo,55.0,male,back,train,1
+images/melanoma/ISIC_0025941.jpg,ISIC_0025941,HAM_0003171,melanoma,melanoma,histo,55.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0025301.jpg,ISIC_0025301,HAM_0000987,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0024674.jpg,ISIC_0024674,HAM_0007096,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0028146.jpg,ISIC_0028146,HAM_0005471,vascular_lesions,vascular lesion,histo,60.0,female,back,validation,3
+images/actinic_keratoses/ISIC_0026203.jpg,ISIC_0026203,HAM_0003895,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,back,train,1
+images/actinic_keratoses/ISIC_0026857.jpg,ISIC_0026857,HAM_0004363,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,face,train,1
+images/dermatofibroma/ISIC_0029824.jpg,ISIC_0029824,HAM_0005362,dermatofibroma,dermatofibroma,consensus,50.0,male,lower extremity,train,3
+images/actinic_keratoses/ISIC_0025196.jpg,ISIC_0025196,HAM_0005924,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,upper extremity,train,1
+images/vascular_lesions/ISIC_0033123.jpg,ISIC_0033123,HAM_0005989,vascular_lesions,vascular lesion,histo,25.0,female,back,test,3
+images/benign_keratosis-like_lesions/ISIC_0025064.jpg,ISIC_0025064,HAM_0006541,benign_keratosis-like_lesions,benign keratosis,histo,35.0,female,lower extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0024748.jpg,ISIC_0024748,HAM_0003420,benign_keratosis-like_lesions,benign keratosis,histo,45.0,male,abdomen,train,2
+images/vascular_lesions/ISIC_0032692.jpg,ISIC_0032692,HAM_0000940,vascular_lesions,vascular lesion,histo,35.0,female,lower extremity,validation,3
+images/vascular_lesions/ISIC_0026456.jpg,ISIC_0026456,HAM_0006203,vascular_lesions,vascular lesion,histo,60.0,male,upper extremity,train,3
+images/vascular_lesions/ISIC_0031270.jpg,ISIC_0031270,HAM_0006889,vascular_lesions,vascular lesion,histo,20.0,male,upper extremity,validation,3
+images/actinic_keratoses/ISIC_0026411.jpg,ISIC_0026411,HAM_0004846,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,hand,train,1
+images/actinic_keratoses/ISIC_0026549.jpg,ISIC_0026549,HAM_0002307,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,chest,train,1
+images/dermatofibroma/ISIC_0032642.jpg,ISIC_0032642,HAM_0002909,dermatofibroma,dermatofibroma,histo,50.0,male,lower extremity,validation,3
+images/actinic_keratoses/ISIC_0026522.jpg,ISIC_0026522,HAM_0005505,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024981.jpg,ISIC_0024981,HAM_0005612,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,scalp,train,2
+images/melanocytic_Nevi/ISIC_0024355.jpg,ISIC_0024355,HAM_0001525,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0030334.jpg,ISIC_0030334,HAM_0001497,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024839.jpg,ISIC_0024839,HAM_0000425,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,scalp,train,2
+images/melanoma/ISIC_0025409.jpg,ISIC_0025409,HAM_0001877,melanoma,melanoma,histo,80.0,female,back,train,1
+images/melanoma/ISIC_0025674.jpg,ISIC_0025674,HAM_0000531,melanoma,melanoma,histo,85.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0024426.jpg,ISIC_0024426,HAM_0001597,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,back,train,2
+images/vascular_lesions/ISIC_0028188.jpg,ISIC_0028188,HAM_0004877,vascular_lesions,vascular lesion,histo,85.0,female,upper extremity,train,3
+images/melanocytic_Nevi/ISIC_0024361.jpg,ISIC_0024361,HAM_0005605,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,chest,train,1
+images/vascular_lesions/ISIC_0032745.jpg,ISIC_0032745,HAM_0000494,vascular_lesions,vascular lesion,histo,55.0,male,lower extremity,test,3
+images/actinic_keratoses/ISIC_0027184.jpg,ISIC_0027184,HAM_0007349,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,back,train,1
+images/dermatofibroma/ISIC_0028346.jpg,ISIC_0028346,HAM_0005861,dermatofibroma,dermatofibroma,histo,65.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0025373.jpg,ISIC_0025373,HAM_0007569,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0032412.jpg,ISIC_0032412,HAM_0002234,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,male,back,test,1
+images/actinic_keratoses/ISIC_0026040.jpg,ISIC_0026040,HAM_0006252,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0025975.jpg,ISIC_0025975,HAM_0005835,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,male,back,train,1
+images/melanoma/ISIC_0026158.jpg,ISIC_0026158,HAM_0003448,melanoma,melanoma,histo,75.0,male,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0024949.jpg,ISIC_0024949,HAM_0005669,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0024595.jpg,ISIC_0024595,HAM_0004027,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,back,train,1
+images/actinic_keratoses/ISIC_0028335.jpg,ISIC_0028335,HAM_0001219,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0028406.jpg,ISIC_0028406,HAM_0005215,vascular_lesions,vascular lesion,consensus,80.0,male,abdomen,train,3
+images/basal_cell_carcinoma/ISIC_0027851.jpg,ISIC_0027851,HAM_0001078,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0027577.jpg,ISIC_0027577,HAM_0005958,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,face,train,1
+images/melanoma/ISIC_0024930.jpg,ISIC_0024930,HAM_0002196,melanoma,melanoma,histo,60.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0025322.jpg,ISIC_0025322,HAM_0002666,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,upper extremity,train,1
+images/vascular_lesions/ISIC_0031103.jpg,ISIC_0031103,HAM_0001372,vascular_lesions,vascular lesion,consensus,35.0,female,trunk,train,3
+images/actinic_keratoses/ISIC_0024522.jpg,ISIC_0024522,HAM_0005650,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025063.jpg,ISIC_0025063,HAM_0002985,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,face,train,2
+images/basal_cell_carcinoma/ISIC_0025467.jpg,ISIC_0025467,HAM_0006047,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,scalp,train,1
+images/benign_keratosis-like_lesions/ISIC_0026744.jpg,ISIC_0026744,HAM_0001820,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,back,test,2
+images/basal_cell_carcinoma/ISIC_0028113.jpg,ISIC_0028113,HAM_0003846,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/vascular_lesions/ISIC_0031093.jpg,ISIC_0031093,HAM_0000502,vascular_lesions,vascular lesion,consensus,70.0,male,back,train,3
+images/melanoma/ISIC_0025751.jpg,ISIC_0025751,HAM_0000814,melanoma,melanoma,histo,65.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0028749.jpg,ISIC_0028749,HAM_0005275,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,face,test,2
+images/benign_keratosis-like_lesions/ISIC_0024947.jpg,ISIC_0024947,HAM_0001721,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,face,train,2
+images/vascular_lesions/ISIC_0033844.jpg,ISIC_0033844,HAM_0003480,vascular_lesions,vascular lesion,consensus,70.0,female,lower extremity,validation,3
+images/actinic_keratoses/ISIC_0028232.jpg,ISIC_0028232,HAM_0003123,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0029991.jpg,ISIC_0029991,HAM_0003899,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,back,test,2
+images/vascular_lesions/ISIC_0029404.jpg,ISIC_0029404,HAM_0002692,vascular_lesions,vascular lesion,histo,10.0,male,trunk,validation,3
+images/benign_keratosis-like_lesions/ISIC_0025703.jpg,ISIC_0025703,HAM_0000110,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,back,train,2
+images/actinic_keratoses/ISIC_0029360.jpg,ISIC_0029360,HAM_0000549,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/vascular_lesions/ISIC_0031276.jpg,ISIC_0031276,HAM_0006447,vascular_lesions,vascular lesion,consensus,75.0,male,abdomen,train,3
+images/melanoma/ISIC_0026207.jpg,ISIC_0026207,HAM_0002696,melanoma,melanoma,histo,45.0,female,foot,train,1
+images/melanocytic_Nevi/ISIC_0032512.jpg,ISIC_0032512,HAM_0003735,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,back,test,1
+images/dermatofibroma/ISIC_0033626.jpg,ISIC_0033626,HAM_0006371,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0024994.jpg,ISIC_0024994,HAM_0002960,dermatofibroma,dermatofibroma,consensus,40.0,female,lower extremity,train,3
+images/vascular_lesions/ISIC_0029742.jpg,ISIC_0029742,HAM_0002650,vascular_lesions,vascular lesion,consensus,5.0,male,back,test,3
+images/actinic_keratoses/ISIC_0024511.jpg,ISIC_0024511,HAM_0001505,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,female,face,train,1
+images/dermatofibroma/ISIC_0027188.jpg,ISIC_0027188,HAM_0006188,dermatofibroma,dermatofibroma,consensus,40.0,male,lower extremity,train,3
+images/dermatofibroma/ISIC_0028790.jpg,ISIC_0028790,HAM_0005276,dermatofibroma,dermatofibroma,histo,75.0,male,back,test,3
+images/vascular_lesions/ISIC_0031065.jpg,ISIC_0031065,HAM_0000109,vascular_lesions,vascular lesion,consensus,35.0,female,trunk,test,3
+images/basal_cell_carcinoma/ISIC_0027601.jpg,ISIC_0027601,HAM_0005842,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0027057.jpg,ISIC_0027057,HAM_0002021,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,upper extremity,train,1
+images/melanoma/ISIC_0025814.jpg,ISIC_0025814,HAM_0002194,melanoma,melanoma,histo,65.0,male,back,train,1
+images/melanoma/ISIC_0025195.jpg,ISIC_0025195,HAM_0006594,melanoma,melanoma,histo,60.0,female,back,train,1
+images/melanocytic_Nevi/ISIC_0024680.jpg,ISIC_0024680,HAM_0006323,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0025530.jpg,ISIC_0025530,HAM_0002313,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,female,foot,train,1
+images/melanoma/ISIC_0025500.jpg,ISIC_0025500,HAM_0004047,melanoma,melanoma,histo,55.0,female,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027846.jpg,ISIC_0027846,HAM_0001183,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,back,train,1
+images/melanoma/ISIC_0024525.jpg,ISIC_0024525,HAM_0005540,melanoma,melanoma,histo,65.0,male,upper extremity,train,1
+images/vascular_lesions/ISIC_0029514.jpg,ISIC_0029514,HAM_0007614,vascular_lesions,vascular lesion,histo,55.0,female,face,train,3
+images/actinic_keratoses/ISIC_0028224.jpg,ISIC_0028224,HAM_0001625,actinic_keratoses,actinic keratosis / Bowen's,histo,40.0,female,chest,train,1
+images/benign_keratosis-like_lesions/ISIC_0025485.jpg,ISIC_0025485,HAM_0005260,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,scalp,train,2
+images/melanoma/ISIC_0025097.jpg,ISIC_0025097,HAM_0000775,melanoma,melanoma,histo,55.0,male,chest,train,1
+images/melanocytic_Nevi/ISIC_0033297.jpg,ISIC_0033297,HAM_0000407,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,female,upper extremity,test,1
+images/melanocytic_Nevi/ISIC_0031645.jpg,ISIC_0031645,HAM_0001037,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,foot,test,1
+images/vascular_lesions/ISIC_0024747.jpg,ISIC_0024747,HAM_0001566,vascular_lesions,vascular lesion,consensus,70.0,female,face,train,3
+images/benign_keratosis-like_lesions/ISIC_0024773.jpg,ISIC_0024773,HAM_0000844,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,lower extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0025799.jpg,ISIC_0025799,HAM_0004531,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,lower extremity,train,2
+images/melanocytic_Nevi/ISIC_0031657.jpg,ISIC_0031657,HAM_0003828,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,abdomen,test,1
+images/basal_cell_carcinoma/ISIC_0024666.jpg,ISIC_0024666,HAM_0005435,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0032649.jpg,ISIC_0032649,HAM_0006567,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,back,test,1
+images/basal_cell_carcinoma/ISIC_0024743.jpg,ISIC_0024743,HAM_0004495,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0027385.jpg,ISIC_0027385,HAM_0004455,vascular_lesions,vascular lesion,histo,20.0,male,trunk,train,3
+images/basal_cell_carcinoma/ISIC_0024454.jpg,ISIC_0024454,HAM_0005180,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0026466.jpg,ISIC_0026466,HAM_0000456,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,female,upper extremity,train,1
+images/actinic_keratoses/ISIC_0028381.jpg,ISIC_0028381,HAM_0004522,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,female,neck,train,1
+images/melanocytic_Nevi/ISIC_0030367.jpg,ISIC_0030367,HAM_0003320,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,trunk,train,1
+images/dermatofibroma/ISIC_0029039.jpg,ISIC_0029039,HAM_0004317,dermatofibroma,dermatofibroma,histo,50.0,female,lower extremity,test,3
+images/melanoma/ISIC_0025268.jpg,ISIC_0025268,HAM_0003749,melanoma,melanoma,histo,65.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0032650.jpg,ISIC_0032650,HAM_0002908,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,male,back,test,1
+images/melanocytic_Nevi/ISIC_0033104.jpg,ISIC_0033104,HAM_0006496,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,female,lower extremity,test,1
+images/actinic_keratoses/ISIC_0027896.jpg,ISIC_0027896,HAM_0003455,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,hand,train,1
+images/melanoma/ISIC_0024630.jpg,ISIC_0024630,HAM_0007511,melanoma,melanoma,histo,85.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024381.jpg,ISIC_0024381,HAM_0001057,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,back,train,2
+images/vascular_lesions/ISIC_0027159.jpg,ISIC_0027159,HAM_0004877,vascular_lesions,vascular lesion,histo,85.0,female,upper extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0029548.jpg,ISIC_0029548,HAM_0000113,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,hand,test,2
+images/melanoma/ISIC_0025546.jpg,ISIC_0025546,HAM_0007498,melanoma,melanoma,histo,55.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0029810.jpg,ISIC_0029810,HAM_0001944,benign_keratosis-like_lesions,benign keratosis,histo,55.0,female,ear,test,2
+images/melanocytic_Nevi/ISIC_0030525.jpg,ISIC_0030525,HAM_0007004,melanocytic_Nevi,melanocytic nevus (mole),histo,70.0,female,hand,train,1
+images/basal_cell_carcinoma/ISIC_0027433.jpg,ISIC_0027433,HAM_0007002,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,face,train,1
+images/basal_cell_carcinoma/ISIC_0028095.jpg,ISIC_0028095,HAM_0001926,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0024329.jpg,ISIC_0024329,HAM_0002954,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027631.jpg,ISIC_0027631,HAM_0004440,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,back,train,1
+images/vascular_lesions/ISIC_0024867.jpg,ISIC_0024867,HAM_0007568,vascular_lesions,vascular lesion,consensus,75.0,male,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0030721.jpg,ISIC_0030721,HAM_0006769,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,back,test,2
+images/melanoma/ISIC_0026754.jpg,ISIC_0026754,HAM_0001446,melanoma,melanoma,histo,65.0,female,scalp,train,1
+images/melanoma/ISIC_0024545.jpg,ISIC_0024545,HAM_0006803,melanoma,melanoma,histo,60.0,female,abdomen,train,1
+images/melanoma/ISIC_0024481.jpg,ISIC_0024481,HAM_0003315,melanoma,melanoma,histo,50.0,female,trunk,train,1
+images/melanocytic_Nevi/ISIC_0031917.jpg,ISIC_0031917,HAM_0002031,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,male,back,test,1
+images/melanocytic_Nevi/ISIC_0024317.jpg,ISIC_0024317,HAM_0003951,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,abdomen,train,1
+images/actinic_keratoses/ISIC_0029210.jpg,ISIC_0029210,HAM_0004060,actinic_keratoses,actinic keratosis / Bowen's,histo,40.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0025040.jpg,ISIC_0025040,HAM_0006541,benign_keratosis-like_lesions,benign keratosis,histo,35.0,female,lower extremity,train,2
+images/actinic_keratoses/ISIC_0027708.jpg,ISIC_0027708,HAM_0005438,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,female,face,train,1
+images/melanocytic_Nevi/ISIC_0033382.jpg,ISIC_0033382,HAM_0005573,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,trunk,test,1
+images/benign_keratosis-like_lesions/ISIC_0025805.jpg,ISIC_0025805,HAM_0004691,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,lower extremity,train,2
+images/dermatofibroma/ISIC_0024553.jpg,ISIC_0024553,HAM_0005330,dermatofibroma,dermatofibroma,consensus,50.0,female,upper extremity,validation,3
+images/actinic_keratoses/ISIC_0026720.jpg,ISIC_0026720,HAM_0000688,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0030722.jpg,ISIC_0030722,HAM_0004820,vascular_lesions,vascular lesion,consensus,45.0,female,abdomen,train,3
+images/actinic_keratoses/ISIC_0029460.jpg,ISIC_0029460,HAM_0000545,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0024497.jpg,ISIC_0024497,HAM_0006757,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0033900.jpg,ISIC_0033900,HAM_0002040,benign_keratosis-like_lesions,benign keratosis,histo,50.0,female,lower extremity,train,2
+images/basal_cell_carcinoma/ISIC_0025362.jpg,ISIC_0025362,HAM_0002959,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,face,train,1
+images/actinic_keratoses/ISIC_0026178.jpg,ISIC_0026178,HAM_0007349,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,back,train,1
+images/actinic_keratoses/ISIC_0027829.jpg,ISIC_0027829,HAM_0004034,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0026433.jpg,ISIC_0026433,HAM_0003826,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,chest,train,1
+images/vascular_lesions/ISIC_0029742.jpg,ISIC_0029742,HAM_0002650,vascular_lesions,vascular lesion,consensus,5.0,male,back,train,3
+images/basal_cell_carcinoma/ISIC_0027004.jpg,ISIC_0027004,HAM_0003826,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,chest,train,1
+images/vascular_lesions/ISIC_0026713.jpg,ISIC_0026713,HAM_0006138,vascular_lesions,vascular lesion,consensus,35.0,female,hand,validation,3
+images/melanoma/ISIC_0024702.jpg,ISIC_0024702,HAM_0000903,melanoma,melanoma,histo,60.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0030241.jpg,ISIC_0030241,HAM_0001294,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,face,test,2
+images/melanocytic_Nevi/ISIC_0032853.jpg,ISIC_0032853,HAM_0004773,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,chest,test,1
+images/basal_cell_carcinoma/ISIC_0027722.jpg,ISIC_0027722,HAM_0000987,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025113.jpg,ISIC_0025113,HAM_0000149,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,lower extremity,train,2
+images/vascular_lesions/ISIC_0024402.jpg,ISIC_0024402,HAM_0004542,vascular_lesions,vascular lesion,consensus,0.0,female,back,train,3
+images/basal_cell_carcinoma/ISIC_0027189.jpg,ISIC_0027189,HAM_0006708,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024592.jpg,ISIC_0024592,HAM_0000236,benign_keratosis-like_lesions,benign keratosis,histo,40.0,female,abdomen,train,2
+images/actinic_keratoses/ISIC_0029002.jpg,ISIC_0029002,HAM_0003401,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,face,train,1
+images/actinic_keratoses/ISIC_0025069.jpg,ISIC_0025069,HAM_0006222,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025583.jpg,ISIC_0025583,HAM_0004131,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,face,train,2
+images/actinic_keratoses/ISIC_0029638.jpg,ISIC_0029638,HAM_0000005,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0033251.jpg,ISIC_0033251,HAM_0001651,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,male,back,test,1
+images/melanoma/ISIC_0024554.jpg,ISIC_0024554,HAM_0004507,melanoma,melanoma,histo,65.0,female,face,train,1
+images/actinic_keratoses/ISIC_0029067.jpg,ISIC_0029067,HAM_0000498,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,upper extremity,train,1
+images/melanoma/ISIC_0024333.jpg,ISIC_0024333,HAM_0007511,melanoma,melanoma,histo,85.0,male,lower extremity,train,1
+images/dermatofibroma/ISIC_0032138.jpg,ISIC_0032138,HAM_0005492,dermatofibroma,dermatofibroma,histo,35.0,female,lower extremity,train,3
+images/actinic_keratoses/ISIC_0029268.jpg,ISIC_0029268,HAM_0005459,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025567.jpg,ISIC_0025567,HAM_0006574,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,back,train,2
+images/melanoma/ISIC_0025963.jpg,ISIC_0025963,HAM_0004642,melanoma,melanoma,histo,50.0,female,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0032368.jpg,ISIC_0032368,HAM_0001715,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,lower extremity,test,1
+images/benign_keratosis-like_lesions/ISIC_0025180.jpg,ISIC_0025180,HAM_0003265,benign_keratosis-like_lesions,benign keratosis,histo,35.0,female,chest,train,2
+images/actinic_keratoses/ISIC_0026212.jpg,ISIC_0026212,HAM_0003262,actinic_keratoses,actinic keratosis / Bowen's,histo,45.0,male,face,train,1
+images/melanoma/ISIC_0026420.jpg,ISIC_0026420,HAM_0004428,melanoma,melanoma,histo,80.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0027037.jpg,ISIC_0027037,HAM_0003140,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,lower extremity,test,2
+images/melanoma/ISIC_0024516.jpg,ISIC_0024516,HAM_0002523,melanoma,melanoma,histo,40.0,male,back,train,1
+images/dermatofibroma/ISIC_0031358.jpg,ISIC_0031358,HAM_0003290,dermatofibroma,dermatofibroma,histo,80.0,male,upper extremity,train,3
+images/basal_cell_carcinoma/ISIC_0024848.jpg,ISIC_0024848,HAM_0007474,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/dermatofibroma/ISIC_0025771.jpg,ISIC_0025771,HAM_0001841,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,validation,3
+images/basal_cell_carcinoma/ISIC_0024461.jpg,ISIC_0024461,HAM_0002313,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,female,foot,train,1
+images/actinic_keratoses/ISIC_0028941.jpg,ISIC_0028941,HAM_0001593,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,face,train,1
+images/actinic_keratoses/ISIC_0027884.jpg,ISIC_0027884,HAM_0006024,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/melanoma/ISIC_0024537.jpg,ISIC_0024537,HAM_0001729,melanoma,melanoma,histo,85.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0030504.jpg,ISIC_0030504,HAM_0005014,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,neck,train,1
+images/vascular_lesions/ISIC_0033158.jpg,ISIC_0033158,HAM_0004776,vascular_lesions,vascular lesion,histo,45.0,female,chest,train,3
+images/actinic_keratoses/ISIC_0029541.jpg,ISIC_0029541,HAM_0004636,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,face,train,1
+images/actinic_keratoses/ISIC_0025411.jpg,ISIC_0025411,HAM_0002158,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,upper extremity,train,1
+images/dermatofibroma/ISIC_0028735.jpg,ISIC_0028735,HAM_0005663,dermatofibroma,dermatofibroma,consensus,30.0,male,lower extremity,train,3
+images/actinic_keratoses/ISIC_0027303.jpg,ISIC_0027303,HAM_0000490,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0025350.jpg,ISIC_0025350,HAM_0005701,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025984.jpg,ISIC_0025984,HAM_0004234,benign_keratosis-like_lesions,benign keratosis,histo,85.0,female,chest,train,2
+images/melanocytic_Nevi/ISIC_0024439.jpg,ISIC_0024439,HAM_0005631,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,back,train,1
+images/melanoma/ISIC_0026596.jpg,ISIC_0026596,HAM_0004979,melanoma,melanoma,histo,85.0,male,back,train,1
+images/vascular_lesions/ISIC_0031201.jpg,ISIC_0031201,HAM_0004549,vascular_lesions,vascular lesion,consensus,45.0,male,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0025297.jpg,ISIC_0025297,HAM_0007513,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,face,train,2
+images/benign_keratosis-like_lesions/ISIC_0032200.jpg,ISIC_0032200,HAM_0002169,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,upper extremity,test,2
+images/actinic_keratoses/ISIC_0024925.jpg,ISIC_0024925,HAM_0006592,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,abdomen,train,1
+images/vascular_lesions/ISIC_0025596.jpg,ISIC_0025596,HAM_0005938,vascular_lesions,vascular lesion,consensus,45.0,female,abdomen,train,3
+images/melanocytic_Nevi/ISIC_0030371.jpg,ISIC_0030371,HAM_0005342,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,unknown,train,1
+images/melanocytic_Nevi/ISIC_0031611.jpg,ISIC_0031611,HAM_0003710,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,abdomen,test,1
+images/vascular_lesions/ISIC_0033230.jpg,ISIC_0033230,HAM_0007097,vascular_lesions,vascular lesion,histo,60.0,male,trunk,train,3
+images/basal_cell_carcinoma/ISIC_0027759.jpg,ISIC_0027759,HAM_0003198,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,female,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0029600.jpg,ISIC_0029600,HAM_0001927,benign_keratosis-like_lesions,benign keratosis,histo,85.0,female,abdomen,test,2
+images/vascular_lesions/ISIC_0033349.jpg,ISIC_0033349,HAM_0006946,vascular_lesions,vascular lesion,histo,55.0,female,back,train,3
+images/basal_cell_carcinoma/ISIC_0028079.jpg,ISIC_0028079,HAM_0005947,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,upper extremity,train,1
+images/dermatofibroma/ISIC_0027216.jpg,ISIC_0027216,HAM_0007129,dermatofibroma,dermatofibroma,consensus,60.0,female,lower extremity,validation,3
+images/dermatofibroma/ISIC_0025903.jpg,ISIC_0025903,HAM_0002129,dermatofibroma,dermatofibroma,consensus,60.0,male,abdomen,train,3
+images/vascular_lesions/ISIC_0032775.jpg,ISIC_0032775,HAM_0003862,vascular_lesions,vascular lesion,histo,45.0,male,upper extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0025016.jpg,ISIC_0025016,HAM_0007125,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,back,train,2
+images/basal_cell_carcinoma/ISIC_0025601.jpg,ISIC_0025601,HAM_0001528,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,female,back,train,1
+images/melanocytic_Nevi/ISIC_0024668.jpg,ISIC_0024668,HAM_0005007,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,unknown,train,1
+images/basal_cell_carcinoma/ISIC_0024829.jpg,ISIC_0024829,HAM_0007535,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,neck,train,1
+images/benign_keratosis-like_lesions/ISIC_0024758.jpg,ISIC_0024758,HAM_0005968,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,face,train,2
+images/basal_cell_carcinoma/ISIC_0028238.jpg,ISIC_0028238,HAM_0005776,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/melanoma/ISIC_0026690.jpg,ISIC_0026690,HAM_0000619,melanoma,melanoma,histo,50.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0029315.jpg,ISIC_0029315,HAM_0004780,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0024763.jpg,ISIC_0024763,HAM_0006524,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,ear,train,1
+images/vascular_lesions/ISIC_0030956.jpg,ISIC_0030956,HAM_0005713,vascular_lesions,vascular lesion,histo,60.0,female,neck,train,3
+images/melanocytic_Nevi/ISIC_0032720.jpg,ISIC_0032720,HAM_0006295,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,back,test,1
+images/melanoma/ISIC_0025105.jpg,ISIC_0025105,HAM_0006955,melanoma,melanoma,histo,65.0,male,back,train,1
+images/melanoma/ISIC_0025153.jpg,ISIC_0025153,HAM_0005381,melanoma,melanoma,histo,45.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0026606.jpg,ISIC_0026606,HAM_0006123,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,back,test,2
+images/actinic_keratoses/ISIC_0026014.jpg,ISIC_0026014,HAM_0002882,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0025731.jpg,ISIC_0025731,HAM_0003981,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,trunk,train,1
+images/melanoma/ISIC_0025835.jpg,ISIC_0025835,HAM_0001456,melanoma,melanoma,histo,75.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0027269.jpg,ISIC_0027269,HAM_0005560,vascular_lesions,vascular lesion,consensus,60.0,female,trunk,train,3
+images/basal_cell_carcinoma/ISIC_0025932.jpg,ISIC_0025932,HAM_0007262,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,scalp,train,1
+images/melanoma/ISIC_0025316.jpg,ISIC_0025316,HAM_0003761,melanoma,melanoma,histo,45.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0027141.jpg,ISIC_0027141,HAM_0000024,dermatofibroma,dermatofibroma,consensus,45.0,female,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0027788.jpg,ISIC_0027788,HAM_0002812,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,back,train,1
+images/vascular_lesions/ISIC_0031090.jpg,ISIC_0031090,HAM_0001719,vascular_lesions,vascular lesion,histo,55.0,female,upper extremity,validation,3
+images/actinic_keratoses/ISIC_0025319.jpg,ISIC_0025319,HAM_0003195,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,chest,train,1
+images/dermatofibroma/ISIC_0033422.jpg,ISIC_0033422,HAM_0003597,dermatofibroma,dermatofibroma,consensus,45.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0032538.jpg,ISIC_0032538,HAM_0004791,vascular_lesions,vascular lesion,histo,80.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0032247.jpg,ISIC_0032247,HAM_0007225,dermatofibroma,dermatofibroma,histo,75.0,male,lower extremity,validation,3
+images/vascular_lesions/ISIC_0024706.jpg,ISIC_0024706,HAM_0001038,vascular_lesions,vascular lesion,consensus,50.0,male,trunk,train,3
+images/melanoma/ISIC_0024482.jpg,ISIC_0024482,HAM_0007054,melanoma,melanoma,histo,50.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025874.jpg,ISIC_0025874,HAM_0003689,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,upper extremity,train,2
+images/melanoma/ISIC_0025748.jpg,ISIC_0025748,HAM_0002752,melanoma,melanoma,histo,70.0,male,lower extremity,train,1
+images/dermatofibroma/ISIC_0027745.jpg,ISIC_0027745,HAM_0000902,dermatofibroma,dermatofibroma,consensus,50.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0033860.jpg,ISIC_0033860,HAM_0003081,dermatofibroma,dermatofibroma,consensus,45.0,male,abdomen,train,3
+images/actinic_keratoses/ISIC_0029610.jpg,ISIC_0029610,HAM_0005459,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024982.jpg,ISIC_0024982,HAM_0005199,benign_keratosis-like_lesions,benign keratosis,histo,55.0,male,face,train,2
+images/basal_cell_carcinoma/ISIC_0028168.jpg,ISIC_0028168,HAM_0005371,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,face,train,1
+images/dermatofibroma/ISIC_0029973.jpg,ISIC_0029973,HAM_0002045,dermatofibroma,dermatofibroma,consensus,60.0,male,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0024344.jpg,ISIC_0024344,HAM_0000380,melanocytic_Nevi,melanocytic nevus (mole),histo,85.0,female,back,train,1
+images/vascular_lesions/ISIC_0033844.jpg,ISIC_0033844,HAM_0003480,vascular_lesions,vascular lesion,consensus,70.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0030830.jpg,ISIC_0030830,HAM_0006794,dermatofibroma,dermatofibroma,consensus,50.0,female,genital,validation,3
+images/benign_keratosis-like_lesions/ISIC_0024623.jpg,ISIC_0024623,HAM_0003458,benign_keratosis-like_lesions,benign keratosis,histo,85.0,female,chest,train,2
+images/basal_cell_carcinoma/ISIC_0027865.jpg,ISIC_0027865,HAM_0000393,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,female,abdomen,train,1
+images/benign_keratosis-like_lesions/ISIC_0033910.jpg,ISIC_0033910,HAM_0006654,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,back,train,2
+images/actinic_keratoses/ISIC_0026319.jpg,ISIC_0026319,HAM_0003195,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,chest,train,1
+images/vascular_lesions/ISIC_0027888.jpg,ISIC_0027888,HAM_0004409,vascular_lesions,vascular lesion,consensus,40.0,male,trunk,train,3
+images/melanoma/ISIC_0025451.jpg,ISIC_0025451,HAM_0002143,melanoma,melanoma,histo,25.0,female,foot,train,1
+images/benign_keratosis-like_lesions/ISIC_0030026.jpg,ISIC_0030026,HAM_0004400,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,face,test,2
+images/melanocytic_Nevi/ISIC_0024480.jpg,ISIC_0024480,HAM_0000866,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,back,train,1
+images/melanoma/ISIC_0024911.jpg,ISIC_0024911,HAM_0006896,melanoma,melanoma,histo,45.0,female,back,train,1
+images/dermatofibroma/ISIC_0029248.jpg,ISIC_0029248,HAM_0004756,dermatofibroma,dermatofibroma,histo,55.0,male,lower extremity,train,3
+images/actinic_keratoses/ISIC_0027529.jpg,ISIC_0027529,HAM_0004568,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024676.jpg,ISIC_0024676,HAM_0007513,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,face,train,2
+images/dermatofibroma/ISIC_0024973.jpg,ISIC_0024973,HAM_0007227,dermatofibroma,dermatofibroma,histo,75.0,male,lower extremity,train,3
+images/dermatofibroma/ISIC_0026789.jpg,ISIC_0026789,HAM_0003110,dermatofibroma,dermatofibroma,histo,65.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0032409.jpg,ISIC_0032409,HAM_0001238,vascular_lesions,vascular lesion,consensus,80.0,male,abdomen,train,3
+images/actinic_keratoses/ISIC_0026709.jpg,ISIC_0026709,HAM_0001565,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,face,train,1
+images/melanocytic_Nevi/ISIC_0032809.jpg,ISIC_0032809,HAM_0006078,melanocytic_Nevi,melanocytic nevus (mole),histo,15.0,female,foot,test,1
+images/melanoma/ISIC_0025155.jpg,ISIC_0025155,HAM_0006521,melanoma,melanoma,histo,80.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0032057.jpg,ISIC_0032057,HAM_0004862,vascular_lesions,vascular lesion,consensus,55.0,female,abdomen,train,3
+images/dermatofibroma/ISIC_0029824.jpg,ISIC_0029824,HAM_0005362,dermatofibroma,dermatofibroma,consensus,50.0,male,lower extremity,test,3
+images/benign_keratosis-like_lesions/ISIC_0030310.jpg,ISIC_0030310,HAM_0006993,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,neck,test,2
+images/melanoma/ISIC_0025543.jpg,ISIC_0025543,HAM_0005735,melanoma,melanoma,histo,85.0,female,face,train,1
+images/melanoma/ISIC_0025603.jpg,ISIC_0025603,HAM_0004579,melanoma,melanoma,histo,75.0,male,trunk,train,1
+images/melanoma/ISIC_0025589.jpg,ISIC_0025589,HAM_0004397,melanoma,melanoma,histo,55.0,female,neck,train,1
+images/actinic_keratoses/ISIC_0024562.jpg,ISIC_0024562,HAM_0002745,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,chest,train,1
+images/basal_cell_carcinoma/ISIC_0028283.jpg,ISIC_0028283,HAM_0000655,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,neck,train,1
+images/melanocytic_Nevi/ISIC_0024620.jpg,ISIC_0024620,HAM_0001881,melanocytic_Nevi,melanocytic nevus (mole),histo,20.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0028995.jpg,ISIC_0028995,HAM_0006945,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,lower extremity,test,2
+images/actinic_keratoses/ISIC_0025427.jpg,ISIC_0025427,HAM_0001416,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0030508.jpg,ISIC_0030508,HAM_0006041,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0029043.jpg,ISIC_0029043,HAM_0005231,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024696.jpg,ISIC_0024696,HAM_0001082,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,upper extremity,train,2
+images/benign_keratosis-like_lesions/ISIC_0026159.jpg,ISIC_0026159,HAM_0004491,benign_keratosis-like_lesions,benign keratosis,histo,45.0,male,face,train,2
+images/melanocytic_Nevi/ISIC_0030397.jpg,ISIC_0030397,HAM_0005614,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,trunk,train,1
+images/basal_cell_carcinoma/ISIC_0025650.jpg,ISIC_0025650,HAM_0002312,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,face,train,1
+images/vascular_lesions/ISIC_0033991.jpg,ISIC_0033991,HAM_0006852,vascular_lesions,vascular lesion,consensus,45.0,female,abdomen,test,3
+images/benign_keratosis-like_lesions/ISIC_0024494.jpg,ISIC_0024494,HAM_0002933,benign_keratosis-like_lesions,benign keratosis,histo,55.0,female,chest,train,2
+images/dermatofibroma/ISIC_0027488.jpg,ISIC_0027488,HAM_0003597,dermatofibroma,dermatofibroma,consensus,45.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0025885.jpg,ISIC_0025885,HAM_0000582,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,lower extremity,train,2
+images/vascular_lesions/ISIC_0026490.jpg,ISIC_0026490,HAM_0006291,vascular_lesions,vascular lesion,consensus,65.0,female,trunk,train,3
+images/dermatofibroma/ISIC_0024973.jpg,ISIC_0024973,HAM_0007227,dermatofibroma,dermatofibroma,histo,75.0,male,lower extremity,test,3
+images/dermatofibroma/ISIC_0027216.jpg,ISIC_0027216,HAM_0007129,dermatofibroma,dermatofibroma,consensus,60.0,female,lower extremity,train,3
+images/vascular_lesions/ISIC_0033565.jpg,ISIC_0033565,HAM_0005989,vascular_lesions,vascular lesion,histo,25.0,female,back,train,3
+images/melanocytic_Nevi/ISIC_0032612.jpg,ISIC_0032612,HAM_0000402,melanocytic_Nevi,melanocytic nevus (mole),histo,10.0,female,foot,test,1
+images/vascular_lesions/ISIC_0031065.jpg,ISIC_0031065,HAM_0000109,vascular_lesions,vascular lesion,consensus,35.0,female,trunk,validation,3
+images/actinic_keratoses/ISIC_0028816.jpg,ISIC_0028816,HAM_0003123,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0024524.jpg,ISIC_0024524,HAM_0000468,melanocytic_Nevi,melanocytic nevus (mole),histo,5.0,female,lower extremity,train,1
+images/melanoma/ISIC_0025708.jpg,ISIC_0025708,HAM_0006593,melanoma,melanoma,histo,30.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0025513.jpg,ISIC_0025513,HAM_0001907,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,male,back,train,1
+images/melanoma/ISIC_0025391.jpg,ISIC_0025391,HAM_0005535,melanoma,melanoma,histo,55.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0027135.jpg,ISIC_0027135,HAM_0004388,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,male,back,train,1
+images/vascular_lesions/ISIC_0027522.jpg,ISIC_0027522,HAM_0007113,vascular_lesions,vascular lesion,consensus,55.0,male,abdomen,train,3
+images/actinic_keratoses/ISIC_0024654.jpg,ISIC_0024654,HAM_0005705,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025623.jpg,ISIC_0025623,HAM_0000821,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,back,train,2
+images/basal_cell_carcinoma/ISIC_0026970.jpg,ISIC_0026970,HAM_0004940,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0032375.jpg,ISIC_0032375,HAM_0000279,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,trunk,train,1
+images/dermatofibroma/ISIC_0026473.jpg,ISIC_0026473,HAM_0003110,dermatofibroma,dermatofibroma,histo,65.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0033450.jpg,ISIC_0033450,HAM_0005878,vascular_lesions,vascular lesion,histo,15.0,male,chest,train,3
+images/melanoma/ISIC_0024729.jpg,ISIC_0024729,HAM_0002011,melanoma,melanoma,histo,55.0,female,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0030340.jpg,ISIC_0030340,HAM_0006972,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0024597.jpg,ISIC_0024597,HAM_0003303,melanocytic_Nevi,melanocytic nevus (mole),histo,20.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0024590.jpg,ISIC_0024590,HAM_0004511,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/actinic_keratoses/ISIC_0029371.jpg,ISIC_0029371,HAM_0005264,actinic_keratoses,actinic keratosis / Bowen's,histo,45.0,male,back,train,1
+images/melanoma/ISIC_0024496.jpg,ISIC_0024496,HAM_0001703,melanoma,melanoma,histo,60.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0026992.jpg,ISIC_0026992,HAM_0003146,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0030434.jpg,ISIC_0030434,HAM_0005733,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,back,train,1
+images/melanocytic_Nevi/ISIC_0033961.jpg,ISIC_0033961,HAM_0003884,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,back,test,1
+images/benign_keratosis-like_lesions/ISIC_0025529.jpg,ISIC_0025529,HAM_0000898,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,scalp,train,2
+images/melanocytic_Nevi/ISIC_0024343.jpg,ISIC_0024343,HAM_0000150,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,back,train,1
+images/actinic_keratoses/ISIC_0024913.jpg,ISIC_0024913,HAM_0001495,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0027595.jpg,ISIC_0027595,HAM_0006624,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0025223.jpg,ISIC_0025223,HAM_0000827,dermatofibroma,dermatofibroma,consensus,60.0,male,upper extremity,validation,3
+images/melanoma/ISIC_0026247.jpg,ISIC_0026247,HAM_0004676,melanoma,melanoma,histo,85.0,male,back,train,1
+images/vascular_lesions/ISIC_0025707.jpg,ISIC_0025707,HAM_0006796,vascular_lesions,vascular lesion,consensus,35.0,male,trunk,train,3
+images/dermatofibroma/ISIC_0028790.jpg,ISIC_0028790,HAM_0005276,dermatofibroma,dermatofibroma,histo,75.0,male,back,train,3
+images/melanoma/ISIC_0026664.jpg,ISIC_0026664,HAM_0002981,melanoma,melanoma,histo,65.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0027281.jpg,ISIC_0027281,HAM_0006904,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0033361.jpg,ISIC_0033361,HAM_0002040,benign_keratosis-like_lesions,benign keratosis,histo,50.0,female,lower extremity,test,2
+images/melanoma/ISIC_0024640.jpg,ISIC_0024640,HAM_0005467,melanoma,melanoma,histo,55.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0024515.jpg,ISIC_0024515,HAM_0003373,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0031694.jpg,ISIC_0031694,HAM_0000523,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,back,test,1
+images/basal_cell_carcinoma/ISIC_0024360.jpg,ISIC_0024360,HAM_0005530,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,female,chest,train,1
+images/melanoma/ISIC_0025791.jpg,ISIC_0025791,HAM_0006223,melanoma,melanoma,histo,80.0,male,foot,train,1
+images/melanoma/ISIC_0025987.jpg,ISIC_0025987,HAM_0002824,melanoma,melanoma,histo,25.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0026848.jpg,ISIC_0026848,HAM_0007308,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,face,train,1
+images/melanoma/ISIC_0024864.jpg,ISIC_0024864,HAM_0003167,melanoma,melanoma,histo,40.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0026171.jpg,ISIC_0026171,HAM_0000356,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,face,train,1
+images/vascular_lesions/ISIC_0031901.jpg,ISIC_0031901,HAM_0001920,vascular_lesions,vascular lesion,histo,55.0,male,back,train,3
+images/basal_cell_carcinoma/ISIC_0026090.jpg,ISIC_0026090,HAM_0004084,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,upper extremity,train,1
+images/dermatofibroma/ISIC_0024553.jpg,ISIC_0024553,HAM_0005330,dermatofibroma,dermatofibroma,consensus,50.0,female,upper extremity,train,3
+images/actinic_keratoses/ISIC_0026575.jpg,ISIC_0026575,HAM_0006875,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0024880.jpg,ISIC_0024880,HAM_0005157,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,chest,train,2
+images/melanoma/ISIC_0024792.jpg,ISIC_0024792,HAM_0001847,melanoma,melanoma,histo,50.0,male,back,train,1
+images/actinic_keratoses/ISIC_0028619.jpg,ISIC_0028619,HAM_0001565,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,face,train,1
+images/actinic_keratoses/ISIC_0026362.jpg,ISIC_0026362,HAM_0005301,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,upper extremity,train,1
+images/vascular_lesions/ISIC_0026693.jpg,ISIC_0026693,HAM_0003839,vascular_lesions,vascular lesion,histo,75.0,male,abdomen,train,3
+images/vascular_lesions/ISIC_0032932.jpg,ISIC_0032932,HAM_0002498,vascular_lesions,vascular lesion,consensus,70.0,male,back,test,3
+images/melanocytic_Nevi/ISIC_0033233.jpg,ISIC_0033233,HAM_0003137,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,lower extremity,test,1
+images/benign_keratosis-like_lesions/ISIC_0028043.jpg,ISIC_0028043,HAM_0000979,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,scalp,test,2
+images/benign_keratosis-like_lesions/ISIC_0024741.jpg,ISIC_0024741,HAM_0000770,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,lower extremity,train,2
+images/dermatofibroma/ISIC_0031372.jpg,ISIC_0031372,HAM_0007418,dermatofibroma,dermatofibroma,consensus,50.0,male,lower extremity,train,3
+images/actinic_keratoses/ISIC_0029573.jpg,ISIC_0029573,HAM_0006879,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0025718.jpg,ISIC_0025718,HAM_0001884,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/vascular_lesions/ISIC_0032715.jpg,ISIC_0032715,HAM_0006852,vascular_lesions,vascular lesion,consensus,45.0,female,abdomen,test,3
+images/melanocytic_Nevi/ISIC_0032281.jpg,ISIC_0032281,HAM_0004174,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,back,test,1
+images/basal_cell_carcinoma/ISIC_0024897.jpg,ISIC_0024897,HAM_0003716,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025275.jpg,ISIC_0025275,HAM_0006123,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,back,train,2
+images/vascular_lesions/ISIC_0031719.jpg,ISIC_0031719,HAM_0007020,vascular_lesions,vascular lesion,consensus,75.0,female,hand,train,3
+images/benign_keratosis-like_lesions/ISIC_0025837.jpg,ISIC_0025837,HAM_0005132,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,back,train,2
+images/actinic_keratoses/ISIC_0027562.jpg,ISIC_0027562,HAM_0007622,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,face,train,1
+images/dermatofibroma/ISIC_0025668.jpg,ISIC_0025668,HAM_0007051,dermatofibroma,dermatofibroma,histo,65.0,male,upper extremity,validation,3
+images/vascular_lesions/ISIC_0030770.jpg,ISIC_0030770,HAM_0002538,vascular_lesions,vascular lesion,histo,65.0,female,abdomen,train,3
+images/melanocytic_Nevi/ISIC_0033796.jpg,ISIC_0033796,HAM_0004411,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,back,test,1
+images/dermatofibroma/ISIC_0031257.jpg,ISIC_0031257,HAM_0003023,dermatofibroma,dermatofibroma,consensus,55.0,female,upper extremity,validation,3
+images/benign_keratosis-like_lesions/ISIC_0025656.jpg,ISIC_0025656,HAM_0005915,benign_keratosis-like_lesions,benign keratosis,histo,45.0,male,face,train,2
+images/dermatofibroma/ISIC_0033790.jpg,ISIC_0033790,HAM_0002909,dermatofibroma,dermatofibroma,histo,50.0,male,lower extremity,train,3
+images/melanoma/ISIC_0024675.jpg,ISIC_0024675,HAM_0001600,melanoma,melanoma,histo,65.0,female,lower extremity,train,1
+images/melanoma/ISIC_0026622.jpg,ISIC_0026622,HAM_0007165,melanoma,melanoma,histo,80.0,male,unknown,train,1
+images/melanocytic_Nevi/ISIC_0024594.jpg,ISIC_0024594,HAM_0000892,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,trunk,train,1
+images/vascular_lesions/ISIC_0027385.jpg,ISIC_0027385,HAM_0004455,vascular_lesions,vascular lesion,histo,20.0,male,trunk,validation,3
+images/actinic_keratoses/ISIC_0027719.jpg,ISIC_0027719,HAM_0007354,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0024428.jpg,ISIC_0024428,HAM_0000923,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0032994.jpg,ISIC_0032994,HAM_0000772,melanocytic_Nevi,melanocytic nevus (mole),histo,20.0,female,face,test,1
+images/actinic_keratoses/ISIC_0027550.jpg,ISIC_0027550,HAM_0004297,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,female,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0031061.jpg,ISIC_0031061,HAM_0004010,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,back,test,2
+images/dermatofibroma/ISIC_0033891.jpg,ISIC_0033891,HAM_0007396,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/melanoma/ISIC_0026558.jpg,ISIC_0026558,HAM_0004709,melanoma,melanoma,histo,65.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0030914.jpg,ISIC_0030914,HAM_0001406,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,chest,test,1
+images/actinic_keratoses/ISIC_0025948.jpg,ISIC_0025948,HAM_0002672,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,face,train,1
+images/dermatofibroma/ISIC_0025302.jpg,ISIC_0025302,HAM_0007421,dermatofibroma,dermatofibroma,histo,60.0,female,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0033292.jpg,ISIC_0033292,HAM_0000313,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,lower extremity,test,1
+images/melanocytic_Nevi/ISIC_0032937.jpg,ISIC_0032937,HAM_0006379,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,neck,test,1
+images/actinic_keratoses/ISIC_0027580.jpg,ISIC_0027580,HAM_0005648,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,upper extremity,train,1
+images/dermatofibroma/ISIC_0031002.jpg,ISIC_0031002,HAM_0007051,dermatofibroma,dermatofibroma,histo,65.0,male,upper extremity,train,3
+images/melanoma/ISIC_0025755.jpg,ISIC_0025755,HAM_0003095,melanoma,melanoma,histo,60.0,female,back,train,1
+images/dermatofibroma/ISIC_0032138.jpg,ISIC_0032138,HAM_0005492,dermatofibroma,dermatofibroma,histo,35.0,female,lower extremity,test,3
+images/actinic_keratoses/ISIC_0027231.jpg,ISIC_0027231,HAM_0005310,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,back,train,1
+images/dermatofibroma/ISIC_0027008.jpg,ISIC_0027008,HAM_0005276,dermatofibroma,dermatofibroma,histo,75.0,male,back,validation,3
+images/basal_cell_carcinoma/ISIC_0027814.jpg,ISIC_0027814,HAM_0006631,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,female,face,train,1
+images/basal_cell_carcinoma/ISIC_0025691.jpg,ISIC_0025691,HAM_0000065,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,female,abdomen,train,1
+images/dermatofibroma/ISIC_0031344.jpg,ISIC_0031344,HAM_0005861,dermatofibroma,dermatofibroma,histo,65.0,female,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0032765.jpg,ISIC_0032765,HAM_0003254,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,back,test,1
+images/melanocytic_Nevi/ISIC_0031080.jpg,ISIC_0031080,HAM_0005561,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,abdomen,test,1
+images/melanocytic_Nevi/ISIC_0033059.jpg,ISIC_0033059,HAM_0001400,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,upper extremity,test,1
+images/melanocytic_Nevi/ISIC_0024560.jpg,ISIC_0024560,HAM_0000886,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,male,back,train,1
+images/actinic_keratoses/ISIC_0025605.jpg,ISIC_0025605,HAM_0007047,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027478.jpg,ISIC_0027478,HAM_0003593,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,male,back,train,1
+images/vascular_lesions/ISIC_0025599.jpg,ISIC_0025599,HAM_0004765,vascular_lesions,vascular lesion,histo,15.0,male,face,train,3
+images/melanoma/ISIC_0024739.jpg,ISIC_0024739,HAM_0001910,melanoma,melanoma,histo,55.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0032760.jpg,ISIC_0032760,HAM_0004226,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,female,trunk,test,1
+images/melanocytic_Nevi/ISIC_0024314.jpg,ISIC_0024314,HAM_0002198,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0029713.jpg,ISIC_0029713,HAM_0006036,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,back,train,1
+images/actinic_keratoses/ISIC_0027172.jpg,ISIC_0027172,HAM_0003939,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,face,train,1
+images/actinic_keratoses/ISIC_0024463.jpg,ISIC_0024463,HAM_0004568,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,upper extremity,train,1
+images/dermatofibroma/ISIC_0029578.jpg,ISIC_0029578,HAM_0002895,dermatofibroma,dermatofibroma,histo,60.0,male,lower extremity,train,3
+images/melanoma/ISIC_0024898.jpg,ISIC_0024898,HAM_0002534,melanoma,melanoma,histo,80.0,male,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025939.jpg,ISIC_0025939,HAM_0006622,benign_keratosis-like_lesions,benign keratosis,histo,45.0,male,face,train,2
+images/actinic_keratoses/ISIC_0025803.jpg,ISIC_0025803,HAM_0005024,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,face,train,1
+images/basal_cell_carcinoma/ISIC_0025600.jpg,ISIC_0025600,HAM_0000189,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,female,scalp,train,1
+images/vascular_lesions/ISIC_0027937.jpg,ISIC_0027937,HAM_0006280,vascular_lesions,vascular lesion,consensus,70.0,male,trunk,train,3
+images/vascular_lesions/ISIC_0027672.jpg,ISIC_0027672,HAM_0007614,vascular_lesions,vascular lesion,histo,55.0,female,face,test,3
+images/benign_keratosis-like_lesions/ISIC_0024760.jpg,ISIC_0024760,HAM_0003856,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,upper extremity,train,2
+images/melanoma/ISIC_0024886.jpg,ISIC_0024886,HAM_0001353,melanoma,melanoma,histo,55.0,female,face,train,1
+images/melanoma/ISIC_0026281.jpg,ISIC_0026281,HAM_0004910,melanoma,melanoma,histo,70.0,male,chest,train,1
+images/melanocytic_Nevi/ISIC_0034251.jpg,ISIC_0034251,HAM_0002898,melanocytic_Nevi,melanocytic nevus (mole),histo,80.0,female,upper extremity,test,1
+images/melanocytic_Nevi/ISIC_0030432.jpg,ISIC_0030432,HAM_0006735,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,back,train,1
+images/vascular_lesions/ISIC_0032919.jpg,ISIC_0032919,HAM_0006946,vascular_lesions,vascular lesion,histo,55.0,female,back,train,3
+images/dermatofibroma/ISIC_0027598.jpg,ISIC_0027598,HAM_0002848,dermatofibroma,dermatofibroma,consensus,60.0,female,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0026496.jpg,ISIC_0026496,HAM_0005757,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0027291.jpg,ISIC_0027291,HAM_0006904,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/melanoma/ISIC_0026089.jpg,ISIC_0026089,HAM_0002196,melanoma,melanoma,histo,60.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0026798.jpg,ISIC_0026798,HAM_0005536,basal_cell_carcinoma,basal cell carcinoma,histo,45.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0028393.jpg,ISIC_0028393,HAM_0005579,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0025915.jpg,ISIC_0025915,HAM_0001601,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,upper extremity,train,2
+images/actinic_keratoses/ISIC_0025780.jpg,ISIC_0025780,HAM_0006587,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,face,train,1
+images/melanoma/ISIC_0025450.jpg,ISIC_0025450,HAM_0003832,melanoma,melanoma,histo,60.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0025314.jpg,ISIC_0025314,HAM_0000757,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/melanocytic_Nevi/ISIC_0024416.jpg,ISIC_0024416,HAM_0002172,melanocytic_Nevi,melanocytic nevus (mole),histo,65.0,female,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0031770.jpg,ISIC_0031770,HAM_0006128,benign_keratosis-like_lesions,benign keratosis,histo,55.0,female,lower extremity,test,2
+images/melanoma/ISIC_0024546.jpg,ISIC_0024546,HAM_0000952,melanoma,melanoma,histo,80.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0032114.jpg,ISIC_0032114,HAM_0003110,dermatofibroma,dermatofibroma,histo,65.0,male,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0028323.jpg,ISIC_0028323,HAM_0001900,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,female,chest,train,1
+images/benign_keratosis-like_lesions/ISIC_0025374.jpg,ISIC_0025374,HAM_0006031,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,scalp,train,2
+images/basal_cell_carcinoma/ISIC_0026940.jpg,ISIC_0026940,HAM_0005973,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0024771.jpg,ISIC_0024771,HAM_0006301,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,neck,train,1
+images/dermatofibroma/ISIC_0029177.jpg,ISIC_0029177,HAM_0005918,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,train,3
+images/actinic_keratoses/ISIC_0025264.jpg,ISIC_0025264,HAM_0007623,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0032236.jpg,ISIC_0032236,HAM_0006105,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,foot,test,1
+images/melanocytic_Nevi/ISIC_0024466.jpg,ISIC_0024466,HAM_0001891,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,scalp,train,1
+images/vascular_lesions/ISIC_0031090.jpg,ISIC_0031090,HAM_0001719,vascular_lesions,vascular lesion,histo,55.0,female,upper extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0024412.jpg,ISIC_0024412,HAM_0003835,benign_keratosis-like_lesions,benign keratosis,histo,35.0,male,back,train,2
+images/melanocytic_Nevi/ISIC_0030354.jpg,ISIC_0030354,HAM_0003987,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025719.jpg,ISIC_0025719,HAM_0000833,benign_keratosis-like_lesions,benign keratosis,histo,40.0,male,face,train,2
+images/melanocytic_Nevi/ISIC_0033954.jpg,ISIC_0033954,HAM_0002015,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,lower extremity,test,1
+images/basal_cell_carcinoma/ISIC_0025260.jpg,ISIC_0025260,HAM_0001215,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0034217.jpg,ISIC_0034217,HAM_0003310,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,abdomen,test,1
+images/benign_keratosis-like_lesions/ISIC_0025209.jpg,ISIC_0025209,HAM_0005132,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,back,train,2
+images/actinic_keratoses/ISIC_0028644.jpg,ISIC_0028644,HAM_0001176,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,female,abdomen,train,1
+images/melanoma/ISIC_0024400.jpg,ISIC_0024400,HAM_0006751,melanoma,melanoma,histo,75.0,female,unknown,train,1
+images/melanocytic_Nevi/ISIC_0032555.jpg,ISIC_0032555,HAM_0002616,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,female,back,test,1
+images/dermatofibroma/ISIC_0027648.jpg,ISIC_0027648,HAM_0004036,dermatofibroma,dermatofibroma,histo,55.0,male,upper extremity,train,3
+images/dermatofibroma/ISIC_0029130.jpg,ISIC_0029130,HAM_0000049,dermatofibroma,dermatofibroma,consensus,70.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0025982.jpg,ISIC_0025982,HAM_0002839,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,lower extremity,train,2
+images/vascular_lesions/ISIC_0025249.jpg,ISIC_0025249,HAM_0002639,vascular_lesions,vascular lesion,consensus,30.0,female,lower extremity,train,3
+images/actinic_keratoses/ISIC_0024710.jpg,ISIC_0024710,HAM_0004609,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,back,train,1
+images/actinic_keratoses/ISIC_0027753.jpg,ISIC_0027753,HAM_0006481,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0031418.jpg,ISIC_0031418,HAM_0002942,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,lower extremity,test,1
+images/melanoma/ISIC_0024647.jpg,ISIC_0024647,HAM_0006764,melanoma,melanoma,histo,85.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0027522.jpg,ISIC_0027522,HAM_0007113,vascular_lesions,vascular lesion,consensus,55.0,male,abdomen,validation,3
+images/actinic_keratoses/ISIC_0029598.jpg,ISIC_0029598,HAM_0003401,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,male,face,train,1
+images/melanoma/ISIC_0024756.jpg,ISIC_0024756,HAM_0007272,melanoma,melanoma,histo,60.0,male,lower extremity,train,1
+images/vascular_lesions/ISIC_0027210.jpg,ISIC_0027210,HAM_0006748,vascular_lesions,vascular lesion,consensus,30.0,female,lower extremity,validation,3
+images/dermatofibroma/ISIC_0027118.jpg,ISIC_0027118,HAM_0001164,dermatofibroma,dermatofibroma,histo,50.0,female,upper extremity,train,3
+images/actinic_keratoses/ISIC_0029417.jpg,ISIC_0029417,HAM_0002644,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,neck,train,1
+images/basal_cell_carcinoma/ISIC_0026439.jpg,ISIC_0026439,HAM_0000009,basal_cell_carcinoma,basal cell carcinoma,histo,35.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0030365.jpg,ISIC_0030365,HAM_0004801,benign_keratosis-like_lesions,benign keratosis,histo,50.0,male,back,test,2
+images/vascular_lesions/ISIC_0025578.jpg,ISIC_0025578,HAM_0002218,vascular_lesions,vascular lesion,histo,5.0,male,back,train,3
+images/melanoma/ISIC_0026438.jpg,ISIC_0026438,HAM_0004850,melanoma,melanoma,histo,30.0,female,trunk,train,1
+images/melanoma/ISIC_0026236.jpg,ISIC_0026236,HAM_0005785,melanoma,melanoma,histo,70.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025575.jpg,ISIC_0025575,HAM_0001245,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,chest,train,2
+images/melanoma/ISIC_0025611.jpg,ISIC_0025611,HAM_0001953,melanoma,melanoma,histo,65.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0030542.jpg,ISIC_0030542,HAM_0002810,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,chest,test,2
+images/actinic_keratoses/ISIC_0028763.jpg,ISIC_0028763,HAM_0000832,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0024707.jpg,ISIC_0024707,HAM_0005448,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/melanoma/ISIC_0025663.jpg,ISIC_0025663,HAM_0006171,melanoma,melanoma,histo,75.0,female,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025876.jpg,ISIC_0025876,HAM_0002957,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,back,train,2
+images/dermatofibroma/ISIC_0030579.jpg,ISIC_0030579,HAM_0002546,dermatofibroma,dermatofibroma,histo,55.0,female,upper extremity,train,3
+images/melanoma/ISIC_0026113.jpg,ISIC_0026113,HAM_0002714,melanoma,melanoma,histo,50.0,male,abdomen,train,1
+images/melanoma/ISIC_0025035.jpg,ISIC_0025035,HAM_0007073,melanoma,melanoma,histo,70.0,female,lower extremity,train,1
+images/melanoma/ISIC_0026458.jpg,ISIC_0026458,HAM_0005588,melanoma,melanoma,histo,80.0,female,lower extremity,train,1
+images/melanoma/ISIC_0024351.jpg,ISIC_0024351,HAM_0001349,melanoma,melanoma,histo,70.0,female,lower extremity,train,1
+images/vascular_lesions/ISIC_0027665.jpg,ISIC_0027665,HAM_0001860,vascular_lesions,vascular lesion,consensus,50.0,male,abdomen,train,3
+images/basal_cell_carcinoma/ISIC_0026074.jpg,ISIC_0026074,HAM_0000968,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,female,chest,train,1
+images/melanocytic_Nevi/ISIC_0033502.jpg,ISIC_0033502,HAM_0003003,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,back,test,1
+images/basal_cell_carcinoma/ISIC_0024634.jpg,ISIC_0024634,HAM_0005933,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,female,back,train,1
+images/actinic_keratoses/ISIC_0024948.jpg,ISIC_0024948,HAM_0004034,actinic_keratoses,actinic keratosis / Bowen's,histo,55.0,female,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0024832.jpg,ISIC_0024832,HAM_0001773,benign_keratosis-like_lesions,benign keratosis,histo,40.0,female,face,train,2
+images/vascular_lesions/ISIC_0031706.jpg,ISIC_0031706,HAM_0000934,vascular_lesions,vascular lesion,consensus,60.0,male,trunk,train,3
+images/basal_cell_carcinoma/ISIC_0024787.jpg,ISIC_0024787,HAM_0005379,basal_cell_carcinoma,basal cell carcinoma,histo,45.0,male,upper extremity,train,1
+images/actinic_keratoses/ISIC_0025331.jpg,ISIC_0025331,HAM_0001258,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,face,train,1
+images/dermatofibroma/ISIC_0033422.jpg,ISIC_0033422,HAM_0003597,dermatofibroma,dermatofibroma,consensus,45.0,male,lower extremity,validation,3
+images/melanoma/ISIC_0025324.jpg,ISIC_0025324,HAM_0004121,melanoma,melanoma,histo,45.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0031808.jpg,ISIC_0031808,HAM_0005275,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,face,test,2
+images/melanoma/ISIC_0026745.jpg,ISIC_0026745,HAM_0006330,melanoma,melanoma,histo,80.0,female,face,train,1
+images/vascular_lesions/ISIC_0027937.jpg,ISIC_0027937,HAM_0006280,vascular_lesions,vascular lesion,consensus,70.0,male,trunk,validation,3
+images/dermatofibroma/ISIC_0028651.jpg,ISIC_0028651,HAM_0004496,dermatofibroma,dermatofibroma,consensus,55.0,female,lower extremity,train,3
+images/vascular_lesions/ISIC_0025599.jpg,ISIC_0025599,HAM_0004765,vascular_lesions,vascular lesion,histo,15.0,male,face,validation,3
+images/dermatofibroma/ISIC_0030021.jpg,ISIC_0030021,HAM_0001164,dermatofibroma,dermatofibroma,histo,50.0,female,upper extremity,validation,3
+images/vascular_lesions/ISIC_0028146.jpg,ISIC_0028146,HAM_0005471,vascular_lesions,vascular lesion,histo,60.0,female,back,train,3
+images/vascular_lesions/ISIC_0026876.jpg,ISIC_0026876,HAM_0002610,vascular_lesions,vascular lesion,consensus,0.0,female,abdomen,test,3
+images/vascular_lesions/ISIC_0032270.jpg,ISIC_0032270,HAM_0005270,vascular_lesions,vascular lesion,histo,70.0,female,lower extremity,validation,3
+images/melanocytic_Nevi/ISIC_0033799.jpg,ISIC_0033799,HAM_0001912,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,lower extremity,test,1
+images/actinic_keratoses/ISIC_0028820.jpg,ISIC_0028820,HAM_0000931,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,lower extremity,train,1
+images/melanoma/ISIC_0024315.jpg,ISIC_0024315,HAM_0007538,melanoma,melanoma,histo,55.0,male,trunk,train,1
+images/melanocytic_Nevi/ISIC_0033062.jpg,ISIC_0033062,HAM_0002759,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,back,test,1
+images/melanoma/ISIC_0026652.jpg,ISIC_0026652,HAM_0001835,melanoma,melanoma,histo,65.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0032755.jpg,ISIC_0032755,HAM_0004149,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,foot,test,1
+images/melanocytic_Nevi/ISIC_0032364.jpg,ISIC_0032364,HAM_0003677,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,upper extremity,test,1
+images/actinic_keratoses/ISIC_0028558.jpg,ISIC_0028558,HAM_0002646,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,face,train,1
+images/vascular_lesions/ISIC_0032919.jpg,ISIC_0032919,HAM_0006946,vascular_lesions,vascular lesion,histo,55.0,female,back,test,3
+images/benign_keratosis-like_lesions/ISIC_0025388.jpg,ISIC_0025388,HAM_0003007,benign_keratosis-like_lesions,benign keratosis,histo,40.0,female,abdomen,train,2
+images/vascular_lesions/ISIC_0025250.jpg,ISIC_0025250,HAM_0004769,vascular_lesions,vascular lesion,consensus,30.0,male,scalp,train,3
+images/actinic_keratoses/ISIC_0027178.jpg,ISIC_0027178,HAM_0002705,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,scalp,train,1
+images/benign_keratosis-like_lesions/ISIC_0027504.jpg,ISIC_0027504,HAM_0004660,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,scalp,test,2
+images/vascular_lesions/ISIC_0032614.jpg,ISIC_0032614,HAM_0006946,vascular_lesions,vascular lesion,histo,55.0,female,back,train,3
+images/actinic_keratoses/ISIC_0025808.jpg,ISIC_0025808,HAM_0002261,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,back,train,1
+images/actinic_keratoses/ISIC_0028517.jpg,ISIC_0028517,HAM_0006220,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0024446.jpg,ISIC_0024446,HAM_0001475,benign_keratosis-like_lesions,benign keratosis,histo,45.0,male,upper extremity,train,2
+images/basal_cell_carcinoma/ISIC_0024432.jpg,ISIC_0024432,HAM_0002083,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,face,train,1
+images/vascular_lesions/ISIC_0025606.jpg,ISIC_0025606,HAM_0005376,vascular_lesions,vascular lesion,consensus,55.0,male,scalp,train,3
+images/melanoma/ISIC_0026352.jpg,ISIC_0026352,HAM_0001444,melanoma,melanoma,histo,40.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0024517.jpg,ISIC_0024517,HAM_0001894,actinic_keratoses,actinic keratosis / Bowen's,histo,65.0,male,back,train,1
+images/melanoma/ISIC_0024967.jpg,ISIC_0024967,HAM_0006975,melanoma,melanoma,histo,60.0,male,back,train,1
+images/melanoma/ISIC_0025524.jpg,ISIC_0025524,HAM_0004642,melanoma,melanoma,histo,50.0,female,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025032.jpg,ISIC_0025032,HAM_0004500,benign_keratosis-like_lesions,benign keratosis,histo,75.0,female,back,train,2
+images/basal_cell_carcinoma/ISIC_0025417.jpg,ISIC_0025417,HAM_0002577,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0024520.jpg,ISIC_0024520,HAM_0003113,melanocytic_Nevi,melanocytic nevus (mole),histo,60.0,male,trunk,train,1
+images/vascular_lesions/ISIC_0031648.jpg,ISIC_0031648,HAM_0005989,vascular_lesions,vascular lesion,histo,25.0,female,back,train,3
+images/melanocytic_Nevi/ISIC_0032676.jpg,ISIC_0032676,HAM_0002641,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,back,test,1
+images/vascular_lesions/ISIC_0026713.jpg,ISIC_0026713,HAM_0006138,vascular_lesions,vascular lesion,consensus,35.0,female,hand,train,3
+images/dermatofibroma/ISIC_0028926.jpg,ISIC_0028926,HAM_0000720,dermatofibroma,dermatofibroma,histo,65.0,male,upper extremity,train,3
+images/basal_cell_carcinoma/ISIC_0027371.jpg,ISIC_0027371,HAM_0005981,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,face,train,1
+images/vascular_lesions/ISIC_0025321.jpg,ISIC_0025321,HAM_0005155,vascular_lesions,vascular lesion,histo,85.0,male,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0025584.jpg,ISIC_0025584,HAM_0000791,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,scalp,train,1
+images/actinic_keratoses/ISIC_0028499.jpg,ISIC_0028499,HAM_0004976,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,female,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0031542.jpg,ISIC_0031542,HAM_0003014,benign_keratosis-like_lesions,benign keratosis,histo,45.0,male,upper extremity,test,2
+images/dermatofibroma/ISIC_0029248.jpg,ISIC_0029248,HAM_0004756,dermatofibroma,dermatofibroma,histo,55.0,male,lower extremity,validation,3
+images/vascular_lesions/ISIC_0028406.jpg,ISIC_0028406,HAM_0005215,vascular_lesions,vascular lesion,consensus,80.0,male,abdomen,test,3
+images/vascular_lesions/ISIC_0026349.jpg,ISIC_0026349,HAM_0003829,vascular_lesions,vascular lesion,consensus,60.0,female,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0029474.jpg,ISIC_0029474,HAM_0000744,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,face,test,2
+images/melanocytic_Nevi/ISIC_0031404.jpg,ISIC_0031404,HAM_0006150,melanocytic_Nevi,melanocytic nevus (mole),histo,70.0,male,back,test,1
+images/benign_keratosis-like_lesions/ISIC_0025222.jpg,ISIC_0025222,HAM_0000973,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,face,train,2
+images/vascular_lesions/ISIC_0033969.jpg,ISIC_0033969,HAM_0000940,vascular_lesions,vascular lesion,histo,35.0,female,lower extremity,train,3
+images/actinic_keratoses/ISIC_0028370.jpg,ISIC_0028370,HAM_0005668,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0024453.jpg,ISIC_0024453,HAM_0005514,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,face,train,2
+images/melanoma/ISIC_0024310.jpg,ISIC_0024310,HAM_0003350,melanoma,melanoma,histo,60.0,male,chest,train,1
+images/vascular_lesions/ISIC_0027210.jpg,ISIC_0027210,HAM_0006748,vascular_lesions,vascular lesion,consensus,30.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0030555.jpg,ISIC_0030555,HAM_0004330,dermatofibroma,dermatofibroma,histo,70.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0024890.jpg,ISIC_0024890,HAM_0007439,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,upper extremity,train,2
+images/actinic_keratoses/ISIC_0029549.jpg,ISIC_0029549,HAM_0005718,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,back,train,1
+images/melanoma/ISIC_0026735.jpg,ISIC_0026735,HAM_0007293,melanoma,melanoma,histo,85.0,female,face,train,1
+images/dermatofibroma/ISIC_0027107.jpg,ISIC_0027107,HAM_0004036,dermatofibroma,dermatofibroma,histo,55.0,male,upper extremity,train,3
+images/actinic_keratoses/ISIC_0028231.jpg,ISIC_0028231,HAM_0003688,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,upper extremity,train,1
+images/dermatofibroma/ISIC_0027488.jpg,ISIC_0027488,HAM_0003597,dermatofibroma,dermatofibroma,consensus,45.0,male,lower extremity,test,3
+images/melanoma/ISIC_0024652.jpg,ISIC_0024652,HAM_0003428,melanoma,melanoma,histo,85.0,female,upper extremity,train,1
+images/actinic_keratoses/ISIC_0029781.jpg,ISIC_0029781,HAM_0002646,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0032300.jpg,ISIC_0032300,HAM_0007278,melanocytic_Nevi,melanocytic nevus (mole),histo,nan,female,chest,test,1
+images/basal_cell_carcinoma/ISIC_0025940.jpg,ISIC_0025940,HAM_0001503,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,face,train,1
+images/basal_cell_carcinoma/ISIC_0026282.jpg,ISIC_0026282,HAM_0005309,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,male,upper extremity,train,1
+images/vascular_lesions/ISIC_0033092.jpg,ISIC_0033092,HAM_0000494,vascular_lesions,vascular lesion,histo,55.0,male,lower extremity,validation,3
+images/benign_keratosis-like_lesions/ISIC_0024477.jpg,ISIC_0024477,HAM_0000259,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,back,train,2
+images/actinic_keratoses/ISIC_0027668.jpg,ISIC_0027668,HAM_0001386,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,scalp,train,1
+images/basal_cell_carcinoma/ISIC_0024345.jpg,ISIC_0024345,HAM_0006872,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0030422.jpg,ISIC_0030422,HAM_0005980,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,abdomen,train,1
+images/basal_cell_carcinoma/ISIC_0025266.jpg,ISIC_0025266,HAM_0004300,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,upper extremity,train,1
+images/vascular_lesions/ISIC_0025612.jpg,ISIC_0025612,HAM_0002177,vascular_lesions,vascular lesion,consensus,45.0,female,neck,train,3
+images/vascular_lesions/ISIC_0027563.jpg,ISIC_0027563,HAM_0002788,vascular_lesions,vascular lesion,consensus,70.0,male,lower extremity,train,3
+images/melanoma/ISIC_0026774.jpg,ISIC_0026774,HAM_0007242,melanoma,melanoma,histo,70.0,female,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0028084.jpg,ISIC_0028084,HAM_0004940,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0032546.jpg,ISIC_0032546,HAM_0000547,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,back,test,1
+images/basal_cell_carcinoma/ISIC_0024572.jpg,ISIC_0024572,HAM_0005657,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,back,train,1
+images/dermatofibroma/ISIC_0029760.jpg,ISIC_0029760,HAM_0004330,dermatofibroma,dermatofibroma,histo,70.0,male,lower extremity,validation,3
+images/actinic_keratoses/ISIC_0024372.jpg,ISIC_0024372,HAM_0005389,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0027452.jpg,ISIC_0027452,HAM_0004033,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/dermatofibroma/ISIC_0032613.jpg,ISIC_0032613,HAM_0005584,dermatofibroma,dermatofibroma,consensus,25.0,female,lower extremity,train,3
+images/vascular_lesions/ISIC_0032932.jpg,ISIC_0032932,HAM_0002498,vascular_lesions,vascular lesion,consensus,70.0,male,back,train,3
+images/melanocytic_Nevi/ISIC_0030899.jpg,ISIC_0030899,HAM_0004222,melanocytic_Nevi,melanocytic nevus (mole),histo,15.0,female,abdomen,test,1
+images/vascular_lesions/ISIC_0028431.jpg,ISIC_0028431,HAM_0004653,vascular_lesions,vascular lesion,consensus,50.0,male,abdomen,validation,3
+images/vascular_lesions/ISIC_0030882.jpg,ISIC_0030882,HAM_0004455,vascular_lesions,vascular lesion,histo,20.0,male,trunk,train,3
+images/benign_keratosis-like_lesions/ISIC_0024772.jpg,ISIC_0024772,HAM_0002400,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,lower extremity,train,2
+images/melanoma/ISIC_0026571.jpg,ISIC_0026571,HAM_0006037,melanoma,melanoma,histo,40.0,female,chest,train,1
+images/dermatofibroma/ISIC_0031002.jpg,ISIC_0031002,HAM_0007051,dermatofibroma,dermatofibroma,histo,65.0,male,upper extremity,validation,3
+images/vascular_lesions/ISIC_0033969.jpg,ISIC_0033969,HAM_0000940,vascular_lesions,vascular lesion,histo,35.0,female,lower extremity,test,3
+images/basal_cell_carcinoma/ISIC_0026855.jpg,ISIC_0026855,HAM_0000457,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,chest,train,1
+images/dermatofibroma/ISIC_0031429.jpg,ISIC_0031429,HAM_0007225,dermatofibroma,dermatofibroma,histo,75.0,male,lower extremity,train,3
+images/dermatofibroma/ISIC_0033695.jpg,ISIC_0033695,HAM_0000349,dermatofibroma,dermatofibroma,consensus,45.0,female,lower extremity,train,3
+images/melanoma/ISIC_0024552.jpg,ISIC_0024552,HAM_0000653,melanoma,melanoma,histo,60.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0027613.jpg,ISIC_0027613,HAM_0005684,dermatofibroma,dermatofibroma,histo,75.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0033675.jpg,ISIC_0033675,HAM_0002909,dermatofibroma,dermatofibroma,histo,50.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0024475.jpg,ISIC_0024475,HAM_0003873,vascular_lesions,vascular lesion,consensus,35.0,male,face,train,3
+images/vascular_lesions/ISIC_0029486.jpg,ISIC_0029486,HAM_0001920,vascular_lesions,vascular lesion,histo,55.0,male,back,validation,3
+images/melanocytic_Nevi/ISIC_0033510.jpg,ISIC_0033510,HAM_0000547,melanocytic_Nevi,melanocytic nevus (mole),histo,55.0,male,back,test,1
+images/dermatofibroma/ISIC_0032468.jpg,ISIC_0032468,HAM_0005684,dermatofibroma,dermatofibroma,histo,75.0,female,lower extremity,train,3
+images/melanoma/ISIC_0024961.jpg,ISIC_0024961,HAM_0006006,melanoma,melanoma,histo,75.0,male,chest,train,1
+images/benign_keratosis-like_lesions/ISIC_0028913.jpg,ISIC_0028913,HAM_0004396,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,upper extremity,test,2
+images/dermatofibroma/ISIC_0025622.jpg,ISIC_0025622,HAM_0005362,dermatofibroma,dermatofibroma,consensus,50.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0026153.jpg,ISIC_0026153,HAM_0002957,benign_keratosis-like_lesions,benign keratosis,histo,70.0,male,back,train,2
+images/melanoma/ISIC_0026167.jpg,ISIC_0026167,HAM_0003400,melanoma,melanoma,histo,50.0,male,face,train,1
+images/vascular_lesions/ISIC_0033254.jpg,ISIC_0033254,HAM_0005878,vascular_lesions,vascular lesion,histo,15.0,male,chest,train,3
+images/benign_keratosis-like_lesions/ISIC_0025507.jpg,ISIC_0025507,HAM_0006190,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,lower extremity,train,2
+images/melanoma/ISIC_0025520.jpg,ISIC_0025520,HAM_0005600,melanoma,melanoma,histo,65.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0025699.jpg,ISIC_0025699,HAM_0005082,benign_keratosis-like_lesions,benign keratosis,histo,65.0,female,lower extremity,train,2
+images/vascular_lesions/ISIC_0032745.jpg,ISIC_0032745,HAM_0000494,vascular_lesions,vascular lesion,histo,55.0,male,lower extremity,train,3
+images/dermatofibroma/ISIC_0033626.jpg,ISIC_0033626,HAM_0006371,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,validation,3
+images/vascular_lesions/ISIC_0028885.jpg,ISIC_0028885,HAM_0005427,vascular_lesions,vascular lesion,consensus,75.0,male,back,train,3
+images/benign_keratosis-like_lesions/ISIC_0025292.jpg,ISIC_0025292,HAM_0004630,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,face,train,2
+images/actinic_keratoses/ISIC_0026905.jpg,ISIC_0026905,HAM_0006180,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,upper extremity,train,1
+images/melanoma/ISIC_0025081.jpg,ISIC_0025081,HAM_0001203,melanoma,melanoma,histo,30.0,female,abdomen,train,1
+images/benign_keratosis-like_lesions/ISIC_0026044.jpg,ISIC_0026044,HAM_0006945,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,lower extremity,train,2
+images/dermatofibroma/ISIC_0032613.jpg,ISIC_0032613,HAM_0005584,dermatofibroma,dermatofibroma,consensus,25.0,female,lower extremity,validation,3
+images/melanocytic_Nevi/ISIC_0032820.jpg,ISIC_0032820,HAM_0006372,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,male,back,test,1
+images/melanocytic_Nevi/ISIC_0032181.jpg,ISIC_0032181,HAM_0003369,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,trunk,test,1
+images/melanoma/ISIC_0025265.jpg,ISIC_0025265,HAM_0002770,melanoma,melanoma,histo,30.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0024431.jpg,ISIC_0024431,HAM_0002134,basal_cell_carcinoma,basal cell carcinoma,histo,45.0,male,face,train,1
+images/basal_cell_carcinoma/ISIC_0028155.jpg,ISIC_0028155,HAM_0000781,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0033605.jpg,ISIC_0033605,HAM_0003884,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,back,test,1
+images/melanocytic_Nevi/ISIC_0032492.jpg,ISIC_0032492,HAM_0004068,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,abdomen,test,1
+images/basal_cell_carcinoma/ISIC_0028303.jpg,ISIC_0028303,HAM_0005030,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0030447.jpg,ISIC_0030447,HAM_0003523,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,back,train,1
+images/vascular_lesions/ISIC_0033254.jpg,ISIC_0033254,HAM_0005878,vascular_lesions,vascular lesion,histo,15.0,male,chest,validation,3
+images/melanoma/ISIC_0025145.jpg,ISIC_0025145,HAM_0002477,melanoma,melanoma,histo,80.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0030442.jpg,ISIC_0030442,HAM_0004756,dermatofibroma,dermatofibroma,histo,55.0,male,lower extremity,validation,3
+images/dermatofibroma/ISIC_0027626.jpg,ISIC_0027626,HAM_0004371,dermatofibroma,dermatofibroma,histo,45.0,female,upper extremity,train,3
+images/melanoma/ISIC_0024367.jpg,ISIC_0024367,HAM_0001726,melanoma,melanoma,histo,35.0,female,back,train,1
+images/dermatofibroma/ISIC_0024396.jpg,ISIC_0024396,HAM_0002450,dermatofibroma,dermatofibroma,consensus,65.0,female,lower extremity,train,3
+images/dermatofibroma/ISIC_0029297.jpg,ISIC_0029297,HAM_0002153,dermatofibroma,dermatofibroma,consensus,40.0,female,lower extremity,train,3
+images/actinic_keratoses/ISIC_0026984.jpg,ISIC_0026984,HAM_0001903,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0024447.jpg,ISIC_0024447,HAM_0007429,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0024420.jpg,ISIC_0024420,HAM_0006201,benign_keratosis-like_lesions,benign keratosis,histo,55.0,male,face,train,2
+images/benign_keratosis-like_lesions/ISIC_0029929.jpg,ISIC_0029929,HAM_0003768,benign_keratosis-like_lesions,benign keratosis,histo,80.0,male,upper extremity,test,2
+images/melanoma/ISIC_0025651.jpg,ISIC_0025651,HAM_0000075,melanoma,melanoma,histo,70.0,male,back,train,1
+images/melanoma/ISIC_0025489.jpg,ISIC_0025489,HAM_0002770,melanoma,melanoma,histo,30.0,male,back,train,1
+images/melanocytic_Nevi/ISIC_0031385.jpg,ISIC_0031385,HAM_0003684,melanocytic_Nevi,melanocytic nevus (mole),histo,75.0,male,face,test,1
+images/melanocytic_Nevi/ISIC_0034144.jpg,ISIC_0034144,HAM_0002923,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,abdomen,test,1
+images/basal_cell_carcinoma/ISIC_0024331.jpg,ISIC_0024331,HAM_0004662,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0027930.jpg,ISIC_0027930,HAM_0004899,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,scalp,train,1
+images/melanoma/ISIC_0025414.jpg,ISIC_0025414,HAM_0002576,melanoma,melanoma,histo,55.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0025368.jpg,ISIC_0025368,HAM_0004472,actinic_keratoses,actinic keratosis / Bowen's,histo,40.0,female,face,train,1
+images/melanoma/ISIC_0024999.jpg,ISIC_0024999,HAM_0001986,melanoma,melanoma,histo,50.0,male,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0024795.jpg,ISIC_0024795,HAM_0004420,basal_cell_carcinoma,basal cell carcinoma,histo,55.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0027976.jpg,ISIC_0027976,HAM_0004342,basal_cell_carcinoma,basal cell carcinoma,histo,80.0,male,back,train,1
+images/basal_cell_carcinoma/ISIC_0026154.jpg,ISIC_0026154,HAM_0006658,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,male,neck,train,1
+images/benign_keratosis-like_lesions/ISIC_0024635.jpg,ISIC_0024635,HAM_0003410,benign_keratosis-like_lesions,benign keratosis,histo,60.0,female,face,train,2
+images/basal_cell_carcinoma/ISIC_0028147.jpg,ISIC_0028147,HAM_0006053,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0026958.jpg,ISIC_0026958,HAM_0001773,benign_keratosis-like_lesions,benign keratosis,histo,40.0,female,face,test,2
+images/vascular_lesions/ISIC_0027903.jpg,ISIC_0027903,HAM_0006156,vascular_lesions,vascular lesion,histo,45.0,female,lower extremity,train,3
+images/melanoma/ISIC_0025832.jpg,ISIC_0025832,HAM_0003172,melanoma,melanoma,histo,65.0,male,back,train,1
+images/dermatofibroma/ISIC_0032941.jpg,ISIC_0032941,HAM_0001785,dermatofibroma,dermatofibroma,histo,50.0,male,upper extremity,train,3
+images/melanoma/ISIC_0026770.jpg,ISIC_0026770,HAM_0002491,melanoma,melanoma,histo,65.0,male,upper extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025548.jpg,ISIC_0025548,HAM_0003326,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,lower extremity,train,2
+images/actinic_keratoses/ISIC_0026100.jpg,ISIC_0026100,HAM_0000954,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0024646.jpg,ISIC_0024646,HAM_0006252,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,face,train,1
+images/vascular_lesions/ISIC_0033591.jpg,ISIC_0033591,HAM_0004791,vascular_lesions,vascular lesion,histo,80.0,female,lower extremity,train,3
+images/melanoma/ISIC_0025550.jpg,ISIC_0025550,HAM_0006899,melanoma,melanoma,histo,80.0,female,lower extremity,train,1
+images/benign_keratosis-like_lesions/ISIC_0025157.jpg,ISIC_0025157,HAM_0004491,benign_keratosis-like_lesions,benign keratosis,histo,45.0,male,face,train,2
+images/basal_cell_carcinoma/ISIC_0027998.jpg,ISIC_0027998,HAM_0005947,basal_cell_carcinoma,basal cell carcinoma,histo,65.0,female,upper extremity,train,1
+images/actinic_keratoses/ISIC_0029563.jpg,ISIC_0029563,HAM_0003146,actinic_keratoses,actinic keratosis / Bowen's,histo,85.0,male,upper extremity,train,1
+images/melanocytic_Nevi/ISIC_0030420.jpg,ISIC_0030420,HAM_0003106,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,male,chest,train,1
+images/basal_cell_carcinoma/ISIC_0024504.jpg,ISIC_0024504,HAM_0000189,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,female,scalp,train,1
+images/melanocytic_Nevi/ISIC_0024425.jpg,ISIC_0024425,HAM_0006342,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,face,train,1
+images/melanoma/ISIC_0025724.jpg,ISIC_0025724,HAM_0003520,melanoma,melanoma,histo,45.0,female,abdomen,train,1
+images/melanocytic_Nevi/ISIC_0032742.jpg,ISIC_0032742,HAM_0000579,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,upper extremity,test,1
+images/basal_cell_carcinoma/ISIC_0027175.jpg,ISIC_0027175,HAM_0000655,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,female,neck,train,1
+images/dermatofibroma/ISIC_0025911.jpg,ISIC_0025911,HAM_0004648,dermatofibroma,dermatofibroma,consensus,65.0,female,lower extremity,train,3
+images/basal_cell_carcinoma/ISIC_0026324.jpg,ISIC_0026324,HAM_0005058,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,female,face,train,1
+images/melanoma/ISIC_0024987.jpg,ISIC_0024987,HAM_0007560,melanoma,melanoma,histo,75.0,male,unknown,train,1
+images/benign_keratosis-like_lesions/ISIC_0024997.jpg,ISIC_0024997,HAM_0006343,benign_keratosis-like_lesions,benign keratosis,histo,60.0,male,back,train,2
+images/melanocytic_Nevi/ISIC_0033318.jpg,ISIC_0033318,HAM_0001808,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,back,test,1
+images/basal_cell_carcinoma/ISIC_0025700.jpg,ISIC_0025700,HAM_0005058,basal_cell_carcinoma,basal cell carcinoma,histo,85.0,female,face,train,1
+images/melanoma/ISIC_0024805.jpg,ISIC_0024805,HAM_0005724,melanoma,melanoma,histo,75.0,male,upper extremity,train,1
+images/basal_cell_carcinoma/ISIC_0024332.jpg,ISIC_0024332,HAM_0002240,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,male,unknown,train,1
+images/actinic_keratoses/ISIC_0028854.jpg,ISIC_0028854,HAM_0005356,actinic_keratoses,actinic keratosis / Bowen's,histo,60.0,male,face,train,1
+images/dermatofibroma/ISIC_0030665.jpg,ISIC_0030665,HAM_0005359,dermatofibroma,dermatofibroma,consensus,55.0,female,lower extremity,validation,3
+images/benign_keratosis-like_lesions/ISIC_0024471.jpg,ISIC_0024471,HAM_0000299,benign_keratosis-like_lesions,benign keratosis,histo,55.0,male,upper extremity,train,2
+images/dermatofibroma/ISIC_0030870.jpg,ISIC_0030870,HAM_0006707,dermatofibroma,dermatofibroma,consensus,45.0,female,lower extremity,train,3
+images/melanoma/ISIC_0026475.jpg,ISIC_0026475,HAM_0006965,melanoma,melanoma,histo,40.0,female,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0026015.jpg,ISIC_0026015,HAM_0002350,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,lower extremity,train,2
+images/melanoma/ISIC_0025085.jpg,ISIC_0025085,HAM_0000888,melanoma,melanoma,histo,75.0,male,upper extremity,train,1
+images/melanoma/ISIC_0025127.jpg,ISIC_0025127,HAM_0002436,melanoma,melanoma,histo,60.0,male,upper extremity,train,1
+images/melanoma/ISIC_0026115.jpg,ISIC_0026115,HAM_0004910,melanoma,melanoma,histo,70.0,male,chest,train,1
+images/basal_cell_carcinoma/ISIC_0024411.jpg,ISIC_0024411,HAM_0001390,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,face,train,1
+images/actinic_keratoses/ISIC_0025247.jpg,ISIC_0025247,HAM_0005231,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,lower extremity,train,1
+images/melanocytic_Nevi/ISIC_0024378.jpg,ISIC_0024378,HAM_0001580,melanocytic_Nevi,melanocytic nevus (mole),histo,5.0,male,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0025389.jpg,ISIC_0025389,HAM_0004921,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,neck,train,2
+images/vascular_lesions/ISIC_0033817.jpg,ISIC_0033817,HAM_0001249,vascular_lesions,vascular lesion,consensus,85.0,male,back,train,3
+images/actinic_keratoses/ISIC_0026729.jpg,ISIC_0026729,HAM_0006560,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0024561.jpg,ISIC_0024561,HAM_0000707,melanocytic_Nevi,melanocytic nevus (mole),histo,70.0,female,abdomen,train,1
+images/benign_keratosis-like_lesions/ISIC_0026018.jpg,ISIC_0026018,HAM_0005883,benign_keratosis-like_lesions,benign keratosis,histo,65.0,male,back,train,2
+images/melanocytic_Nevi/ISIC_0034112.jpg,ISIC_0034112,HAM_0000579,melanocytic_Nevi,melanocytic nevus (mole),histo,30.0,female,upper extremity,test,1
+images/basal_cell_carcinoma/ISIC_0025031.jpg,ISIC_0025031,HAM_0002934,basal_cell_carcinoma,basal cell carcinoma,histo,60.0,male,abdomen,train,1
+images/actinic_keratoses/ISIC_0024579.jpg,ISIC_0024579,HAM_0000005,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,female,lower extremity,train,1
+images/basal_cell_carcinoma/ISIC_0026831.jpg,ISIC_0026831,HAM_0006387,basal_cell_carcinoma,basal cell carcinoma,histo,70.0,male,face,train,1
+images/dermatofibroma/ISIC_0025154.jpg,ISIC_0025154,HAM_0001177,dermatofibroma,dermatofibroma,histo,55.0,male,upper extremity,train,3
+images/basal_cell_carcinoma/ISIC_0028106.jpg,ISIC_0028106,HAM_0007428,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,female,face,train,1
+images/vascular_lesions/ISIC_0029439.jpg,ISIC_0029439,HAM_0002390,vascular_lesions,vascular lesion,consensus,50.0,male,abdomen,train,3
+images/actinic_keratoses/ISIC_0029041.jpg,ISIC_0029041,HAM_0006898,actinic_keratoses,actinic keratosis / Bowen's,histo,80.0,male,scalp,train,1
+images/melanocytic_Nevi/ISIC_0030520.jpg,ISIC_0030520,HAM_0003221,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,female,lower extremity,train,1
+images/actinic_keratoses/ISIC_0024800.jpg,ISIC_0024800,HAM_0007088,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,back,train,1
+images/dermatofibroma/ISIC_0032642.jpg,ISIC_0032642,HAM_0002909,dermatofibroma,dermatofibroma,histo,50.0,male,lower extremity,train,3
+images/vascular_lesions/ISIC_0024669.jpg,ISIC_0024669,HAM_0006617,vascular_lesions,vascular lesion,histo,25.0,female,abdomen,train,3
+images/melanocytic_Nevi/ISIC_0032924.jpg,ISIC_0032924,HAM_0002363,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,male,upper extremity,test,1
+images/vascular_lesions/ISIC_0026467.jpg,ISIC_0026467,HAM_0001537,vascular_lesions,vascular lesion,consensus,55.0,male,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0026060.jpg,ISIC_0026060,HAM_0005891,benign_keratosis-like_lesions,benign keratosis,histo,70.0,female,face,train,2
+images/vascular_lesions/ISIC_0024370.jpg,ISIC_0024370,HAM_0001780,vascular_lesions,vascular lesion,consensus,55.0,male,trunk,train,3
+images/dermatofibroma/ISIC_0029052.jpg,ISIC_0029052,HAM_0002463,dermatofibroma,dermatofibroma,consensus,75.0,female,lower extremity,train,3
+images/melanoma/ISIC_0024323.jpg,ISIC_0024323,HAM_0002493,melanoma,melanoma,histo,50.0,male,lower extremity,train,1
+images/actinic_keratoses/ISIC_0029582.jpg,ISIC_0029582,HAM_0003501,actinic_keratoses,actinic keratosis / Bowen's,histo,75.0,male,lower extremity,train,1
+images/melanoma/ISIC_0024586.jpg,ISIC_0024586,HAM_0003832,melanoma,melanoma,histo,60.0,female,lower extremity,train,1
+images/dermatofibroma/ISIC_0033005.jpg,ISIC_0033005,HAM_0000349,dermatofibroma,dermatofibroma,consensus,45.0,female,lower extremity,train,3
+images/benign_keratosis-like_lesions/ISIC_0025376.jpg,ISIC_0025376,HAM_0006580,benign_keratosis-like_lesions,benign keratosis,histo,75.0,male,back,train,2
+images/melanoma/ISIC_0025783.jpg,ISIC_0025783,HAM_0000417,melanoma,melanoma,histo,65.0,male,back,train,1
+images/benign_keratosis-like_lesions/ISIC_0030801.jpg,ISIC_0030801,HAM_0006201,benign_keratosis-like_lesions,benign keratosis,histo,55.0,male,face,test,2
+images/melanocytic_Nevi/ISIC_0024529.jpg,ISIC_0024529,HAM_0004432,melanocytic_Nevi,melanocytic nevus (mole),histo,25.0,male,abdomen,train,1
+images/dermatofibroma/ISIC_0033891.jpg,ISIC_0033891,HAM_0007396,dermatofibroma,dermatofibroma,consensus,35.0,female,lower extremity,validation,3
+images/basal_cell_carcinoma/ISIC_0025383.jpg,ISIC_0025383,HAM_0001907,basal_cell_carcinoma,basal cell carcinoma,histo,40.0,male,back,train,1
+images/actinic_keratoses/ISIC_0024843.jpg,ISIC_0024843,HAM_0004376,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,female,face,train,1
+images/benign_keratosis-like_lesions/ISIC_0024970.jpg,ISIC_0024970,HAM_0001815,benign_keratosis-like_lesions,benign keratosis,histo,85.0,male,chest,train,2
+images/vascular_lesions/ISIC_0033458.jpg,ISIC_0033458,HAM_0003862,vascular_lesions,vascular lesion,histo,45.0,male,upper extremity,train,3
+images/basal_cell_carcinoma/ISIC_0025824.jpg,ISIC_0025824,HAM_0001331,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,chest,train,1
+images/melanoma/ISIC_0024313.jpg,ISIC_0024313,HAM_0002869,melanoma,melanoma,histo,50.0,female,back,train,1
+images/vascular_lesions/ISIC_0033762.jpg,ISIC_0033762,HAM_0007097,vascular_lesions,vascular lesion,histo,60.0,male,trunk,train,3
+images/basal_cell_carcinoma/ISIC_0028085.jpg,ISIC_0028085,HAM_0000065,basal_cell_carcinoma,basal cell carcinoma,histo,50.0,female,abdomen,train,1
+images/melanocytic_Nevi/ISIC_0024441.jpg,ISIC_0024441,HAM_0007516,melanocytic_Nevi,melanocytic nevus (mole),histo,45.0,female,back,train,1
+images/basal_cell_carcinoma/ISIC_0027337.jpg,ISIC_0027337,HAM_0003778,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,scalp,train,1
+images/melanocytic_Nevi/ISIC_0032374.jpg,ISIC_0032374,HAM_0001279,melanocytic_Nevi,melanocytic nevus (mole),histo,50.0,female,back,train,1
+images/actinic_keratoses/ISIC_0027802.jpg,ISIC_0027802,HAM_0006560,actinic_keratoses,actinic keratosis / Bowen's,histo,50.0,male,face,train,1
+images/melanocytic_Nevi/ISIC_0032470.jpg,ISIC_0032470,HAM_0002581,melanocytic_Nevi,melanocytic nevus (mole),histo,40.0,male,back,test,1
+images/melanoma/ISIC_0026360.jpg,ISIC_0026360,HAM_0003990,melanoma,melanoma,histo,60.0,male,back,train,1
+images/actinic_keratoses/ISIC_0026650.jpg,ISIC_0026650,HAM_0000545,actinic_keratoses,actinic keratosis / Bowen's,histo,70.0,male,face,train,1
+images/basal_cell_carcinoma/ISIC_0027058.jpg,ISIC_0027058,HAM_0005998,basal_cell_carcinoma,basal cell carcinoma,histo,75.0,male,back,train,1
+images/vascular_lesions/ISIC_0030956.jpg,ISIC_0030956,HAM_0005713,vascular_lesions,vascular lesion,histo,60.0,female,neck,validation,3
+images/benign_keratosis-like_lesions/ISIC_0025083.jpg,ISIC_0025083,HAM_0003015,benign_keratosis-like_lesions,benign keratosis,histo,55.0,male,back,train,2
+images/actinic_keratoses/ISIC_0027650.jpg,ISIC_0027650,HAM_0002648,actinic_keratoses,actinic keratosis / Bowen's,histo,40.0,male,neck,train,1
+images/melanoma/ISIC_0025317.jpg,ISIC_0025317,HAM_0004428,melanoma,melanoma,histo,80.0,male,upper extremity,train,1
+images/melanoma/ISIC_0025996.jpg,ISIC_0025996,HAM_0003990,melanoma,melanoma,histo,60.0,male,back,train,1
+images/melanoma/ISIC_0026489.jpg,ISIC_0026489,HAM_0004153,melanoma,melanoma,histo,80.0,male,foot,train,1
+images/vascular_lesions/ISIC_0031346.jpg,ISIC_0031346,HAM_0001566,vascular_lesions,vascular lesion,consensus,70.0,female,face,train,3
+images/melanocytic_Nevi/ISIC_0032865.jpg,ISIC_0032865,HAM_0007519,melanocytic_Nevi,melanocytic nevus (mole),histo,35.0,female,upper extremity,test,1
+images/melanoma/ISIC_0026430.jpg,ISIC_0026430,HAM_0007570,melanoma,melanoma,histo,60.0,female,back,train,1

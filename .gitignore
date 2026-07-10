@@ -1,0 +1,68 @@
+# ============================================================
+#  Sunny — repository ignore rules
+# ============================================================
+
+# ---- Android / Gradle build output ----
+**/build/
+.gradle/
+android/.gradle/
+android/app/.cxx/
+**/.cxx/
+android/local.properties
+local.properties
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# ---- Android Studio / IntelliJ ----
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ---- Vendored native dependency ----
+# llama.cpp is fetched on demand (android/scripts/vendor_llama.sh); it carries
+# its own git history and is ~190 MB, so it is not tracked here.
+android/app/src/main/cpp/llama.cpp/
+
+# ---- On-device model weights & training artifacts (large; not for VCS) ----
+# Pulled/produced separately (see exports/MODELS.md, pull_weights.sh).
+exports/model_on_host/
+exports/e4b-derm-lora/
+*.gguf
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.litertlm
+*.ckpt
+
+# ---- Datasets (heavy / potentially licensed source imagery) ----
+data/images/
+data/raw_parquet/
+
+# ---- Local reference screenshots / design mockups ----
+photos/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# ---- Local tooling state / secrets ----
+.omc/
+.claude/
+.env
+.env.*
+*.log
+
+# ---- OS cruft ----
+.DS_Store
+Thumbs.db

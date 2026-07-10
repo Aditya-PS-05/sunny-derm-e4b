@@ -1,0 +1,50 @@
+{
+  "base_model": "google/gemma-4-E4B-it (ungated, no token needed)",
+  "fine_tune": {
+    "method": "4-bit NF4 QLoRA",
+    "lora_r": 16,
+    "lora_alpha": 16,
+    "target": "language tower q/k/v/o/gate/up/down_proj",
+    "trainable_params": 34881536,
+    "trainable_pct": 0.4373,
+    "epochs": 3,
+    "steps": 453,
+    "eval_loss_by_epoch": [
+      0.144,
+      0.1261,
+      0.123
+    ],
+    "runtime_min": 61,
+    "train_loss_mean": 0.1922,
+    "train_loss_final_step": 0.101
+  },
+  "merge": {
+    "adapter_folded": "attention + MLP",
+    "merged_size_gb": 15,
+    "output": "e4b-derm-merged (safetensors)"
+  },
+  "export": {
+    "gguf_language_model": {
+      "file": "e4b-derm-Q4_K_M.gguf",
+      "size_gb": 5.0,
+      "quant": "Q4_K_M",
+      "bpw": 5.67,
+      "from_fp16_mib": 14235.64,
+      "to_mib": 5041.55
+    },
+    "gguf_vision_projector": {
+      "file": "mmproj-e4b-derm-f16.gguf",
+      "size_mb": 990,
+      "tensors": 1411,
+      "purpose": "vision encoder for image->description"
+    },
+    "total_deploy_size_gb": 6.0,
+    "runtime": "llama.cpp / llama-mtmd (GGUF) OR LiteRT-LM (.litertlm)"
+  },
+  "validation": {
+    "transformers_inference": "3 held-out val images -> correct 6-field schema + disclaimer",
+    "quantized_gguf": "llama-cli generated a coherent, on-topic response (correctly noted no image was provided for the vision task); load-time arch/param fields were not separately captured"
+  },
+  "caveat": "HAM10000 is dermatoscopic; production needs phone-photo fine-tuning pass",
+  "artifacts_on_host": "~/derm/out/ (merged 15G, Q4_K_M 5G, mmproj 990M, adapter 134M)"
+}

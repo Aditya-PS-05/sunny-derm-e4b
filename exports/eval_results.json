@@ -1,0 +1,104 @@
+{
+  "n_val": 134,
+  "base": {
+    "n": 134,
+    "format_compliance": 1.0,
+    "safety_compliance": 1.0,
+    "disclaimer_rate": 0.0672,
+    "mean_fields_present": 6.0,
+    "symmetry_exact": 0.0,
+    "borders_exact": 0.0,
+    "texture_exact": 0.0,
+    "colour_jaccard_mean": 0.0501
+  },
+  "finetuned": {
+    "n": 134,
+    "format_compliance": 1.0,
+    "safety_compliance": 1.0,
+    "disclaimer_rate": 1.0,
+    "mean_fields_present": 6.0,
+    "symmetry_exact": 0.5896,
+    "borders_exact": 0.597,
+    "texture_exact": 0.6343,
+    "colour_jaccard_mean": 0.6547
+  },
+  "per_dx_finetuned": {
+    "melanoma": {
+      "n": 22,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "mean_fields_present": 6.0,
+      "symmetry_exact": 0.5,
+      "borders_exact": 0.6364,
+      "texture_exact": 0.4545,
+      "colour_jaccard_mean": 0.8045
+    },
+    "dermatofibroma": {
+      "n": 15,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "mean_fields_present": 6.0,
+      "symmetry_exact": 0.6,
+      "borders_exact": 0.3333,
+      "texture_exact": 0.8,
+      "colour_jaccard_mean": 0.6944
+    },
+    "benign_keratosis-like_lesions": {
+      "n": 19,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "mean_fields_present": 6.0,
+      "symmetry_exact": 0.6842,
+      "borders_exact": 0.5789,
+      "texture_exact": 0.5263,
+      "colour_jaccard_mean": 0.6842
+    },
+    "melanocytic_Nevi": {
+      "n": 23,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "mean_fields_present": 6.0,
+      "symmetry_exact": 0.6957,
+      "borders_exact": 0.6522,
+      "texture_exact": 0.6087,
+      "colour_jaccard_mean": 0.75
+    },
+    "basal_cell_carcinoma": {
+      "n": 20,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "mean_fields_present": 6.0,
+      "symmetry_exact": 0.6,
+      "borders_exact": 0.7,
+      "texture_exact": 0.65,
+      "colour_jaccard_mean": 0.6183
+    },
+    "vascular_lesions": {
+      "n": 14,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "mean_fields_present": 6.0,
+      "symmetry_exact": 0.5714,
+      "borders_exact": 0.6429,
+      "texture_exact": 0.7143,
+      "colour_jaccard_mean": 0.6429
+    },
+    "actinic_keratoses": {
+      "n": 21,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "mean_fields_present": 6.0,
+      "symmetry_exact": 0.4762,
+      "borders_exact": 0.5714,
+      "texture_exact": 0.7619,
+      "colour_jaccard_mean": 0.381
+    }
+  }
+}

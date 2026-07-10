@@ -1,0 +1,13 @@
+# Training stack for QLoRA fine-tune of Gemma 4 E4B on the A10G.
+# Install into the `derm` conda env: python -m pip install -r requirements_train.txt
+# CUDA wheels resolve for the A10G (driver 595.71.05, CUDA 12.x).
+torch>=2.4
+transformers>=5.5.0          # Gemma 4 requires >=5.5.0; 5.13.0 verified available
+accelerate>=1.0
+peft>=0.13
+trl>=0.12
+bitsandbytes>=0.44           # 4-bit NF4 quantization
+datasets>=3.0
+pillow
+sentencepiece
+protobuf

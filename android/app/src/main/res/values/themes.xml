@@ -1,0 +1,11 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base theme kept minimal; the real styling lives in Compose (Theme.kt).
+         A splash-friendly cream background prevents a white flash on launch. -->
+    <style name="Theme.Sunny" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/sunny_background</item>
+        <item name="android:statusBarColor">@color/sunny_background</item>
+        <item name="android:navigationBarColor">@color/sunny_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

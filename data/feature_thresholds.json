@@ -1,0 +1,19 @@
+{
+  "note": "33rd/66th percentile tertiles from the HAM10000 pilot (n=105). Dermatoscopic segmentation inflates absolute morphometry; phrases are relative-within-dataset.",
+  "asymmetry": [
+    0.31,
+    0.52
+  ],
+  "border_irregularity": [
+    0.55,
+    0.77
+  ],
+  "lum_std": [
+    13.3,
+    19.6
+  ],
+  "edge_density": [
+    0.009,
+    0.052
+  ]
+}

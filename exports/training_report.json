@@ -1,0 +1,38 @@
+{
+  "metadata": {
+    "base_model": "google/gemma-4-E4B-it",
+    "adapter_params": 34881536,
+    "total_params": 7975982368,
+    "trainable_pct": 0.4373,
+    "epochs": 3,
+    "steps": 453,
+    "eval_loss": [
+      0.144,
+      0.1261,
+      0.123
+    ],
+    "train_runtime_s": 3650,
+    "lora_r": 16,
+    "lora_alpha": 16,
+    "target": "language tower q/k/v/o/gate/up/down_proj",
+    "precision": "4-bit NF4 QLoRA",
+    "gated": false,
+    "note": "google/gemma-4-E4B-it is ungated - no HF token needed",
+    "train_loss_mean": 0.1922,
+    "train_loss_final_step": 0.101
+  },
+  "samples": [
+    {
+      "dx_true": "melanoma",
+      "output": "Lesion Type: pigmented lesion\nColour: multiple colours (light brown, dark brown, red)\nSymmetry: roughly symmetric\nBorders: somewhat irregular borders\nTexture: rough or structurally varied surface\nSummary: A light brown, dark brown and red pigmented lesion that appears roughly symmetric with somewhat irregular borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern."
+    },
+    {
+      "dx_true": "melanoma",
+      "output": "Lesion Type: pigmented macule or papule\nColour: multiple colours (red, light brown, dark brown)\nSymmetry: roughly symmetric\nBorders: smooth, well-defined borders\nTexture: rough or structurally varied surface\nSummary: A red, light brown and dark brown pigmented macule or papule that appears roughly symmetric with smooth, well-defined borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern."
+    },
+    {
+      "dx_true": "melanoma",
+      "output": "Lesion Type: pigmented lesion\nColour: multiple colours (red, light brown, dark brown)\nSymmetry: roughly symmetric\nBorders: somewhat irregular borders\nTexture: slightly uneven surface\nSummary: A red, light brown and dark brown pigmented lesion that appears roughly symmetric with somewhat irregular borders and a slightly uneven surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern."
+    }
+  ]
+}
