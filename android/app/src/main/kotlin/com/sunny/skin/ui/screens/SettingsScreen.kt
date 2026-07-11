@@ -83,7 +83,7 @@ fun SettingsScreen(
         SectionHeader("Privacy & Security")
         SunnyCard {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconBadge(Icons.Filled.Lock, SunnyColors.Orange)
+                IconBadge(Icons.Filled.Lock, SunnyColors.Orange, iconSize = 30.dp)
                 Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text("App Lock (PIN)", style = MaterialTheme.typography.titleMedium)
@@ -119,7 +119,7 @@ fun SettingsScreen(
         SectionHeader("Reminders")
         SunnyCard {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconBadge(Icons.Filled.NotificationsActive, SunnyColors.Orange)
+                IconBadge(Icons.Filled.NotificationsActive, SunnyColors.TextPrimary)
                 Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Regular skin check", style = MaterialTheme.typography.titleMedium)
@@ -217,11 +217,15 @@ private fun intervalLabel(days: Int): String = when (days) {
 }
 
 @Composable
-private fun IconBadge(icon: ImageVector, tint: androidx.compose.ui.graphics.Color) {
-    Box(
-        Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(SunnyColors.OrangeSoft),
-        contentAlignment = Alignment.Center,
-    ) { Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp)) }
+private fun IconBadge(
+    icon: ImageVector,
+    tint: androidx.compose.ui.graphics.Color,
+    iconSize: androidx.compose.ui.unit.Dp = 24.dp,
+) {
+    // No background box — just the icon, kept in a 36dp slot so rows stay aligned.
+    Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(iconSize))
+    }
 }
 
 @Composable
