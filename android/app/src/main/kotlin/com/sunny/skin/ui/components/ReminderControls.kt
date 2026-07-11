@@ -104,8 +104,9 @@ fun rememberNotificationRequester(): (afterAsk: (granted: Boolean) -> Unit) -> U
 fun ReCheckReminderDialog(
     onPick: (days: Int) -> Unit,
     onDismiss: () -> Unit,
+    recommendedDays: Int? = null,
 ) {
-    var selected by remember { mutableIntStateOf(30) }
+    var selected by remember { mutableIntStateOf(recommendedDays ?: 30) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -167,6 +168,7 @@ fun ReCheckReminderDialog(
                         OptionRow(
                             label = label,
                             selected = selected == days,
+                            recommended = recommendedDays != null && days == recommendedDays,
                             onClick = { selected = days },
                         )
                         if (i < RECHECK_OPTIONS.lastIndex) {
@@ -235,7 +237,12 @@ private fun GlassCard(content: @Composable androidx.compose.foundation.layout.Co
 }
 
 @Composable
-private fun OptionRow(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun OptionRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    recommended: Boolean = false,
+) {
     Row(
         Modifier.fillMaxWidth()
             .clickable(
@@ -252,8 +259,18 @@ private fun OptionRow(label: String, selected: Boolean, onClick: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge,
             color = SunnyColors.TextPrimary,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            modifier = Modifier.weight(1f),
         )
+        if (recommended) {
+            Spacer(Modifier.size(8.dp))
+            Box(
+                Modifier.clip(RoundedCornerShape(50)).background(SunnyColors.Orange)
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
+            ) {
+                Text("Recommended", style = MaterialTheme.typography.labelSmall,
+                    color = Color.White, fontWeight = FontWeight.SemiBold)
+            }
+        }
+        Spacer(Modifier.weight(1f))
         if (selected) {
             Box(
                 Modifier.size(24.dp).clip(CircleShape).background(SunnyColors.Orange),

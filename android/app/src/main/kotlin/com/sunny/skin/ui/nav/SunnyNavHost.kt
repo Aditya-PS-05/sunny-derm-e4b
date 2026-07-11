@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sunny.skin.ui.SunnyViewModel
+import com.sunny.skin.ui.screens.BodyGuideScreen
 import com.sunny.skin.ui.screens.CameraScreen
 import com.sunny.skin.ui.screens.CaptureScreen
 import com.sunny.skin.ui.screens.CompareScreen
@@ -156,7 +157,15 @@ private fun NavGraphBuilder.captureGraph(
             vm = vm,
             onOpenCamera = { nav.navigate(Routes.CAMERA) },
             onImageChosen = { nav.navigate(Routes.REVIEW) },
+            onGuided = { nav.navigate(Routes.BODY_GUIDE) },
             onBack = { nav.popBackStack() },
+        )
+    }
+    composable(Routes.BODY_GUIDE) {
+        BodyGuideScreen(
+            vm = vm,
+            onBack = { nav.popBackStack() },
+            onCapturePose = { nav.navigate(Routes.CAMERA) },
         )
     }
     composable(Routes.CAMERA) {

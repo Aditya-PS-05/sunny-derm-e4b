@@ -48,6 +48,7 @@ import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.BalloonDrop
 import com.sunny.skin.ui.components.BodyTemplate
 import com.sunny.skin.ui.components.InlineDisclaimer
+import com.sunny.skin.ui.components.StreakCard
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.theme.SunnyColors
@@ -55,6 +56,7 @@ import com.sunny.skin.ui.theme.SunnyColors
 @Composable
 fun OverviewScreen(vm: SunnyViewModel, onScanClick: (String) -> Unit) {
     val stats by vm.stats.collectAsStateWithLifecycle()
+    val habit by vm.habit.collectAsStateWithLifecycle()
     var side by remember { mutableStateOf(BodySide.FRONT) }
     // One-time balloon greeting for a brand-new user landing on Overview.
     var showBalloons by remember { mutableStateOf(!vm.settings.seenGreeting) }
@@ -123,6 +125,10 @@ fun OverviewScreen(vm: SunnyViewModel, onScanClick: (String) -> Unit) {
             StatCard(Modifier.weight(1f), R.drawable.stat_scanned, stats.scanned, "Scanned")
             StatCard(Modifier.weight(1f), R.drawable.stat_updates, stats.updates, "Updates")
         }
+        Spacer(Modifier.height(16.dp))
+
+        // Weekly check-in streak + activity (retention)
+        StreakCard(habit)
         Spacer(Modifier.height(16.dp))
 
         // Body coverage

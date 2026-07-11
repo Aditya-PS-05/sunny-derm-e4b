@@ -34,6 +34,10 @@ sealed interface AnalysisState {
     data object Unreadable : AnalysisState
 }
 
+/** Seeds the next capture from the guided full-body flow: preset body part + a
+ *  framing hint shown over the camera so photos stay consistent for alignment. */
+data class CapturePreset(val bodyPart: BodyPart, val poseHint: String)
+
 /** Aggregate stats for the Overview cards + body coverage. */
 data class OverviewStats(
     val photos: Int = 0,
@@ -43,6 +47,21 @@ data class OverviewStats(
 ) {
     val coverage: Float get() =
         scannedZones.size.toFloat() / com.sunny.skin.data.model.BodyZone.entries.size
+}
+
+/**
+ * Habit/retention signal derived purely from the observation timestamps — no
+ * extra storage. A "week" is a rolling 7-day window back from now; the streak is
+ * the run of consecutive weeks with at least one photo, ending at this week (or
+ * last week, so it isn't broken the instant a new week starts).
+ */
+data class HabitStats(
+    val currentStreakWeeks: Int = 0,
+    val activeThisWeek: Boolean = false,
+    val weeklyCounts: List<Int> = List(WEEKS) { 0 }, // oldest → newest (this week last)
+    val totalObservations: Int = 0,
+) {
+    companion object { const val WEEKS = 10 }
 }
 
 class SunnyViewModel(app: Application) : AndroidViewModel(app) {
@@ -65,8 +84,21 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), OverviewStats())
 
+    val habit: StateFlow<HabitStats> = repo.scans
+        .map { list -> computeHabit(list.flatMap { s -> s.observations.map { it.capturedAt } }) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HabitStats())
+
     private val _capture = MutableStateFlow(CaptureState())
     val capture: StateFlow<CaptureState> = _capture.asStateFlow()
+
+    // ---- Guided full-body capture ----
+    private val _capturePreset = MutableStateFlow<CapturePreset?>(null)
+    val capturePreset: StateFlow<CapturePreset?> = _capturePreset.asStateFlow()
+
+    /** Begin capturing a specific body zone with a framing hint (guided flow). */
+    fun beginGuidedCapture(bodyPart: BodyPart, poseHint: String) {
+        _capturePreset.value = CapturePreset(bodyPart, poseHint)
+    }
 
     // ---- App-lock PIN ----
     private val _pinEnabled = MutableStateFlow(settings.hasPin())
@@ -79,6 +111,18 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     private val appCtx = app.applicationContext
     private val reminderStore = com.sunny.skin.reminder.ReminderStore(appCtx)
     val reminders: StateFlow<List<com.sunny.skin.reminder.Reminder>> = reminderStore.reminders
+
+    // ---- ABCDE self-check (per scan; educational, no interpretation) ----
+    private val abcdeStore = com.sunny.skin.data.AbcdeStore(appCtx)
+
+    fun abcde(scanId: String): Map<com.sunny.skin.data.AbcdeItem, com.sunny.skin.data.AbcdeAnswer> =
+        abcdeStore.get(scanId)
+
+    fun setAbcde(
+        scanId: String,
+        item: com.sunny.skin.data.AbcdeItem,
+        answer: com.sunny.skin.data.AbcdeAnswer,
+    ) = abcdeStore.set(scanId, item, answer)
 
     private val dayMs = 24L * 60 * 60 * 1000
 
@@ -189,7 +233,12 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     // ---- Capture flow ----
 
     fun startCapture(bitmap: Bitmap) {
-        _capture.value = CaptureState(bitmap = bitmap, analysis = AnalysisState.Running)
+        val preset = _capturePreset.value
+        _capture.value = CaptureState(
+            bitmap = bitmap,
+            bodyPart = preset?.bodyPart ?: CaptureState().bodyPart,
+            analysis = AnalysisState.Running,
+        )
         runAnalysis(bitmap)
     }
 
@@ -231,13 +280,43 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
                 now = now,
             )
             _capture.value = CaptureState()
+            _capturePreset.value = null
             onSaved(scanId)
         }
     }
 
-    fun discardCapture() { _capture.value = CaptureState() }
+    fun discardCapture() { _capture.value = CaptureState(); _capturePreset.value = null }
 
     fun deleteScan(scan: ScanWithObservations) {
         viewModelScope.launch { repo.deleteScan(scan) }
+        abcdeStore.clear(scan.scan.id)
     }
+
+    /** Bucket capture times into rolling 7-day windows and derive the streak. */
+    private fun computeHabit(times: List<Long>): HabitStats {
+        val now = System.currentTimeMillis()
+        val counts = IntArray(HabitStats.WEEKS)
+        val active = BooleanArray(160) // weeks-ago activity flags (plenty of history)
+        times.forEach { t ->
+            if (t in 0..now) {
+                val w = ((now - t) / WEEK_MS).toInt()
+                if (w < HabitStats.WEEKS) counts[HabitStats.WEEKS - 1 - w]++
+                if (w < active.size) active[w] = true
+            }
+        }
+        // Start counting from this week if it's active, otherwise from last week, so
+        // the streak survives the first days of a fresh week before the next photo.
+        val start = if (active[0]) 0 else 1
+        var streak = 0
+        var w = start
+        while (w < active.size && active[w]) { streak++; w++ }
+        return HabitStats(
+            currentStreakWeeks = streak,
+            activeThisWeek = active[0],
+            weeklyCounts = counts.toList(),
+            totalObservations = times.size,
+        )
+    }
+
+    private companion object { const val WEEK_MS = 7L * 24 * 60 * 60 * 1000 }
 }

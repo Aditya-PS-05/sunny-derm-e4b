@@ -18,6 +18,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Close
@@ -47,8 +49,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.util.BitmapLoader
 import java.util.concurrent.Executors
@@ -89,6 +94,7 @@ fun CameraScreen(
 @Composable
 private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: () -> Unit) {
     val context = LocalContext.current
+    val preset by vm.capturePreset.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
     val executor = remember { Executors.newSingleThreadExecutor() }
     val imageCapture = remember { ImageCapture.Builder().build() }
@@ -131,6 +137,24 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
             modifier = Modifier.align(Alignment.TopStart).padding(16.dp),
             onClick = onClose,
         )
+
+        // Pose-guidance banner for the guided full-body flow (keeps framing
+        // consistent between visits, which is what the alignment relies on).
+        preset?.let { p ->
+            Column(
+                Modifier.align(Alignment.TopCenter)
+                    .padding(top = 20.dp, start = 76.dp, end = 16.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xAA000000))
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(p.bodyPart.label, color = Color.White,
+                    style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(p.poseHint, color = Color(0xFFEDEDED),
+                    style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+            }
+        }
 
         // Bottom controls: zoom row + shutter + flip
         Box(

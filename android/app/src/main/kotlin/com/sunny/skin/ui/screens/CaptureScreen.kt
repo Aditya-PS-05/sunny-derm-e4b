@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Icon
@@ -29,8 +31,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.ScreenScaffold
+import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.theme.SunnyColors
 import com.sunny.skin.util.BitmapLoader
 
@@ -44,6 +48,7 @@ fun CaptureScreen(
     vm: SunnyViewModel,
     onOpenCamera: () -> Unit,
     onImageChosen: () -> Unit,
+    onGuided: () -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -58,22 +63,42 @@ fun CaptureScreen(
     }
 
     ScreenScaffold(title = "Capture", onBack = onBack) { inner ->
-        Row(
-            Modifier.fillMaxWidth().padding(inner).padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            ChooserCard(
-                Modifier.weight(1f), Icons.Filled.CameraAlt, "Take Photo",
-                onClick = onOpenCamera,
-            )
-            ChooserCard(
-                Modifier.weight(1f), Icons.Filled.PhotoLibrary, "Choose from Library",
-                onClick = {
-                    picker.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                    )
-                },
-            )
+        Column(Modifier.fillMaxWidth().padding(inner).padding(16.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ChooserCard(
+                    Modifier.weight(1f), Icons.Filled.CameraAlt, "Take Photo",
+                    onClick = onOpenCamera,
+                )
+                ChooserCard(
+                    Modifier.weight(1f), Icons.Filled.PhotoLibrary, "Choose from Library",
+                    onClick = {
+                        picker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                        )
+                    },
+                )
+            }
+            Spacer(Modifier.size(16.dp))
+            GuidedCard(onClick = onGuided)
+        }
+    }
+}
+
+/** Full-width entry into the guided head-to-toe capture flow. */
+@Composable
+private fun GuidedCard(onClick: () -> Unit) {
+    SunnyCard(onClick = onClick) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.Accessibility, null, tint = SunnyColors.Orange,
+                modifier = Modifier.size(28.dp))
+            Spacer(Modifier.size(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("Guided full-body scan", style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold)
+                Text("Capture head to toe with framing tips for each zone",
+                    style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
+            }
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SunnyColors.TextTertiary)
         }
     }
 }

@@ -36,7 +36,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,11 +50,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.sunny.skin.data.AbcdeAnswer
+import com.sunny.skin.data.AbcdeItem
 import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ObservationEntity
 import com.sunny.skin.data.model.Analysis
 import com.sunny.skin.ui.SunnyViewModel
+import com.sunny.skin.ui.components.AbcdeCard
 import com.sunny.skin.ui.components.AnalysisCard
+import com.sunny.skin.ui.components.ChangeScoreCard
 import com.sunny.skin.ui.components.CircleButton
 import com.sunny.skin.ui.components.MetaChip
 import com.sunny.skin.ui.components.ReCheckReminderDialog
@@ -61,6 +67,7 @@ import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.rememberNotificationRequester
 import com.sunny.skin.ui.theme.SunnyColors
 import com.sunny.skin.util.BitmapLoader
+import com.sunny.skin.util.ChangeAnalysis
 import com.sunny.skin.util.Format
 import java.io.File
 
@@ -100,7 +107,31 @@ fun ScanDetailScreen(
         val latest = timeline.firstOrNull() ?: return@ScreenScaffold
         val previous = timeline.getOrNull(1)
 
+        // Which described aspects moved since the previous photo (excluding the
+        // summary rollup) — feeds both the field highlight and the change score.
+        val changedFieldsSet = previous?.let {
+            changedFields(it.analysis.toAnalysis(), latest.analysis.toAnalysis())
+        } ?: emptySet()
+        val aspectLabels = changedFieldsSet.filter { it != "Summary" }
+
         val context = LocalContext.current
+
+        // Quantified change vs the previous photo: aligned pixel diff blended with
+        // the field diff. Recomputed off the UI thread when either photo changes.
+        val changeResult by produceState<ChangeAnalysis.ChangeResult?>(
+            initialValue = null, key1 = latest.imagePath, key2 = previous?.imagePath,
+        ) {
+            value = previous?.let {
+                ChangeAnalysis.compare(context, it.imagePath, latest.imagePath, aspectLabels.size)
+            }
+        }
+        val recommendedDays = changeResult?.let { ChangeAnalysis.recommendedRecheckDays(it.level) }
+
+        // Per-spot ABCDE self-check answers (persisted; mirrored locally for the UI).
+        val abcdeAnswers = remember(scanId) {
+            mutableStateMapOf<AbcdeItem, AbcdeAnswer>().apply { putAll(vm.abcde(scanId)) }
+        }
+
         var showReminder by remember { mutableStateOf(false) }
         val requestNotif = rememberNotificationRequester()
         var adding by remember { mutableStateOf(false) }
@@ -137,6 +168,17 @@ fun ScanDetailScreen(
             }
             Spacer(Modifier.height(16.dp))
 
+            // Change-detection hero — the reason to re-open the app. Only once there
+            // is a previous photo to compare against.
+            if (previous != null) {
+                ChangeScoreCard(
+                    result = changeResult,
+                    sinceDate = Format.date(previous.capturedAt),
+                    changedAspects = aspectLabels,
+                )
+                Spacer(Modifier.height(12.dp))
+            }
+
             // Add a follow-up photo (builds the timeline that Compare needs).
             SunnyCard(onClick = {
                 if (!adding) picker.launch(
@@ -145,8 +187,7 @@ fun ScanDetailScreen(
             }) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
-                            .background(SunnyColors.OrangeSoft),
+                        Modifier.size(36.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         if (adding) {
@@ -173,8 +214,7 @@ fun ScanDetailScreen(
                 SunnyCard(onClick = onCompare) {
                     Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(
-                            Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
-                                .background(SunnyColors.OrangeSoft),
+                            Modifier.size(36.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(Icons.Filled.Compare, null, tint = SunnyColors.Orange,
@@ -197,8 +237,7 @@ fun ScanDetailScreen(
             SunnyCard(onClick = { showReminder = true }) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        Modifier.size(36.dp).clip(RoundedCornerShape(10.dp))
-                            .background(SunnyColors.OrangeSoft),
+                        Modifier.size(36.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(Icons.Filled.NotificationsActive, null, tint = SunnyColors.Orange,
@@ -216,16 +255,18 @@ fun ScanDetailScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            // Field-level diff vs previous observation (F-13): highlight changes,
+            // Model's structured description, with changed fields highlighted (F-13)
             // as routing information, never a verdict (F-14).
-            val changed = previous?.let { changedFields(it.analysis.toAnalysis(), latest.analysis.toAnalysis()) }
-                ?: emptySet()
-            AnalysisCard(latest.analysis.toAnalysis(), changedLabels = changed)
+            AnalysisCard(latest.analysis.toAnalysis(), changedLabels = changedFieldsSet)
 
-            if (previous != null && changed.isNotEmpty()) {
-                Spacer(Modifier.height(16.dp))
-                ChangePrompt(sinceDate = Format.date(previous.capturedAt))
-            }
+            Spacer(Modifier.height(16.dp))
+            AbcdeCard(
+                answers = abcdeAnswers,
+                onAnswer = { item, ans ->
+                    abcdeAnswers[item] = ans
+                    vm.setAbcde(scanId, item, ans)
+                },
+            )
 
             if (timeline.size > 1) {
                 Spacer(Modifier.height(24.dp))
@@ -253,6 +294,7 @@ fun ScanDetailScreen(
                     }
                 },
                 onDismiss = { showReminder = false },
+                recommendedDays = recommendedDays,
             )
         }
 
@@ -313,21 +355,6 @@ private fun HistoryRow(obs: ObservationEntity) {
                 Text(obs.analysis.summary, style = MaterialTheme.typography.bodyMedium,
                     color = SunnyColors.TextSecondary, maxLines = 2)
             }
-        }
-    }
-}
-
-@Composable
-private fun ChangePrompt(sinceDate: String) {
-    SunnyCard {
-        Column(Modifier.padding(16.dp)) {
-            Text("This has changed since $sinceDate",
-                style = MaterialTheme.typography.titleMedium, color = SunnyColors.Review,
-                fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(4.dp))
-            Text("Consider showing these photos to a clinician. Sunny tracks appearance " +
-                "only and does not assess risk.",
-                style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
         }
     }
 }
