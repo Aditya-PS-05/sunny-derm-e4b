@@ -238,7 +238,8 @@ private fun AboutRow(icon: ImageVector, label: String, value: String, onClick: (
     ) {
         Icon(icon, null, tint = SunnyColors.TextPrimary, modifier = Modifier.size(20.dp))
         Spacer(Modifier.size(12.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f))
         Text(value, style = MaterialTheme.typography.bodyLarge, color = SunnyColors.TextSecondary)
         if (onClick != null) {
             Spacer(Modifier.size(6.dp))
