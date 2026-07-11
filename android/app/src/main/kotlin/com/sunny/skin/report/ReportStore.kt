@@ -11,7 +11,14 @@ class ReportStore(private val context: Context) {
     fun list(): List<File> =
         dir.listFiles { f -> f.extension == "pdf" }?.sortedByDescending { it.lastModified() } ?: emptyList()
 
-    fun file(reportId: String): File = File(dir, "$reportId.pdf")
+    fun file(reportId: String): File {
+        // Report ids are generated internally, but guard against any path
+        // traversal so a report id can never point outside files/reports.
+        require(!reportId.contains('/') && !reportId.contains('\\') && !reportId.contains("..")) {
+            "invalid report id"
+        }
+        return File(dir, "$reportId.pdf")
+    }
 
     fun delete(reportId: String) { file(reportId).takeIf { it.exists() }?.delete() }
 

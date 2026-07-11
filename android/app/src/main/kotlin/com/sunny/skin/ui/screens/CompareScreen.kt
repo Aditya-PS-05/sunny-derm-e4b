@@ -115,8 +115,12 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
         var auto by remember { mutableStateOf(AlignTransform.Identity) }
         var nudge by remember { mutableStateOf(Offset.Zero) } // manual fine-tune (normalised)
 
-        val before = obs[beforeIdx]
-        val after = obs[afterIdx]
+        // Clamp against the current list so a reactive shrink can't crash and the
+        // pickers can't invert older/newer.
+        val bIdx = beforeIdx.coerceIn(0, obs.lastIndex)
+        val aIdx = afterIdx.coerceIn(0, obs.lastIndex)
+        val before = obs[bIdx]
+        val after = obs[aIdx]
 
         // Recompute registration whenever the compared pair changes.
         LaunchedEffect(before.imagePath, after.imagePath) {

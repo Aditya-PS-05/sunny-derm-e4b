@@ -122,7 +122,9 @@ fun SavedScreen(
                         style = MaterialTheme.typography.bodyLarge, color = SunnyColors.Orange,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.clip(RoundedCornerShape(50)).clickable {
-                            if (allSelected) selectedIds.clear()
+                            // Scope both actions to the current filter so "Clear all"
+                            // can't silently drop selections made under other filters.
+                            if (allSelected) filtered.forEach { selectedIds.remove(it.scan.id) }
                             else filtered.forEach { if (it.scan.id !in selectedIds) selectedIds.add(it.scan.id) }
                             if (selectedIds.isEmpty()) selecting = false
                         }.padding(horizontal = 8.dp, vertical = 4.dp))

@@ -1,6 +1,7 @@
 package com.sunny.skin
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
@@ -24,6 +25,9 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Keep skin photos, descriptions and reports out of the recents/task-switcher
+        // thumbnail and block screenshots/screen-recording of sensitive health data.
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
         val settings = SettingsStore(this)
 

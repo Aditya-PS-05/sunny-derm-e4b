@@ -8,14 +8,17 @@ import java.util.Locale
 object Format {
     private val date = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
     private val time = SimpleDateFormat("h:mm a", Locale.getDefault())
-    private val reportId = SimpleDateFormat("yyyyMMdd", Locale.US)
+    private val reportDate = SimpleDateFormat("yyyyMMdd", Locale.US)
+    private val reportTime = SimpleDateFormat("HHmmssSSS", Locale.US)
 
     fun date(ts: Long): String = date.format(Date(ts))
     fun time(ts: Long): String = time.format(Date(ts)).lowercase(Locale.getDefault())
 
-    /** e.g. "SUN-20260223-2767" — a stable, on-device report identifier. */
-    fun reportId(ts: Long): String {
-        val suffix = (ts % 10000).toString().padStart(4, '0')
-        return "SUN-${reportId.format(Date(ts))}-$suffix"
-    }
+    /**
+     * e.g. "SUN-20260223-143052871" — a stable, on-device report identifier
+     * unique to the millisecond, so two reports made in the same day (or the
+     * same 10-second window) never collide and overwrite each other's PDF.
+     */
+    fun reportId(ts: Long): String =
+        "SUN-${reportDate.format(Date(ts))}-${reportTime.format(Date(ts))}"
 }

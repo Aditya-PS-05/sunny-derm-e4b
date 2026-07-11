@@ -241,10 +241,12 @@ fun ScanDetailScreen(
             ReCheckReminderDialog(
                 onPick = { days ->
                     showReminder = false
-                    requestNotif {
+                    requestNotif { granted ->
                         vm.scheduleScanReminder(scanId, data.scan.bodyPart.label, days)
                         android.widget.Toast.makeText(
-                            context, "Reminder set — we'll nudge you to re-check.",
+                            context,
+                            if (granted) "Reminder set — we'll nudge you to re-check."
+                            else "Reminder saved. Turn on notifications to get the nudge.",
                             android.widget.Toast.LENGTH_SHORT,
                         ).show()
                     }

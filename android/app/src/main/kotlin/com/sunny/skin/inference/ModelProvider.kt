@@ -1,6 +1,7 @@
 package com.sunny.skin.inference
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import java.io.File
 
 /**
@@ -28,12 +29,23 @@ object ModelProvider {
     /** Primary internal location (also the download target). */
     fun modelsDir(context: Context) = File(context.filesDir, "models").apply { mkdirs() }
 
-    /** Candidate directories searched for the weight files, in priority order. */
-    private fun candidateDirs(context: Context): List<File> = listOfNotNull(
-        modelsDir(context),
-        context.getExternalFilesDir("models"),
-        File("/data/local/tmp/sunny"),
-    )
+    /**
+     * Candidate directories searched for the weight files, in priority order.
+     * Release builds load ONLY from internal, app-private storage (the download
+     * target). The shared external dir and /data/local/tmp — both writable
+     * without root and unverified — are dev conveniences, so they are scanned
+     * only on debuggable builds where a GGUF fed to native llama.cpp couldn't be
+     * planted by another app on a shipped install.
+     */
+    private fun candidateDirs(context: Context): List<File> {
+        val dirs = mutableListOf(modelsDir(context))
+        val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        if (debuggable) {
+            context.getExternalFilesDir("models")?.let { dirs.add(it) }
+            dirs.add(File("/data/local/tmp/sunny"))
+        }
+        return dirs
+    }
 
     /** Resolve (languageModel, visionProjector) from the first dir holding both. */
     fun resolveWeights(context: Context): Pair<File, File>? {

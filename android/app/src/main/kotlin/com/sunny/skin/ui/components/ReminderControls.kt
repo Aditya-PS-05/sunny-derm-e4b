@@ -67,24 +67,25 @@ val RECHECK_OPTIONS = listOf(
 
 /**
  * Returns a lambda that runs [afterAsk] after ensuring notification permission
- * is requested (API 33+). The reminder is scheduled regardless of the result —
- * the alarm still fires; only the visible notification needs the grant.
+ * is requested (API 33+). The reminder is scheduled regardless — the alarm still
+ * fires — but [afterAsk] receives whether notifications are actually enabled, so
+ * callers can avoid promising a nudge that would be silently suppressed.
  */
 @Composable
-fun rememberNotificationRequester(): (afterAsk: () -> Unit) -> Unit {
+fun rememberNotificationRequester(): (afterAsk: (granted: Boolean) -> Unit) -> Unit {
     val context = LocalContext.current
-    var pending by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var pending by remember { mutableStateOf<((Boolean) -> Unit)?>(null) }
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { pending?.invoke(); pending = null }
+    ) { granted -> pending?.invoke(granted); pending = null }
 
     return remember {
         { afterAsk ->
-            val granted = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            val alreadyGranted = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
                 PackageManager.PERMISSION_GRANTED
-            if (granted) {
-                afterAsk()
+            if (alreadyGranted) {
+                afterAsk(true)
             } else {
                 pending = afterAsk
                 launcher.launch(Manifest.permission.POST_NOTIFICATIONS)

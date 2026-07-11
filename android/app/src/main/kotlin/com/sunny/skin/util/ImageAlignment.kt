@@ -49,7 +49,13 @@ object ImageAlignment {
         val bmp = runCatching { BitmapFactory.decodeFile(path, opts) }.getOrNull()
             ?: runCatching { BitmapFactory.decodeFile(path) }.getOrNull()
             ?: return null
-        val scaled = Bitmap.createScaledBitmap(bmp, G, G, true)
+        // Centre-crop to a square first so the working grid matches what the UI
+        // shows (every Compare surface renders with ContentScale.Crop into a 1:1
+        // box). Scoring on the stretched full frame would misregister non-square
+        // photos, worst near the edges.
+        val side = minOf(bmp.width, bmp.height)
+        val square = Bitmap.createBitmap(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side)
+        val scaled = Bitmap.createScaledBitmap(square, G, G, true)
         val px = IntArray(G * G)
         scaled.getPixels(px, 0, G, 0, 0, G, G)
         val g = FloatArray(G * G)

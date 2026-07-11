@@ -80,6 +80,10 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
     var seeded by remember { mutableStateOf(false) }
     var redoing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    // True once the current analysis reflects the newly-picked photo. When a new
+    // photo has been chosen but not re-analysed, Save re-runs the model first so
+    // the saved description can never belong to the old photo.
+    var analysisMatchesNewPhoto by remember { mutableStateOf(false) }
 
     val latest = data?.timeline?.firstOrNull()
     LaunchedEffect(latest?.id) {
@@ -98,6 +102,7 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
         if (uri != null) {
             newBitmap = BitmapLoader.fromUri(context, uri)
             error = null
+            analysisMatchesNewPhoto = false // description now belongs to the old photo
         }
     }
 
@@ -111,10 +116,33 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
             when (val r = vm.runDescribe(bmp)) {
                 is DescribeResult.Success -> {
                     analysis = r.analysis; modelVersion = r.modelVersion; rawOutput = r.rawOutput
+                    if (newBitmap != null) analysisMatchesNewPhoto = true
                 }
                 DescribeResult.Unreadable -> error = "Couldn't read this image. Try a clearer photo."
             }
             redoing = false
+        }
+    }
+
+    // Persist, re-analysing first if a new photo was chosen but never re-run,
+    // so the stored photo and description always describe the same image.
+    fun save() {
+        val obs = latest ?: return
+        val bmp = newBitmap
+        if (bmp != null && !analysisMatchesNewPhoto) {
+            redoing = true; error = null
+            scope.launch {
+                when (val r = vm.runDescribe(bmp)) {
+                    is DescribeResult.Success -> vm.saveScanEdit(
+                        scanId, obs, name, bmp, r.analysis, r.modelVersion, r.rawOutput, onDone,
+                    )
+                    DescribeResult.Unreadable -> {
+                        error = "Couldn't read the new photo. Try a clearer one."; redoing = false
+                    }
+                }
+            }
+        } else {
+            vm.saveScanEdit(scanId, obs, name, newBitmap, analysis!!, modelVersion, rawOutput, onDone)
         }
     }
 
@@ -130,18 +158,7 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .clickable(enabled = canSave) {
-                        vm.saveScanEdit(
-                            scanId = scanId,
-                            existing = latest!!,
-                            name = name,
-                            newBitmap = newBitmap,
-                            analysis = analysis!!,
-                            modelVersion = modelVersion,
-                            rawOutput = rawOutput,
-                            onDone = onDone,
-                        )
-                    }
+                    .clickable(enabled = canSave && !redoing) { save() }
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             )
         },

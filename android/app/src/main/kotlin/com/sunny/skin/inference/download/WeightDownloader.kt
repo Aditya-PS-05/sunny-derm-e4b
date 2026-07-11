@@ -32,8 +32,13 @@ class WeightDownloader(private val modelsDir: File) {
         var existing = if (part.exists()) part.length() else 0L
         if (existing > asset.sizeBytes) { part.delete(); existing = 0L }
 
+        val url = ModelSource.urlFor(asset)
+        if (!url.startsWith("https://")) {
+            return@withContext Result.failure(SecurityException("model weights must be served over HTTPS"))
+        }
+
         try {
-            val conn = (URL(ModelSource.urlFor(asset)).openConnection() as HttpURLConnection).apply {
+            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 30_000
                 readTimeout = 60_000
                 if (existing > 0) setRequestProperty("Range", "bytes=$existing-")

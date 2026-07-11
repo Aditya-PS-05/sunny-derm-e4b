@@ -22,12 +22,17 @@ class ReminderReceiver : BroadcastReceiver() {
         postNotification(context, reminder)
 
         if (reminder.recurring) {
-            // Advance to the next occurrence and re-arm.
-            val next = reminder.copy(
-                triggerAt = reminder.triggerAt + reminder.intervalDays * DAY_MS,
-            )
-            store.upsert(next)
-            ReminderScheduler.schedule(context, next)
+            // Advance to the NEXT future occurrence. A single +interval step can
+            // still land in the past if delivery was deferred (Doze) by more than
+            // one interval, and setAndAllowWhileIdle would then fire immediately
+            // in a loop — so catch up like BootReceiver does.
+            val step = reminder.intervalDays * DAY_MS
+            val now = System.currentTimeMillis()
+            var next = reminder.triggerAt + step
+            while (next <= now) next += step
+            val advanced = reminder.copy(triggerAt = next)
+            store.upsert(advanced)
+            ReminderScheduler.schedule(context, advanced)
         } else {
             store.remove(id)
         }
