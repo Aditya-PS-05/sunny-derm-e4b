@@ -1,17 +1,23 @@
 package com.sunny.skin.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -21,9 +27,12 @@ import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -164,3 +173,46 @@ fun sunnySwitchColors(checkedTrack: Color = SunnyColors.Success): SwitchColors =
         uncheckedTrackColor = SunnyColors.SwitchOffTrack,
         uncheckedBorderColor = SunnyColors.SwitchOffBorder,
     )
+
+/**
+ * iOS-style toggle with full control over the thumb size (Material3's Switch
+ * shrinks its off-state thumb to a small dot). A large white thumb slides on a
+ * pill track — grey with a subtle border when off, [onColor] when on.
+ */
+@Composable
+fun SunnyToggle(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    onColor: Color = SunnyColors.Success,
+) {
+    val trackW = 52.dp
+    val trackH = 32.dp
+    val thumb = 26.dp
+    val pad = 3.dp
+    val thumbX by animateDpAsState(if (checked) trackW - thumb - pad else pad, label = "thumbX")
+    val track by animateColorAsState(
+        if (checked) onColor else SunnyColors.SwitchOffTrack, label = "track",
+    )
+    Box(
+        modifier
+            .size(trackW, trackH)
+            .clip(RoundedCornerShape(50))
+            .background(track)
+            .border(1.dp, if (checked) Color.Transparent else SunnyColors.SwitchOffBorder, RoundedCornerShape(50))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) { onCheckedChange(!checked) },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Box(
+            Modifier
+                .offset(x = thumbX)
+                .size(thumb)
+                .shadow(2.dp, CircleShape)
+                .clip(CircleShape)
+                .background(Color.White),
+        )
+    }
+}

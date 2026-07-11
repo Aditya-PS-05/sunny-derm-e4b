@@ -50,8 +50,8 @@ import com.sunny.skin.ui.components.DisclaimerCard
 import com.sunny.skin.ui.components.SectionHeader
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
+import com.sunny.skin.ui.components.SunnyToggle
 import com.sunny.skin.ui.components.rememberNotificationRequester
-import com.sunny.skin.ui.components.sunnySwitchColors
 import com.sunny.skin.ui.theme.SunnyColors
 import com.sunny.skin.util.Format
 
@@ -90,11 +90,9 @@ fun SettingsScreen(
                     Text("Require a PIN to open Sunny", style = MaterialTheme.typography.bodyMedium,
                         color = SunnyColors.TextSecondary)
                 }
-                Switch(
+                SunnyToggle(
                     checked = pinOn,
                     onCheckedChange = { on -> if (on) onSetupPin() else vm.clearPin() },
-                    colors = sunnySwitchColors(),
-                    thumbContent = {}, // force the full-size thumb in the off state too
                 )
             }
         }
@@ -128,14 +126,12 @@ fun SettingsScreen(
                     Text("Get reminded to check your skin", style = MaterialTheme.typography.bodyMedium,
                         color = SunnyColors.TextSecondary)
                 }
-                Switch(
+                SunnyToggle(
                     checked = recurring != null,
                     onCheckedChange = { on ->
                         if (on) requestNotif { vm.setRecurringReminder(true, interval) }
                         else vm.setRecurringReminder(false, 0)
                     },
-                    colors = sunnySwitchColors(),
-                    thumbContent = {},
                 )
             }
         }
