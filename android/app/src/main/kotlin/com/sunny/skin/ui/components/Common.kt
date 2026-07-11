@@ -74,11 +74,16 @@ fun SectionHeader(text: String, modifier: Modifier = Modifier) {
  * inline line under analysis, and a bordered card for Settings/onboarding.
  */
 @Composable
-fun InlineDisclaimer(text: String, modifier: Modifier = Modifier) {
+fun InlineDisclaimer(
+    text: String,
+    modifier: Modifier = Modifier,
+    textAlign: androidx.compose.ui.text.style.TextAlign? = null,
+) {
     Text(
         text = text,
         style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-        color = SunnyColors.TextTertiary,
+        color = SunnyColors.TextSecondary,
+        textAlign = textAlign,
         modifier = modifier,
     )
 }

@@ -1,8 +1,6 @@
 package com.sunny.skin.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,10 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -32,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sunny.skin.data.model.BodyPart
 import com.sunny.skin.ui.SunnyViewModel
+import com.sunny.skin.ui.components.BodyZoneThumb
 import com.sunny.skin.ui.components.ScreenScaffold
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.theme.SunnyColors
@@ -106,29 +104,26 @@ fun BodyGuideScreen(
 @Composable
 private fun PoseRow(pose: Pose, done: Boolean, onCapture: () -> Unit) {
     SunnyCard(onClick = onCapture) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Custom asset: a zoomed crop of the body figure around this pose's
+            // zone (the amber area + some body around it), not the whole figure.
+            BodyZoneThumb(pose.part.side, pose.part.zone, Modifier.size(46.dp))
+            Spacer(Modifier.size(14.dp))
             Column(Modifier.weight(1f)) {
                 Text(pose.part.label, style = MaterialTheme.typography.titleMedium)
                 Text(pose.hint, style = MaterialTheme.typography.bodyMedium,
                     color = SunnyColors.TextSecondary)
             }
-            Spacer(Modifier.size(12.dp))
+            Spacer(Modifier.size(10.dp))
             if (done) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.CheckCircle, null, tint = SunnyColors.Success,
-                        modifier = Modifier.size(22.dp))
-                    Spacer(Modifier.size(6.dp))
-                    Text("Retake", style = MaterialTheme.typography.bodyMedium,
-                        color = SunnyColors.TextSecondary)
-                }
+                Icon(Icons.Filled.CheckCircle, null, tint = SunnyColors.Success,
+                    modifier = Modifier.size(24.dp))
             } else {
-                Box(
-                    Modifier.size(40.dp).clip(CircleShape).background(SunnyColors.Orange),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Filled.CameraAlt, "Capture", tint = androidx.compose.ui.graphics.Color.White,
-                        modifier = Modifier.size(20.dp))
-                }
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Capture",
+                    tint = SunnyColors.TextTertiary)
             }
         }
     }

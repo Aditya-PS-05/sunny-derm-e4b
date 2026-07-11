@@ -43,7 +43,7 @@ fun BodyTemplate(
     Box(modifier.fillMaxWidth()) {
         Canvas(
             Modifier
-                .fillMaxWidth(0.40f)
+                .fillMaxWidth(0.30f)
                 .aspectRatio(560f / 1151f)
                 .align(Alignment.Center),
         ) {
@@ -71,6 +71,72 @@ fun BodyTemplate(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * A small standalone thumbnail: the anatomical figure with a single [zone] lit
+ * amber, sized by [modifier] (keeps the figure's 560:1151 aspect). Used as the
+ * per-pose "asset" in the guided full-body flow so each row shows exactly where
+ * on the body that step is — no generic icons, no coloured chips.
+ */
+@Composable
+fun BodyZoneThumb(side: BodySide, zone: BodyZone, modifier: Modifier = Modifier) {
+    val figure = ImageBitmap.imageResource(
+        if (side == BodySide.FRONT) R.drawable.body_figure else R.drawable.body_figure_back,
+    )
+    val hot = Color(0xFFF2A33C)
+    val rects = zoneRects(side).firstOrNull { it.first == zone }?.second ?: emptyList()
+
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val iw = figure.width.toFloat()
+        val ih = figure.height.toFloat()
+        val dst = IntSize(w.roundToInt(), h.roundToInt())
+
+        if (rects.isEmpty()) {
+            drawImage(figure, dstOffset = IntOffset.Zero, dstSize = dst, filterQuality = FilterQuality.High)
+            return@Canvas
+        }
+
+        // Bounding box of the zone (normalised over the figure).
+        var l = 1f; var t = 1f; var r = 0f; var b = 0f
+        rects.forEach { l = minOf(l, it.l); t = minOf(t, it.t); r = maxOf(r, it.r); b = maxOf(b, it.b) }
+        val cx = (l + r) / 2f
+        val cy = (t + b) / 2f
+
+        // A fixed-zoom crop window centred on the zone — shows the highlighted area
+        // plus some body around it (not the whole figure). Width is derived from the
+        // canvas aspect in PIXEL space so the crop is never distorted.
+        val chN = 0.38f
+        val cwN = (chN * (w / h) * (ih / iw)).coerceIn(0.02f, 1f)
+        val clN = (cx - cwN / 2f).coerceIn(0f, (1f - cwN).coerceAtLeast(0f))
+        val ctN = (cy - chN / 2f).coerceIn(0f, (1f - chN).coerceAtLeast(0f))
+
+        val srcOff = IntOffset((clN * iw).roundToInt(), (ctN * ih).roundToInt())
+        val srcSz = IntSize((cwN * iw).roundToInt(), (chN * ih).roundToInt())
+
+        drawImage(
+            figure, srcOffset = srcOff, srcSize = srcSz,
+            dstOffset = IntOffset.Zero, dstSize = dst, filterQuality = FilterQuality.High,
+        )
+
+        // Amber highlight, clipped to the zone box mapped into the cropped canvas.
+        val tint = ColorFilter.tint(hot, BlendMode.SrcIn)
+        rects.forEach { rr ->
+            val x0 = (rr.l - clN) / cwN * w
+            val y0 = (rr.t - ctN) / chN * h
+            val x1 = (rr.r - clN) / cwN * w
+            val y1 = (rr.b - ctN) / chN * h
+            clipRect(x0, y0, x1, y1) {
+                drawImage(
+                    figure, srcOffset = srcOff, srcSize = srcSz,
+                    dstOffset = IntOffset.Zero, dstSize = dst,
+                    colorFilter = tint, filterQuality = FilterQuality.High,
+                )
             }
         }
     }

@@ -50,7 +50,7 @@ fun ScreenScaffold(
             }
             Text(
                 title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f).padding(horizontal = 8.dp),

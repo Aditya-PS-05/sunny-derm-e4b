@@ -153,7 +153,8 @@ fun OverviewScreen(vm: SunnyViewModel, onScanClick: (String) -> Unit) {
         InlineDisclaimer(
             "Sunny is for tracking purposes only and does not provide medical advice " +
                 "or diagnosis. Consult a healthcare professional for medical concerns.",
-            modifier = Modifier.padding(horizontal = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
 

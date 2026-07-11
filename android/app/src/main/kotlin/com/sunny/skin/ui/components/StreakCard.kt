@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -37,11 +36,11 @@ fun StreakCard(habit: com.sunny.skin.ui.HabitStats, modifier: Modifier = Modifie
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(44.dp).clip(CircleShape).background(SunnyColors.OrangeSoft),
+                    Modifier.size(44.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(Icons.Filled.LocalFireDepartment, null, tint = SunnyColors.Orange,
-                        modifier = Modifier.size(24.dp))
+                        modifier = Modifier.size(36.dp))
                 }
                 Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {
