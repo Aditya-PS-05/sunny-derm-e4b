@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ObservationEntity
 import com.sunny.skin.data.model.Analysis
 import com.sunny.skin.ui.SunnyViewModel
@@ -291,7 +292,7 @@ private fun ObservationImage(obs: ObservationEntity) {
             .background(SunnyColors.SurfaceMuted),
     ) {
         AsyncImage(
-            model = File(obs.imagePath), contentDescription = null,
+            model = EncryptedImage(obs.imagePath), contentDescription = null,
             contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize(),
         )
     }
@@ -303,7 +304,7 @@ private fun HistoryRow(obs: ObservationEntity) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.height(48.dp).aspectRatio(1f).clip(RoundedCornerShape(10.dp))
                 .background(SunnyColors.SurfaceMuted)) {
-                AsyncImage(model = File(obs.imagePath), contentDescription = null,
+                AsyncImage(model = EncryptedImage(obs.imagePath), contentDescription = null,
                     contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
             Spacer(Modifier.height(0.dp))

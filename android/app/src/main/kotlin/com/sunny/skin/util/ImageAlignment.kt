@@ -1,7 +1,10 @@
 package com.sunny.skin.util
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.sunny.skin.data.crypto.CryptoManager
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.cos
@@ -36,18 +39,18 @@ data class AlignTransform(
 object ImageAlignment {
     private const val G = 64 // working grid (G×G)
 
-    suspend fun compute(beforePath: String, afterPath: String): AlignTransform =
+    suspend fun compute(context: Context, beforePath: String, afterPath: String): AlignTransform =
         withContext(Dispatchers.Default) {
-            val before = loadGray(beforePath) ?: return@withContext AlignTransform.Identity
-            val after = loadGray(afterPath) ?: return@withContext AlignTransform.Identity
+            val before = loadGray(context, beforePath) ?: return@withContext AlignTransform.Identity
+            val after = loadGray(context, afterPath) ?: return@withContext AlignTransform.Identity
             align(before, after)
         }
 
-    /** Decode → G×G greyscale → zero-mean / unit-variance normalise. */
-    private fun loadGray(path: String): FloatArray? {
-        val opts = BitmapFactory.Options().apply { inSampleSize = 4 }
-        val bmp = runCatching { BitmapFactory.decodeFile(path, opts) }.getOrNull()
-            ?: runCatching { BitmapFactory.decodeFile(path) }.getOrNull()
+    /** Decrypt → decode → G×G greyscale → zero-mean / unit-variance normalise. */
+    private fun loadGray(context: Context, path: String): FloatArray? {
+        val bytes = runCatching { CryptoManager.decrypt(context, File(path).readBytes()) }.getOrNull()
+            ?: return null
+        val bmp = runCatching { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }.getOrNull()
             ?: return null
         // Centre-crop to a square first so the working grid matches what the UI
         // shows (every Compare surface renders with ContentScale.Crop into a 1:1

@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ObservationEntity
 import com.sunny.skin.data.model.Analysis
 import com.sunny.skin.ui.SunnyViewModel
@@ -123,10 +124,11 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
         val after = obs[aIdx]
 
         // Recompute registration whenever the compared pair changes.
+        val alignCtx = androidx.compose.ui.platform.LocalContext.current
         LaunchedEffect(before.imagePath, after.imagePath) {
             nudge = Offset.Zero
             aligning = true
-            auto = ImageAlignment.compute(before.imagePath, after.imagePath)
+            auto = ImageAlignment.compute(alignCtx, before.imagePath, after.imagePath)
             aligning = false
         }
 
@@ -252,7 +254,7 @@ private fun FadeCompare(
     ) {
         val wPx = with(LocalDensity.current) { maxWidth.toPx() }
         val hPx = with(LocalDensity.current) { maxHeight.toPx() }
-        AsyncImage(File(before.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        AsyncImage(EncryptedImage(before.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         val overlay = Modifier.fillMaxSize().applyAlign(transform).let {
             if (alignOn) it.pointerInput(before.imagePath, after.imagePath) {
                 detectDragGestures { change, drag ->
@@ -261,7 +263,7 @@ private fun FadeCompare(
                 }
             } else it
         }
-        AsyncImage(File(after.imagePath), null, overlay, contentScale = ContentScale.Crop, alpha = fade)
+        AsyncImage(EncryptedImage(after.imagePath), null, overlay, contentScale = ContentScale.Crop, alpha = fade)
         DateTag(Format.date(before.capturedAt), Alignment.TopStart, faded = fade > 0.5f)
         DateTag(Format.date(after.capturedAt), Alignment.TopEnd, faded = fade < 0.5f)
     }
@@ -289,7 +291,7 @@ private fun WipeCompare(
         .background(SunnyColors.SurfaceMuted)) {
         val fullWpx = with(density) { maxWidth.toPx() }
         // Before is the fixed base; the aligned "after" is revealed on the right.
-        AsyncImage(File(before.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        AsyncImage(EncryptedImage(before.imagePath), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         Box(
             Modifier.fillMaxSize().drawWithContent {
                 clipRect(left = size.width * wipe, top = 0f, right = size.width, bottom = size.height) {
@@ -297,7 +299,7 @@ private fun WipeCompare(
                 }
             },
         ) {
-            AsyncImage(File(after.imagePath), null, Modifier.fillMaxSize().applyAlign(transform),
+            AsyncImage(EncryptedImage(after.imagePath), null, Modifier.fillMaxSize().applyAlign(transform),
                 contentScale = ContentScale.Crop)
         }
         DateTag(Format.date(before.capturedAt), Alignment.TopStart, faded = false)
@@ -326,7 +328,7 @@ private fun SideCompare(before: ObservationEntity, after: ObservationEntity, tra
         Column(Modifier.weight(1f)) {
             Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp))
                 .background(SunnyColors.SurfaceMuted)) {
-                AsyncImage(File(before.imagePath), null, Modifier.fillMaxSize(),
+                AsyncImage(EncryptedImage(before.imagePath), null, Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop)
             }
             Spacer(Modifier.height(6.dp))
@@ -338,7 +340,7 @@ private fun SideCompare(before: ObservationEntity, after: ObservationEntity, tra
         Column(Modifier.weight(1f)) {
             Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(16.dp))
                 .background(SunnyColors.SurfaceMuted).clipToBounds()) {
-                AsyncImage(File(after.imagePath), null, Modifier.fillMaxSize().applyAlign(transform),
+                AsyncImage(EncryptedImage(after.imagePath), null, Modifier.fillMaxSize().applyAlign(transform),
                     contentScale = ContentScale.Crop)
             }
             Spacer(Modifier.height(6.dp))

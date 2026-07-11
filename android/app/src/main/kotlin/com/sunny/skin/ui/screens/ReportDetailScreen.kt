@@ -43,10 +43,9 @@ import java.io.File
 fun ReportDetailScreen(reportId: String, onBack: () -> Unit) {
     val context = LocalContext.current
     val store = remember { ReportStore(context) }
-    val file = remember(reportId) { store.file(reportId) }
 
-    val pages by produceState(initialValue = emptyList<Bitmap>(), file) {
-        value = withContext(Dispatchers.IO) { renderPdf(file) }
+    val pages by produceState(initialValue = emptyList<Bitmap>(), reportId) {
+        value = withContext(Dispatchers.IO) { renderPdf(store.decryptToCache(reportId)) }
     }
 
     ScreenScaffold(
@@ -55,13 +54,14 @@ fun ReportDetailScreen(reportId: String, onBack: () -> Unit) {
         trailing = {
             androidx.compose.foundation.layout.Row {
                 CircleButton(onClick = {
-                    val uri = store.shareUri(file)
-                    val share = Intent(Intent.ACTION_SEND).apply {
-                        type = "application/pdf"
-                        putExtra(Intent.EXTRA_STREAM, uri)
-                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    store.shareUri(reportId)?.let { uri ->
+                        val share = Intent(Intent.ACTION_SEND).apply {
+                            type = "application/pdf"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(Intent.createChooser(share, "Share report"))
                     }
-                    context.startActivity(Intent.createChooser(share, "Share report"))
                 }) {
                     Icon(Icons.Filled.Share, "Share", tint = SunnyColors.TextPrimary,
                         modifier = Modifier.size(18.dp))
@@ -92,9 +92,9 @@ fun ReportDetailScreen(reportId: String, onBack: () -> Unit) {
     }
 }
 
-/** Rasterise every page of the PDF to a bitmap for in-app display. */
-private fun renderPdf(file: File): List<Bitmap> {
-    if (!file.exists()) return emptyList()
+/** Rasterise every page of the decrypted PDF to a bitmap for in-app display. */
+private fun renderPdf(file: File?): List<Bitmap> {
+    if (file == null || !file.exists()) return emptyList()
     val pages = mutableListOf<Bitmap>()
     ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { pfd ->
         PdfRenderer(pfd).use { renderer ->

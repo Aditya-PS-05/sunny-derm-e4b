@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ScanWithObservations
 import com.sunny.skin.data.model.BodyRegion
 import com.sunny.skin.report.ReportGenerator
@@ -320,7 +321,7 @@ private fun ScanRow(
             ) {
                 if (latest != null) {
                     AsyncImage(
-                        model = File(latest.imagePath),
+                        model = EncryptedImage(latest.imagePath),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),

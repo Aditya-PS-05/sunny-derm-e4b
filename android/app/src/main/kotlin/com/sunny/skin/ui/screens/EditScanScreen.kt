@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.model.Analysis
 import com.sunny.skin.inference.DescribeResult
 import com.sunny.skin.ui.SunnyViewModel
@@ -111,7 +112,7 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
         redoing = true
         error = null
         scope.launch {
-            val bmp = newBitmap ?: withContext(Dispatchers.IO) { BitmapLoader.fromFile(obs.imagePath) }
+            val bmp = newBitmap ?: withContext(Dispatchers.IO) { BitmapLoader.fromFile(context, obs.imagePath) }
             if (bmp == null) { error = "Couldn't load the photo."; redoing = false; return@launch }
             when (val r = vm.runDescribe(bmp)) {
                 is DescribeResult.Success -> {
@@ -194,7 +195,7 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
                     Image(bmp.asImageBitmap(), null, contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize())
                 } else {
-                    AsyncImage(model = File(latest.imagePath), contentDescription = null,
+                    AsyncImage(model = EncryptedImage(latest.imagePath), contentDescription = null,
                         contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                 }
             }

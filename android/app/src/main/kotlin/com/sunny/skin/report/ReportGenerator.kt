@@ -1,15 +1,16 @@
 package com.sunny.skin.report
 
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.pdf.PdfDocument
+import com.sunny.skin.data.ImageStore
+import com.sunny.skin.data.crypto.CryptoManager
 import com.sunny.skin.data.db.ScanWithObservations
 import com.sunny.skin.util.Format
+import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
 
 /**
  * Renders selected scans into an on-device PDF report (F-16). Generated locally,
@@ -38,9 +39,12 @@ class ReportGenerator(private val context: Context) {
             doc.finishPage(page)
         }
 
-        val file = File(reportsDir, "$id.pdf")
-        FileOutputStream(file).use { doc.writeTo(it) }
+        // Encrypt the PDF at rest; it is decrypted to a short-lived cache copy
+        // only for viewing/sharing (see ReportStore).
+        val bytes = ByteArrayOutputStream().use { doc.writeTo(it); it.toByteArray() }
         doc.close()
+        val file = File(reportsDir, "$id.pdf")
+        file.writeBytes(CryptoManager.encrypt(context, bytes))
         return file
     }
 
@@ -63,9 +67,9 @@ class ReportGenerator(private val context: Context) {
             y = drawWrapped(c, value, MARGIN, y, PAGE_W - 2 * MARGIN, bodyPaint)
         }
 
-        // Photo
+        // Photo (decrypted from app-private storage)
         scan.latest?.let { obs ->
-            val bmp = runCatching { BitmapFactory.decodeFile(obs.imagePath) }.getOrNull()
+            val bmp = ImageStore(context).decryptToBitmap(obs.imagePath)
             if (bmp != null) {
                 y += 24f
                 val w = (PAGE_W - 2 * MARGIN).toInt()

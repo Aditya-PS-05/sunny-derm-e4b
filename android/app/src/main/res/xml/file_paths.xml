@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- Only the generated PDF reports are ever shareable off-device, and only
-         when the user explicitly taps Share. Photos/scans are never exposed. -->
-    <files-path name="reports" path="reports/" />
+    <!-- Only a decrypted, short-lived cache copy of a report is ever shareable
+         off-device, and only when the user explicitly taps Share. The encrypted
+         originals in files/reports and all photos are never exposed. -->
+    <cache-path name="shared_reports" path="shared_reports/" />
 </paths>

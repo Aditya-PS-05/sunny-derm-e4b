@@ -119,6 +119,10 @@ dependencies {
     // Coil for on-device image thumbnails
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    // On-device encryption at rest: SQLCipher for the Room DB.
+    implementation("net.zetetic:sqlcipher-android:4.6.1")
+    implementation("androidx.sqlite:sqlite:2.4.0")
+
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")

@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.sunny.skin.data.crypto.CryptoManager
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 
 @Database(
     entities = [ScanEntity::class, ObservationEntity::class],
@@ -20,11 +22,15 @@ abstract class SunnyDatabase : RoomDatabase() {
 
         fun get(context: Context): SunnyDatabase =
             instance ?: synchronized(this) {
-                instance ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    SunnyDatabase::class.java,
-                    "sunny.db",
-                ).build().also { instance = it }
+                instance ?: run {
+                    val app = context.applicationContext
+                    // SQLCipher-encrypted at rest with a Keystore-wrapped passphrase.
+                    System.loadLibrary("sqlcipher")
+                    Room.databaseBuilder(app, SunnyDatabase::class.java, "sunny.db")
+                        .openHelperFactory(SupportOpenHelperFactory(CryptoManager.dbPassphrase(app)))
+                        .build()
+                        .also { instance = it }
+                }
             }
     }
 }

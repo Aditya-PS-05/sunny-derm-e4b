@@ -7,6 +7,8 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import com.sunny.skin.data.crypto.CryptoManager
+import java.io.File
 import kotlin.math.max
 
 /**
@@ -31,8 +33,10 @@ object BitmapLoader {
         return downscale(bitmap)
     }
 
-    fun fromFile(path: String): Bitmap? {
-        val bmp = BitmapFactory.decodeFile(path) ?: return null
+    fun fromFile(context: Context, path: String): Bitmap? {
+        val bytes = runCatching { CryptoManager.decrypt(context, File(path).readBytes()) }.getOrNull()
+            ?: return null
+        val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
         return downscale(bmp)
     }
 
