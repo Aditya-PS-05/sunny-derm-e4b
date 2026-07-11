@@ -70,41 +70,36 @@ object ModelDownloadManager {
             caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    fun start() {
-        if (job?.isActive == true) return
+    /**
+     * Kick off the download in a foreground service after gating on connectivity
+     * (Wi-Fi unless [allowMetered]) and a storage/RAM preflight. Failures surface
+     * as [ModelStatus.Failed] with a user-facing reason.
+     */
+    fun start(allowMetered: Boolean = false) {
         if (!ModelSource.isConfigured) { _status.value = ModelStatus.NotConfigured; return }
-        val dir = ModelProvider.modelsDir(appContext)
-        val downloader = WeightDownloader(dir)
-        val total = ModelAsset.totalBytes
-
-        job = scope.launch {
-            var completedBytes = 0L
-            for (asset in ModelAsset.entries) {
-                val base = completedBytes
-                val result = downloader.download(asset) { done, _ ->
-                    _status.value = ModelStatus.Downloading(base + done, total)
-                }
-                if (result.isFailure) {
-                    _status.value = ModelStatus.Failed(
-                        result.exceptionOrNull()?.message ?: "download failed",
-                    )
-                    return@launch
-                }
-                completedBytes = base + asset.sizeBytes
-            }
-            _status.value = ModelStatus.Verifying
-            if (ModelProvider.weightsPresent(appContext)) {
-                ModelProvider.reset()                 // swap mock -> real on next use
-                _status.value = ModelStatus.Ready
-            } else {
-                _status.value = ModelStatus.Failed("files missing after download")
-            }
+        if (_status.value is ModelStatus.Downloading) return
+        if (!allowMetered && !isUnmetered()) {
+            _status.value = ModelStatus.Failed("Connect to Wi-Fi to download the ~6 GB model.")
+            return
         }
+        when (val p = DownloadPreflight.check(appContext)) {
+            is Preflight.Blocked -> { _status.value = ModelStatus.Failed(p.reason); return }
+            Preflight.Ok -> {}
+        }
+        _status.value = ModelStatus.Downloading(0, ModelAsset.totalBytes)
+        ModelDownloadService.start(appContext)
     }
 
-    fun cancel() {
-        job?.cancel()
-        job = null
+    fun cancel() = ModelDownloadService.cancel(appContext)
+
+    // --- Called by ModelDownloadService to mirror progress into the UI flow ---
+    fun publishDownloading(done: Long, total: Long) {
+        _status.value = ModelStatus.Downloading(done, total)
+    }
+    fun publishVerifying() { _status.value = ModelStatus.Verifying }
+    fun publishReady() { _status.value = ModelStatus.Ready }
+    fun publishFailed(message: String) { _status.value = ModelStatus.Failed(message) }
+    fun publishIdleIfDownloading() {
         if (_status.value is ModelStatus.Downloading) _status.value = ModelStatus.Idle
     }
 }
