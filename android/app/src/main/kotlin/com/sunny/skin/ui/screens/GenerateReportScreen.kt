@@ -25,7 +25,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -55,6 +55,7 @@ import com.sunny.skin.data.db.ScanWithObservations
 import com.sunny.skin.data.model.BodyRegion
 import com.sunny.skin.report.ReportGenerator
 import com.sunny.skin.ui.SunnyViewModel
+import com.sunny.skin.ui.components.LiquidGlassDialog
 import com.sunny.skin.ui.components.ScreenScaffold
 import com.sunny.skin.ui.components.SectionHeader
 import com.sunny.skin.ui.components.SunnyCard
@@ -218,9 +219,36 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
             initialSelectedStartDateMillis = startMs,
             initialSelectedEndDateMillis = endMs,
         )
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
+        LiquidGlassDialog(onDismiss = { showDatePicker = false }) {
+            DateRangePicker(
+                state = state,
+                showModeToggle = false,
+                colors = DatePickerDefaults.colors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = SunnyColors.TextSecondary,
+                    headlineContentColor = SunnyColors.TextPrimary,
+                    weekdayContentColor = SunnyColors.TextSecondary,
+                    subheadContentColor = SunnyColors.TextSecondary,
+                    navigationContentColor = SunnyColors.TextPrimary,
+                    dayContentColor = SunnyColors.TextPrimary,
+                    todayContentColor = SunnyColors.Orange,
+                    todayDateBorderColor = SunnyColors.Orange,
+                    selectedDayContainerColor = SunnyColors.Orange,
+                    selectedDayContentColor = Color.White,
+                    dayInSelectionRangeContainerColor = SunnyColors.OrangeSoft,
+                    dayInSelectionRangeContentColor = SunnyColors.TextPrimary,
+                ),
+                modifier = Modifier.height(440.dp),
+            )
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel", color = SunnyColors.TextSecondary)
+                }
+                Spacer(Modifier.width(4.dp))
                 TextButton(onClick = {
                     val s = state.selectedStartDateMillis
                     val e = state.selectedEndDateMillis
@@ -228,15 +256,8 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                         startMs = s; endMs = e; dateRangeOn = true
                     }
                     showDatePicker = false
-                }) { Text("Apply", color = SunnyColors.Orange) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancel", color = SunnyColors.TextSecondary)
-                }
-            },
-        ) {
-            DateRangePicker(state = state, modifier = Modifier.height(520.dp))
+                }) { Text("Apply", color = SunnyColors.Orange, fontWeight = FontWeight.SemiBold) }
+            }
         }
     }
 
