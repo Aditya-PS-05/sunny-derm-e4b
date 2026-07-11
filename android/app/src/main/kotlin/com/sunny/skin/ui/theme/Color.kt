@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 object SunnyColors {
     val Orange = Color(0xFFFF7A00)
     val OrangeDark = Color(0xFFE86A00)
+    val OrangeLight = Color(0xFFFFCA80)  // light orange (progress fill, recolored icons)
     val OrangeSoft = Color(0xFFFFE9D4)   // tint fill behind selected chips / icons
 
     val Background = Color(0xFFF2F2F4)   // light grey app canvas (reference)

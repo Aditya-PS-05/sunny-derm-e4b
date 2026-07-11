@@ -137,7 +137,7 @@ fun OverviewScreen(vm: SunnyViewModel, onScanClick: (String) -> Unit) {
                 LinearProgressIndicator(
                     progress = { stats.coverage },
                     modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(50)),
-                    color = SunnyColors.Orange,
+                    color = SunnyColors.OrangeLight,
                     trackColor = SunnyColors.SurfaceMuted,
                 )
             }
