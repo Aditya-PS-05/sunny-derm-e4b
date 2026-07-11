@@ -20,7 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwitchColors
@@ -93,7 +93,7 @@ fun DisclaimerCard(title: String, body: String, modifier: Modifier = Modifier) {
     ) {
         Row(Modifier.padding(14.dp)) {
             Icon(
-                Icons.Filled.Info, contentDescription = null,
+                Icons.Filled.Warning, contentDescription = null,
                 tint = SunnyColors.Orange, modifier = Modifier.size(20.dp),
             )
             Spacer(Modifier.width(10.dp))
