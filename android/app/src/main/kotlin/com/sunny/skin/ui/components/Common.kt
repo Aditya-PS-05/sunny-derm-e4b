@@ -17,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -147,3 +149,18 @@ fun MetaChip(label: String, modifier: Modifier = Modifier) {
         )
     }
 }
+
+/**
+ * Shared Switch colours. The off state uses a visible grey track + subtle border
+ * so the white thumb reads clearly (not a near-invisible white pill).
+ */
+@Composable
+fun sunnySwitchColors(checkedTrack: Color = SunnyColors.Success): SwitchColors =
+    SwitchDefaults.colors(
+        checkedTrackColor = checkedTrack,
+        checkedThumbColor = SunnyColors.Surface,
+        checkedBorderColor = checkedTrack,
+        uncheckedThumbColor = SunnyColors.Surface,
+        uncheckedTrackColor = SunnyColors.SwitchOffTrack,
+        uncheckedBorderColor = SunnyColors.SwitchOffBorder,
+    )

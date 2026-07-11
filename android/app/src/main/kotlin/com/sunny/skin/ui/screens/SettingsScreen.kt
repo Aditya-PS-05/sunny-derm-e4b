@@ -51,6 +51,7 @@ import com.sunny.skin.ui.components.SectionHeader
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.components.rememberNotificationRequester
+import com.sunny.skin.ui.components.sunnySwitchColors
 import com.sunny.skin.ui.theme.SunnyColors
 import com.sunny.skin.util.Format
 
@@ -92,10 +93,7 @@ fun SettingsScreen(
                 Switch(
                     checked = pinOn,
                     onCheckedChange = { on -> if (on) onSetupPin() else vm.clearPin() },
-                    colors = SwitchDefaults.colors(
-                        checkedTrackColor = SunnyColors.Success,
-                        checkedThumbColor = SunnyColors.Surface,
-                    ),
+                    colors = sunnySwitchColors(),
                 )
             }
         }
@@ -135,10 +133,7 @@ fun SettingsScreen(
                         if (on) requestNotif { vm.setRecurringReminder(true, interval) }
                         else vm.setRecurringReminder(false, 0)
                     },
-                    colors = SwitchDefaults.colors(
-                        checkedTrackColor = SunnyColors.Success,
-                        checkedThumbColor = SunnyColors.Surface,
-                    ),
+                    colors = sunnySwitchColors(),
                 )
             }
         }

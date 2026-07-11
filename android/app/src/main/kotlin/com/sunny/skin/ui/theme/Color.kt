@@ -23,6 +23,11 @@ object SunnyColors {
 
     val Divider = Color(0xFFE5E5EA)
     val Success = Color(0xFF34C759)      // Face ID toggle / "scanned" check
+
+    // Off-state switch: a clearly visible grey track + subtle border, so the
+    // white thumb reads against it (instead of a near-invisible white pill).
+    val SwitchOffTrack = Color(0xFFC9CBD3)
+    val SwitchOffBorder = Color(0xFFB6B9C2)
     val Review = Color(0xFFF5A623)       // amber "changed since last check"
     val Danger = Color(0xFFE5484D)       // destructive (delete) actions only
 }
