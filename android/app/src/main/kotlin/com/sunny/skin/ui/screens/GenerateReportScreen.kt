@@ -90,7 +90,8 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                     Text("Filter by date range", Modifier.weight(1f),
                         style = MaterialTheme.typography.bodyLarge)
                     Switch(byDate, { byDate = it },
-                        colors = com.sunny.skin.ui.components.sunnySwitchColors(SunnyColors.Orange))
+                        colors = com.sunny.skin.ui.components.sunnySwitchColors(SunnyColors.Orange),
+                        thumbContent = {})
                 }
             }
             Spacer(Modifier.height(20.dp))

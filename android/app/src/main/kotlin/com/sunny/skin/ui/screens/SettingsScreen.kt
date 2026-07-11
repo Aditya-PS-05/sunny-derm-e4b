@@ -94,6 +94,7 @@ fun SettingsScreen(
                     checked = pinOn,
                     onCheckedChange = { on -> if (on) onSetupPin() else vm.clearPin() },
                     colors = sunnySwitchColors(),
+                    thumbContent = {}, // force the full-size thumb in the off state too
                 )
             }
         }
@@ -134,6 +135,7 @@ fun SettingsScreen(
                         else vm.setRecurringReminder(false, 0)
                     },
                     colors = sunnySwitchColors(),
+                    thumbContent = {},
                 )
             }
         }
