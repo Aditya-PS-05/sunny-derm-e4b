@@ -88,8 +88,8 @@ fun DisclaimerCard(title: String, body: String, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = SunnyColors.OrangeSoft.copy(alpha = 0.5f),
-        border = BorderStroke(1.dp, SunnyColors.Orange.copy(alpha = 0.25f)),
+        color = SunnyColors.SurfaceMuted,
+        border = BorderStroke(1.dp, SunnyColors.Divider),
     ) {
         Row(Modifier.padding(14.dp)) {
             Icon(

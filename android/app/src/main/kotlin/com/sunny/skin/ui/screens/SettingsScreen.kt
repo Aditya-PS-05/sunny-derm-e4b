@@ -119,7 +119,7 @@ fun SettingsScreen(
         SectionHeader("Reminders")
         SunnyCard {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconBadge(Icons.Filled.NotificationsActive, SunnyColors.TextPrimary)
+                IconBadge(Icons.Filled.NotificationsActive, SunnyColors.TextPrimary, iconSize = 28.dp)
                 Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text("Regular skin check", style = MaterialTheme.typography.titleMedium)
@@ -236,7 +236,7 @@ private fun AboutRow(icon: ImageVector, label: String, value: String, onClick: (
             .padding(vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, null, tint = SunnyColors.TextSecondary, modifier = Modifier.size(20.dp))
+        Icon(icon, null, tint = SunnyColors.TextPrimary, modifier = Modifier.size(20.dp))
         Spacer(Modifier.size(12.dp))
         Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         Text(value, style = MaterialTheme.typography.bodyLarge, color = SunnyColors.TextSecondary)
