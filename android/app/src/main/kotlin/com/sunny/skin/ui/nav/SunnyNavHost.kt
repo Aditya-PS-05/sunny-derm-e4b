@@ -107,7 +107,7 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
                 // Always CREATE mode (existingPin = null) so the user sets a fresh PIN.
                 val change = entry.arguments?.getString("change")?.toBoolean() ?: false
                 PinScreen(
-                    existingPin = null,
+                    verify = null,
                     onSuccess = { pin -> vm.setPin(pin); nav.popBackStack() },
                     onCancel = { nav.popBackStack() },
                     changeMode = change,

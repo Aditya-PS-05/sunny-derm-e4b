@@ -69,10 +69,10 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     val capture: StateFlow<CaptureState> = _capture.asStateFlow()
 
     // ---- App-lock PIN ----
-    private val _pinEnabled = MutableStateFlow(settings.pinLockEnabled)
+    private val _pinEnabled = MutableStateFlow(settings.hasPin())
     val pinEnabled: StateFlow<Boolean> = _pinEnabled.asStateFlow()
 
-    fun setPin(pin: String) { settings.pin = pin; _pinEnabled.value = true }
+    fun setPin(pin: String) { settings.setPin(pin); _pinEnabled.value = true }
     fun clearPin() { settings.clearPin(); _pinEnabled.value = false }
 
     // ---- Reminders ----

@@ -40,8 +40,10 @@ private const val PIN_LENGTH = 4
 
 /**
  * PIN gate. Two modes:
- *  - [existingPin] == null  -> CREATE: enter a new PIN, then confirm it.
- *  - [existingPin] != null  -> UNLOCK: enter the PIN to continue.
+ *  - [verify] == null  -> CREATE: enter a new PIN, then confirm it.
+ *  - [verify] != null  -> UNLOCK: [verify] checks the entry against the stored
+ *    salted hash (returning true on match) and internally rate-limits attempts;
+ *    [lockoutRemainingMs] reports any active lockout so input is blocked.
  *
  * On success [onSuccess] is called with the final PIN (the newly created PIN in
  * CREATE mode, or the entered PIN in UNLOCK mode). Optional [onCancel] shows a
@@ -49,12 +51,13 @@ private const val PIN_LENGTH = 4
  */
 @Composable
 fun PinScreen(
-    existingPin: String?,
+    verify: ((String) -> Boolean)?,
     onSuccess: (String) -> Unit,
     onCancel: (() -> Unit)? = null,
     changeMode: Boolean = false,
+    lockoutRemainingMs: () -> Long = { 0L },
 ) {
-    val creating = existingPin == null
+    val creating = verify == null
     var firstEntry by remember { mutableStateOf<String?>(null) } // CREATE: first pass
     var entry by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
@@ -73,11 +76,16 @@ fun PinScreen(
         else -> "Re-enter your PIN to confirm."
     }
 
+    fun lockMsg(): String {
+        val secs = (lockoutRemainingMs() / 1000) + 1
+        return "Too many attempts. Try again in ${secs}s."
+    }
+
     fun submit(complete: String) {
         when {
-            !creating -> {
-                if (complete == existingPin) onSuccess(complete)
-                else { error = "Incorrect PIN. Try again."; entry = "" }
+            verify != null -> {
+                if (verify(complete)) onSuccess(complete)
+                else { error = if (lockoutRemainingMs() > 0) lockMsg() else "Incorrect PIN. Try again."; entry = "" }
             }
             firstEntry == null -> { firstEntry = complete; entry = ""; error = null }
             complete == firstEntry -> onSuccess(complete)
@@ -86,6 +94,7 @@ fun PinScreen(
     }
 
     fun onKey(d: Char) {
+        if (verify != null && lockoutRemainingMs() > 0) { error = lockMsg(); return }
         if (entry.length >= PIN_LENGTH) return
         error = null
         entry += d

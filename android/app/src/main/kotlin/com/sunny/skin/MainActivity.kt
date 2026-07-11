@@ -34,7 +34,7 @@ class MainActivity : FragmentActivity() {
         setContent {
             SunnyTheme {
                 var onboarded by remember { mutableStateOf(settings.seenOnboarding) }
-                var unlocked by remember { mutableStateOf(!settings.pinLockEnabled) }
+                var unlocked by remember { mutableStateOf(!settings.hasPin()) }
                 var showKeypad by remember { mutableStateOf(false) }
                 when {
                     !onboarded -> OnboardingScreen(onFinish = {
@@ -44,7 +44,8 @@ class MainActivity : FragmentActivity() {
                     // "Sunny is Locked" landing → tap to reveal the PIN keypad.
                     !showKeypad -> LockScreen(onUnlock = { showKeypad = true })
                     else -> PinScreen(
-                        existingPin = settings.pin,
+                        verify = { settings.verifyPin(it) },
+                        lockoutRemainingMs = { settings.lockoutRemainingMs() },
                         onSuccess = { unlocked = true },
                         onCancel = { showKeypad = false },
                     )
