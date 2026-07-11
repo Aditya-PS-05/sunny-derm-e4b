@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,6 +62,7 @@ fun SettingsScreen(
     onOpenModelSetup: () -> Unit,
     onSetupPin: () -> Unit,
     onChangePin: () -> Unit,
+    onOpenPrivacy: () -> Unit,
 ) {
     val pinOn by vm.pinEnabled.collectAsStateWithLifecycle()
     val reminders by vm.reminders.collectAsStateWithLifecycle()
@@ -200,6 +202,8 @@ fun SettingsScreen(
                 AboutRow(Icons.Filled.Info, "Version", "1.0 (1)")
                 HorizontalDivider(color = SunnyColors.Divider)
                 AboutRow(Icons.Filled.Memory, "AI Model", vm.modelName(), onClick = onOpenModelSetup)
+                HorizontalDivider(color = SunnyColors.Divider)
+                AboutRow(Icons.Filled.Shield, "Privacy Policy", "", onClick = onOpenPrivacy)
             }
         }
         Spacer(Modifier.height(20.dp))

@@ -56,6 +56,12 @@ venv/
 env/
 .ipynb_checkpoints/
 
+# ---- Release signing (never commit keystores or their passwords) ----
+*.jks
+*.keystore
+android/keystore.properties
+keystore.properties
+
 # ---- Local tooling state / secrets ----
 .omc/
 .claude/

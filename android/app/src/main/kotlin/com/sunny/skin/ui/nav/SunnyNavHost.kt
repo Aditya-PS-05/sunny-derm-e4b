@@ -28,6 +28,7 @@ import com.sunny.skin.ui.screens.GenerateReportScreen
 import com.sunny.skin.ui.screens.ModelSetupScreen
 import com.sunny.skin.ui.screens.OverviewScreen
 import com.sunny.skin.ui.screens.PinScreen
+import com.sunny.skin.ui.screens.PrivacyScreen
 import com.sunny.skin.ui.screens.ReportDetailScreen
 import com.sunny.skin.ui.screens.ReportsScreen
 import com.sunny.skin.ui.screens.ReviewScanScreen
@@ -98,10 +99,14 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
                     onOpenReports = { nav.navigate(Routes.REPORTS) },
                     onOpenModelSetup = { nav.navigate(Routes.MODEL_SETUP) },
                     onSetupPin = { nav.navigate(Routes.pinSetup(false)) },
-                    onChangePin = { nav.navigate(Routes.pinSetup(true)) })
+                    onChangePin = { nav.navigate(Routes.pinSetup(true)) },
+                    onOpenPrivacy = { nav.navigate(Routes.PRIVACY) })
             }
             composable(Routes.MODEL_SETUP) {
                 ModelSetupScreen(onBack = { nav.popBackStack() })
+            }
+            composable(Routes.PRIVACY) {
+                PrivacyScreen(onBack = { nav.popBackStack() })
             }
             composable(Routes.PIN_SETUP) { entry ->
                 // Always CREATE mode (existingPin = null) so the user sets a fresh PIN.

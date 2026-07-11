@@ -12,6 +12,7 @@ object Routes {
     const val GENERATE_REPORT = "generate_report"
     const val REPORTS = "reports"
     const val MODEL_SETUP = "model_setup"
+    const val PRIVACY = "privacy"
     const val PIN_SETUP = "pin_setup/{change}"
     fun pinSetup(change: Boolean) = "pin_setup/$change"
 
