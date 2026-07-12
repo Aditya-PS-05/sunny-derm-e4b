@@ -169,7 +169,7 @@ class ReportGenerator(private val context: Context) {
     }
 
     private fun header(c: android.graphics.Canvas, id: String): Float {
-        c.drawText("☀ Sunny", MARGIN, MARGIN, brandPaint)
+        c.drawText("Sunny", MARGIN, MARGIN, brandPaint)
         c.drawText("SKIN EXAMINATION REPORT", PAGE_W - MARGIN, MARGIN, rightLabelPaint)
         c.drawText(id, PAGE_W - MARGIN, MARGIN + 16f, rightMutedPaint)
         c.drawLine(MARGIN, MARGIN + 24f, PAGE_W - MARGIN, MARGIN + 24f, dividerPaint)

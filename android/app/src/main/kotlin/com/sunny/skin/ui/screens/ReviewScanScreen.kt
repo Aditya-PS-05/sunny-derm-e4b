@@ -182,7 +182,7 @@ private fun AnalysingState() {
             Text("Sunny is analysing…", style = MaterialTheme.typography.titleMedium)
         }
         Spacer(Modifier.height(6.dp))
-        Text("Running on-device. Your photo never leaves this phone.",
+        Text(com.sunny.skin.AppMode.analysingNote,
             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextTertiary)
     }
 }

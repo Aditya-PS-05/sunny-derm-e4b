@@ -169,12 +169,12 @@ fun OverviewScreen(vm: SunnyViewModel, onScanClick: (String) -> Unit) {
 private fun StatCard(modifier: Modifier, iconRes: Int, value: Int, label: String) {
     SunnyCard(modifier = modifier) {
         Column(
-            Modifier.padding(vertical = 16.dp),
+            Modifier.padding(vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(30.dp))
-            Spacer(Modifier.height(8.dp))
-            Text("$value", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(26.dp))
+            Spacer(Modifier.height(4.dp))
+            Text("$value", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(label, style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
         }
     }

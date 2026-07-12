@@ -61,10 +61,11 @@ fun PrivacyScreen(onBack: () -> Unit) {
                 "Sunny contains no analytics, advertising or third-party tracking.",
             )
             Section(
-                "Medical disclaimer",
-                "Sunny provides experimental visual descriptions, not diagnosis, risk, urgency, " +
-                    "or advice. It is not clinically validated for phone photos or all skin tones. " +
-                    "Always consult a qualified healthcare professional for any concern.",
+                "How Sunny works",
+                "Sunny describes what your skin looks like to help you track it over time. It " +
+                    "doesn't diagnose, assess risk, or tell you what to do — always see a " +
+                    "qualified professional for any concern. Skin can look different in photos " +
+                    "and across skin tones, so trust a clinician's eyes over the app.",
             )
             Section(
                 "Your control",

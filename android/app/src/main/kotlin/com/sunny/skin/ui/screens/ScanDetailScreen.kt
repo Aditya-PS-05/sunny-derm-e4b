@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Compare
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.AlertDialog
@@ -64,6 +65,7 @@ import com.sunny.skin.ui.components.MetaChip
 import com.sunny.skin.ui.components.ReCheckReminderDialog
 import com.sunny.skin.ui.components.ScreenScaffold
 import com.sunny.skin.ui.components.SunnyCard
+import com.sunny.skin.ui.components.findDermatologistNearby
 import com.sunny.skin.ui.components.rememberNotificationRequester
 import com.sunny.skin.ui.theme.SunnyColors
 import com.sunny.skin.util.BitmapLoader
@@ -252,6 +254,27 @@ fun ScanDetailScreen(
                     Column(Modifier.weight(1f)) {
                         Text("Remind me to re-check", style = MaterialTheme.typography.titleMedium)
                         Text("Get a nudge to re-photograph this spot",
+                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
+                    }
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
+                        tint = SunnyColors.TextTertiary)
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+
+            // Bridge to care: Sunny doesn't diagnose, so it helps you reach someone
+            // who can. Opens Maps — only a location leaves the device, never photos.
+            SunnyCard(onClick = { findDermatologistNearby(context) }) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Filled.Place, null, tint = SunnyColors.Orange,
+                            modifier = Modifier.size(22.dp))
+                    }
+                    Spacer(Modifier.size(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Find a dermatologist near you",
+                            style = MaterialTheme.typography.titleMedium)
+                        Text("Opens Maps — your photos stay on this phone",
                             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                     }
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,

@@ -76,7 +76,7 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     val settings = SettingsStore(app)
 
     val modelAvailable: StateFlow<Boolean> = ModelDownloadManager.status
-        .map { it is ModelStatus.Ready }
+        .map { it is ModelStatus.Ready || ModelProvider.realModelAvailable(appCtx) }
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
@@ -119,6 +119,24 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun setPin(pin: String) { settings.setPin(pin); _pinEnabled.value = true }
     fun clearPin() { settings.clearPin(); _pinEnabled.value = false }
+
+    // ---- Beta "improve Sunny" opt-in (contribute scans + corrections) ----
+    private val _improveSunny = MutableStateFlow(settings.improveSunny)
+    val improveSunny: StateFlow<Boolean> = _improveSunny.asStateFlow()
+    fun setImproveSunny(v: Boolean) { settings.improveSunny = v; _improveSunny.value = v }
+
+    /** Upload one contribution off the UI thread — only when the user opted in. */
+    private fun contribute(
+        bitmap: Bitmap,
+        modelOutput: com.sunny.skin.data.model.Analysis,
+        corrected: com.sunny.skin.data.model.Analysis?,
+        bodyZone: String,
+    ) {
+        if (!settings.improveSunny) return
+        viewModelScope.launch {
+            com.sunny.skin.data.ContributionUploader.submit(bitmap, modelOutput, corrected, bodyZone)
+        }
+    }
 
     // ---- Reminders ----
     private val reminderStore = com.sunny.skin.reminder.ReminderStore(appCtx)
@@ -227,6 +245,14 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
             repo.renameScan(scanId, name, now)
             val newPath = newBitmap?.let { repo.imageStore().save(it) }
             repo.replaceObservation(existing, newPath, analysis, modelVersion, rawOutput, now)
+            // An edit is a correction signal: the model's original output vs the
+            // user's saved fields, on a real photo — the highest-value training data.
+            if (settings.improveSunny) {
+                val bmp = newBitmap ?: repo.imageStore().decryptToBitmap(existing.imagePath)
+                if (bmp != null) {
+                    contribute(bmp, existing.analysis.toAnalysis(), corrected = analysis, bodyZone = "")
+                }
+            }
             onDone()
         }
     }
@@ -308,6 +334,8 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
                 rawOutput = ready.result.rawOutput,
                 now = now,
             )
+            contribute(bitmap, ready.result.analysis, corrected = null,
+                bodyZone = state.bodyPart.zone.name)
             _capture.value = CaptureState()
             _capturePreset.value = null
             onSaved(scanId)

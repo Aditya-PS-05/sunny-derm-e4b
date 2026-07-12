@@ -43,7 +43,7 @@ fun BodyTemplate(
     Box(modifier.fillMaxWidth()) {
         Canvas(
             Modifier
-                .fillMaxWidth(0.30f)
+                .fillMaxWidth(0.28f)
                 .aspectRatio(560f / 1151f)
                 .align(Alignment.Center),
         ) {

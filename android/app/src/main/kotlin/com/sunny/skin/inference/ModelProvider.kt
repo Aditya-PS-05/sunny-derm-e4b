@@ -2,6 +2,7 @@ package com.sunny.skin.inference
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import com.sunny.skin.BuildConfig
 import java.io.File
 
 /**
@@ -72,9 +73,17 @@ object ModelProvider {
     @Volatile var usingRealModel: Boolean = false
         private set
 
-    /** Files and native runtime are both present. This does not load the 6 GB model. */
+    /** True when a configured remote inference API (server method) is set. */
+    val serverApiUrl: String get() = BuildConfig.SUNNY_INFERENCE_API_URL
+
+    /**
+     * Analysis is available when EITHER a remote inference API is configured
+     * (interim server method) OR the on-device weights + native runtime are both
+     * present. This does not load the 6 GB model.
+     */
     fun realModelAvailable(context: Context): Boolean =
-        resolveWeights(context) != null && LlamaBridge.ensureLibrary()
+        serverApiUrl.isNotBlank() ||
+            (resolveWeights(context) != null && LlamaBridge.ensureLibrary())
 
     /** Single shared describer per process (keeps the model warm across screens). */
     @Volatile private var describer: SunnyDescriber? = null
@@ -84,6 +93,13 @@ object ModelProvider {
         return synchronized(this) {
             describer?.let { return@synchronized it }
             val app = context.applicationContext
+            // Server method (interim): a configured API wins over on-device weights.
+            if (serverApiUrl.isNotBlank()) {
+                return@synchronized SunnyDescriber(RemoteSunnyModel(serverApiUrl)).also {
+                    describer = it
+                    usingRealModel = true
+                }
+            }
             val weights = resolveWeights(app)
             if (weights == null || !LlamaBridge.ensureLibrary()) {
                 usingRealModel = false

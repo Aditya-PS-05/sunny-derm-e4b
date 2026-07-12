@@ -107,17 +107,15 @@ fun ModelSetupScreen(onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth()) { Text("Cancel") }
                 }
                 ModelStatus.Verifying -> Row(text = "Verifying checksums…")
-                ModelStatus.Ready -> Text("The AI model is installed and running on-device.",
+                ModelStatus.Ready -> Text(com.sunny.skin.AppMode.modelReadyNote,
                     style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
                     textAlign = TextAlign.Center)
             }
 
             Spacer(Modifier.weight(1f))
             DisclaimerCard(
-                title = "Research limitation",
-                body = "The download pulls only model files, but the model is experimental. " +
-                    "It has not been clinically validated for phone photos or all skin tones, " +
-                    "and must not be used to delay professional care.",
+                title = "About the AI",
+                body = com.sunny.skin.AppMode.aiDescription,
             )
         }
     }

@@ -31,6 +31,21 @@ check(modelBaseUrl.isEmpty() || (modelBaseUrl.startsWith("https://") && modelBas
 }
 val escapedModelBaseUrl = modelBaseUrl.replace("\\", "\\\\").replace("\"", "\\\"")
 
+// INTERIM server method: a remote inference API the app calls instead of running
+// the model on-device. Empty = on-device (privacy-preserving) path.
+val inferenceApiUrl = providers.gradleProperty("inferenceApiUrl")
+    .orElse(providers.environmentVariable("SUNNY_INFERENCE_API_URL"))
+    .getOrElse("")
+    .trim()
+val escapedInferenceApiUrl = inferenceApiUrl.replace("\\", "\\\\").replace("\"", "\\\"")
+
+// INTERIM beta "improve Sunny" data-collection endpoint. Empty = collection off.
+val contributeUrl = providers.gradleProperty("contributeUrl")
+    .orElse(providers.environmentVariable("SUNNY_CONTRIBUTE_URL"))
+    .getOrElse("")
+    .trim()
+val escapedContributeUrl = contributeUrl.replace("\\", "\\\\").replace("\"", "\\\"")
+
 tasks.configureEach {
     if (name == "preReleaseBuild") {
         doFirst {
@@ -66,6 +81,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
         buildConfigField("String", "SUNNY_MODEL_BASE_URL", "\"$escapedModelBaseUrl\"")
+        buildConfigField("String", "SUNNY_INFERENCE_API_URL", "\"$escapedInferenceApiUrl\"")
+        buildConfigField("String", "SUNNY_CONTRIBUTE_URL", "\"$escapedContributeUrl\"")
 
         if (withLlama) {
             // A 6 GB model needs a 64-bit address space — arm64 only.

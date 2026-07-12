@@ -47,9 +47,8 @@ fun AnalysisCard(
         }
         Spacer(Modifier.padding(top = 2.dp))
         InlineDisclaimer(
-            "Experimental visual description only — not a diagnosis, risk assessment, or " +
-                "evidence that it is safe to wait. Not clinically validated for phone photos " +
-                "or all skin tones.",
+            "A visual description to help you track changes — not a diagnosis. " +
+                "See a professional for anything that concerns you.",
         )
         Spacer(Modifier.padding(top = 10.dp))
 

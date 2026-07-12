@@ -3,8 +3,9 @@ package com.sunny.skin.ui.screens
 import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,37 +20,36 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import com.sunny.skin.R
 import com.sunny.skin.ui.theme.SunnyColors
 
 /**
  * First-run onboarding: a single, calm "liquid glass" page that mirrors the lock
  * screen — a blurred, frosted rendering of the app behind a translucent scrim,
- * with the mascot, a one-line promise and a single Get Started button. No decks,
- * no swiping; it matches the rest of the app's layout language.
+ * with the mascot, a warm benefit-led promise, and a single Get Started button.
+ * The honest "describes, doesn't diagnose" line is present but framed as helpful,
+ * not as a warning; the detailed limitations live on the Privacy screen.
  */
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit) {
-    var acknowledged by rememberSaveable { mutableStateOf(false) }
     Box(Modifier.fillMaxSize().background(SunnyColors.Background)) {
         // Frosted backdrop — a blurred silhouette of the Overview (API 31+).
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -75,46 +75,51 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold, textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
-                    "Track your skin over time — privately.\nYour photos never leave this phone.",
+                    "Track your skin over time and spot what changes.",
                     style = MaterialTheme.typography.bodyLarge, color = SunnyColors.TextSecondary,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(10.dp))
+                val lockId = "lock"
+                val privacyText = buildAnnotatedString {
+                    appendInlineContent(lockId, "[lock]")
+                    append("  ")
+                    append(com.sunny.skin.AppMode.photoPrivacyLine)
+                }
+                val inlineLock = mapOf(
+                    lockId to InlineTextContent(
+                        Placeholder(1.05.em, 1.05.em, PlaceholderVerticalAlign.TextCenter),
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.ic_lock),
+                            contentDescription = null,
+                            tint = SunnyColors.Orange,
+                        )
+                    },
+                )
                 Text(
-                    "Experimental visual descriptions only. The AI has not been clinically " +
-                        "validated for phone photos or across all skin tones.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SunnyColors.TextSecondary,
+                    privacyText,
+                    inlineContent = inlineLock,
+                    style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(18.dp))
+                Text(
+                    "Sunny describes, it doesn't diagnose — see a professional for any concern.",
+                    style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextTertiary,
                     textAlign = TextAlign.Center,
                 )
             }
             Spacer(Modifier.weight(1f))
-            Row(
-                Modifier.fillMaxWidth().toggleable(
-                    value = acknowledged,
-                    role = Role.Checkbox,
-                    onValueChange = { acknowledged = it },
-                ).padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Checkbox(checked = acknowledged, onCheckedChange = null)
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    "I understand Sunny does not diagnose, assess risk, or tell me when it is " +
-                        "safe to wait. I will seek professional care for concerns.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SunnyColors.TextPrimary,
-                )
-            }
-            Spacer(Modifier.height(8.dp))
+
             Surface(
                 Modifier.fillMaxWidth().height(56.dp)
                     .clip(RoundedCornerShape(28.dp))
-                    .clickable(enabled = acknowledged, onClick = onFinish),
+                    .clickable(onClick = onFinish),
                 shape = RoundedCornerShape(28.dp),
-                color = if (acknowledged) SunnyColors.Orange else SunnyColors.TextTertiary,
+                color = SunnyColors.Orange,
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text("Get Started", style = MaterialTheme.typography.titleMedium,

@@ -88,6 +88,15 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean(KEY_GREETED, false)
         set(v) = prefs.edit().putBoolean(KEY_GREETED, v).apply()
 
+    /**
+     * Beta opt-in: when true, scans and corrections are uploaded to help improve
+     * Sunny's AI. OFF by default — the on-device/no-upload default is preserved
+     * for everyone who doesn't explicitly turn this on.
+     */
+    var improveSunny: Boolean
+        get() = prefs.getBoolean(KEY_IMPROVE, false)
+        set(v) = prefs.edit().putBoolean(KEY_IMPROVE, v).apply()
+
     private companion object {
         const val KEY_PIN = "app_lock_pin"       // legacy plaintext key (cleared on migration)
         const val KEY_PIN_HASH = "app_lock_pin_hash"
@@ -96,5 +105,6 @@ class SettingsStore(context: Context) {
         const val KEY_LOCKOUT = "pin_lockout_until"
         const val KEY_ONBOARDED = "seen_onboarding"
         const val KEY_GREETED = "seen_greeting"
+        const val KEY_IMPROVE = "improve_sunny_optin"
     }
 }

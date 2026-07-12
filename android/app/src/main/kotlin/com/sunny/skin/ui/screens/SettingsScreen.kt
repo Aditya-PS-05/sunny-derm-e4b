@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -48,6 +49,7 @@ import com.sunny.skin.reminder.Reminder
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.DisclaimerCard
 import com.sunny.skin.ui.components.SectionHeader
+import com.sunny.skin.ui.components.SunnyToggle
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.components.SunnyToggle
@@ -66,6 +68,7 @@ fun SettingsScreen(
     onOpenPrivacy: () -> Unit,
 ) {
     val pinOn by vm.pinEnabled.collectAsStateWithLifecycle()
+    val improve by vm.improveSunny.collectAsStateWithLifecycle()
     val reminders by vm.reminders.collectAsStateWithLifecycle()
     val recurring = reminders.firstOrNull { it.id == Reminder.RECURRING_ID }
     var interval by remember { mutableIntStateOf(recurring?.intervalDays ?: 30) }
@@ -98,7 +101,7 @@ fun SettingsScreen(
         }
         Spacer(Modifier.height(8.dp))
         Text("When enabled, you will need to enter your PIN each time you open Sunny. " +
-            "Your skin health data never leaves your device.",
+            com.sunny.skin.AppMode.dataPrivacySubtitle,
             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
             modifier = Modifier.padding(horizontal = 4.dp))
         if (pinOn) {
@@ -188,6 +191,28 @@ fun SettingsScreen(
             }
         }
         Spacer(Modifier.height(20.dp))
+
+        if (com.sunny.skin.BuildConfig.SUNNY_CONTRIBUTE_URL.isNotBlank()) {
+            SectionHeader("Help improve Sunny")
+            SunnyCard {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconBadge(Icons.Filled.Science, SunnyColors.Orange, iconSize = 26.dp)
+                    Spacer(Modifier.size(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Contribute to improving Sunny",
+                            style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Beta: your scans and any corrections are securely uploaded to help " +
+                                "train Sunny's AI. Off by default — turn it off anytime.",
+                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
+                        )
+                    }
+                    Spacer(Modifier.size(12.dp))
+                    SunnyToggle(checked = improve, onCheckedChange = { vm.setImproveSunny(it) })
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+        }
 
         SectionHeader("About")
         SunnyCard {
