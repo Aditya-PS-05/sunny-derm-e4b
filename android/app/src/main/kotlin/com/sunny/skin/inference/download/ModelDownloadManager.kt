@@ -4,9 +4,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.sunny.skin.inference.ModelProvider
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,17 +24,11 @@ sealed interface ModelStatus {
 /**
  * Process-wide manager for the first-run model download. Survives navigation
  * (its own scope), downloads both assets sequentially with a combined progress
- * bar, and on success resets [ModelProvider] so the next describe uses the real
- * llama.cpp model instead of the mock.
- *
- * Note: for a 6 GB transfer a production app would move this into a
- * WorkManager/foreground-service job so it survives process death; this
- * in-process manager is the straightforward first cut.
+ * bar, and on success resets [ModelProvider] so the next request creates a fresh
+ * real llama.cpp session.
  */
 object ModelDownloadManager {
     private lateinit var appContext: Context
-    private val scope = CoroutineScope(SupervisorJob())
-    private var job: Job? = null
 
     private val _status = MutableStateFlow<ModelStatus>(ModelStatus.Idle)
     val status: StateFlow<ModelStatus> = _status.asStateFlow()
@@ -46,20 +37,13 @@ object ModelDownloadManager {
         appContext = context.applicationContext
         // Weights present locally (adb push / prior download) win regardless of
         // whether a download URL is configured — no download is needed then.
-        _status.value = when {
-            ModelProvider.weightsPresent(appContext) -> ModelStatus.Ready
-            !ModelSource.isConfigured -> ModelStatus.NotConfigured
-            else -> ModelStatus.Idle
-        }
+        _status.value = currentStatus()
     }
 
     /** Re-check the weight folders (e.g. after an adb push) and refresh status. */
     fun refresh() {
         if (!::appContext.isInitialized) return
-        if (ModelProvider.weightsPresent(appContext)) {
-            ModelProvider.reset()
-            _status.value = ModelStatus.Ready
-        }
+        _status.value = currentStatus()
     }
 
     /** True on unmetered (Wi-Fi/ethernet) connectivity — gate large downloads. */
@@ -97,9 +81,21 @@ object ModelDownloadManager {
         _status.value = ModelStatus.Downloading(done, total)
     }
     fun publishVerifying() { _status.value = ModelStatus.Verifying }
-    fun publishReady() { _status.value = ModelStatus.Ready }
+    fun activateInstalledModel() {
+        ModelProvider.reset()
+        _status.value = currentStatus()
+    }
     fun publishFailed(message: String) { _status.value = ModelStatus.Failed(message) }
     fun publishIdleIfDownloading() {
         if (_status.value is ModelStatus.Downloading) _status.value = ModelStatus.Idle
+    }
+
+    private fun currentStatus(): ModelStatus = when {
+        ModelProvider.realModelAvailable(appContext) -> ModelStatus.Ready
+        ModelProvider.weightsPresent(appContext) -> ModelStatus.Failed(
+            "Model files were found, but this app build does not include a working native AI runtime.",
+        )
+        !ModelSource.isConfigured -> ModelStatus.NotConfigured
+        else -> ModelStatus.Idle
     }
 }

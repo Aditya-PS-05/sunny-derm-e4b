@@ -5,10 +5,10 @@ import android.content.pm.ApplicationInfo
 import java.io.File
 
 /**
- * Chooses the on-device model implementation. Uses the real llama.cpp/mtmd path
- * when BOTH the native library and the two GGUF files are present; otherwise
- * falls back to [MockSunnyModel] so the app is fully functional for development
- * and demo without the ~6 GB weights on disk.
+ * Owns the on-device llama.cpp/mtmd model. Analysis is available only when the
+ * native library and both exact GGUF files are present. Runtime code deliberately
+ * has no mock fallback: a missing or broken model must disable scanning instead
+ * of producing plausible-looking fabricated health output.
  *
  * The weights already exist locally in this repo (exports/model_on_host/); they
  * are NOT bundled in the APK (6 GB) and do not need downloading. They are found
@@ -25,6 +25,8 @@ object ModelProvider {
 
     const val LM_FILE = "e4b-derm-Q4_K_M.gguf"
     const val MMPROJ_FILE = "mmproj-e4b-derm-f16.gguf"
+    private const val LM_BYTES = 5_302_272_736L
+    private const val MMPROJ_BYTES = 990_372_192L
 
     /** Primary internal location (also the download target). */
     fun modelsDir(context: Context) = File(context.filesDir, "models").apply { mkdirs() }
@@ -52,7 +54,10 @@ object ModelProvider {
         for (dir in candidateDirs(context)) {
             val lm = File(dir, LM_FILE)
             val mmproj = File(dir, MMPROJ_FILE)
-            if (lm.exists() && mmproj.exists()) return lm to mmproj
+            if (
+                lm.isFile && lm.length() == LM_BYTES &&
+                mmproj.isFile && mmproj.length() == MMPROJ_BYTES
+            ) return lm to mmproj
         }
         return null
     }
@@ -67,36 +72,44 @@ object ModelProvider {
     @Volatile var usingRealModel: Boolean = false
         private set
 
-    fun create(context: Context): SunnyModel {
-        val weights = resolveWeights(context)
-        val realAvailable = weights != null && LlamaBridge.ensureLibrary()
-        usingRealModel = realAvailable
-        return if (realAvailable) {
-            LlamaCppSunnyModel(
-                modelPath = weights.first.absolutePath,
-                mmprojPath = weights.second.absolutePath,
-            )
-        } else {
-            MockSunnyModel()
-        }
-    }
+    /** Files and native runtime are both present. This does not load the 6 GB model. */
+    fun realModelAvailable(context: Context): Boolean =
+        resolveWeights(context) != null && LlamaBridge.ensureLibrary()
 
     /** Single shared describer per process (keeps the model warm across screens). */
     @Volatile private var describer: SunnyDescriber? = null
 
-    fun describer(context: Context): SunnyDescriber =
-        describer ?: synchronized(this) {
-            describer ?: SunnyDescriber(create(context.applicationContext)).also { describer = it }
+    fun describer(context: Context): SunnyDescriber? {
+        describer?.let { return it }
+        return synchronized(this) {
+            describer?.let { return@synchronized it }
+            val app = context.applicationContext
+            val weights = resolveWeights(app)
+            if (weights == null || !LlamaBridge.ensureLibrary()) {
+                usingRealModel = false
+                return@synchronized null
+            }
+            SunnyDescriber(
+                LlamaCppSunnyModel(
+                    modelPath = weights.first.absolutePath,
+                    mmprojPath = weights.second.absolutePath,
+                ),
+            ).also {
+                describer = it
+                usingRealModel = true
+            }
         }
+    }
 
     /**
-     * Drop the cached describer so the next [describer] call re-selects the
-     * implementation. Called after weights appear (download or adb push) to
-     * upgrade the live session from mock to the real llama.cpp model.
+     * Drop the cached describer so the next request resolves the installed model.
+     * The previous native session is closed to avoid retaining several GB of RAM.
      */
     fun reset() {
         synchronized(this) {
+            describer?.close()
             describer = null
+            usingRealModel = false
         }
     }
 }

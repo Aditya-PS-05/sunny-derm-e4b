@@ -21,10 +21,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
@@ -44,8 +45,11 @@ fun ReportDetailScreen(reportId: String, onBack: () -> Unit) {
     val context = LocalContext.current
     val store = remember { ReportStore(context) }
 
-    val pages by produceState(initialValue = emptyList<Bitmap>(), reportId) {
-        value = withContext(Dispatchers.IO) { renderPdf(store.decryptToCache(reportId)) }
+    var pages by remember(reportId) { mutableStateOf(emptyList<Bitmap>()) }
+    LaunchedEffect(reportId) {
+        pages = withContext(Dispatchers.IO) {
+            store.withDecryptedReport(reportId) { renderPdf(it) } ?: emptyList()
+        }
     }
 
     ScreenScaffold(

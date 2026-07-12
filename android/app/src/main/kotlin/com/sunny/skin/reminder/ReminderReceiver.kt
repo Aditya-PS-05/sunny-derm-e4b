@@ -1,11 +1,15 @@
 package com.sunny.skin.reminder
 
 import android.app.PendingIntent
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.sunny.skin.MainActivity
 import com.sunny.skin.R
 
@@ -41,6 +45,11 @@ class ReminderReceiver : BroadcastReceiver() {
     private fun postNotification(context: Context, reminder: Reminder) {
         ReminderScheduler.ensureChannel(context)
         if (NotificationManagerCompat.from(context).areNotificationsEnabled().not()) return
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) return
 
         val tapIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -52,16 +61,17 @@ class ReminderReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(reminder.title)
-            .setContentText(reminder.body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(reminder.body))
+            .setContentTitle("Sunny reminder")
+            .setContentText("Open Sunny to view your private skin-tracking reminder.")
             .setAutoCancel(true)
             .setContentIntent(pi)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        runCatching {
+        try {
             NotificationManagerCompat.from(context).notify(reminder.id.hashCode(), notification)
+        } catch (_: SecurityException) {
+            // Permission can be revoked between the check and notify call.
         }
     }
 

@@ -84,8 +84,10 @@ capabilities of the shipped checkpoint.
 - Multi-image or conversational analysis (the model is one-image-in/one-out).
 - Body-map / full-body photography workflows.
 
-## 8. Business model (indicative)
-Freemium: free tier tracks up to N lesions; one-time unlock or low subscription for
+## 8. Business model (future, blocked)
+No monetization or public model distribution is permitted until the training-data
+rights and clinical/regulatory gates in `RELEASE_READINESS.md` are cleared.
+After clearance, an indicative model is: free tier tracks up to N lesions; one-time unlock or low subscription for
 unlimited lesions, reminders, and export (PDF summary to bring to a dermatologist).
 All processing stays on-device regardless of tier — privacy is not a paywalled
 feature.
@@ -94,7 +96,8 @@ feature.
 | Risk | Mitigation |
 |---|---|
 | Perceived as a diagnostic device (regulatory) | Hard "not a diagnosis" framing + guardrails (§requirements); no verdict language ever. |
-| Model trained on dermatoscopic images, users shoot phone photos | Capture guidance; roadmap: phone-photo fine-tune / clip-on dermatoscope. Documented in `docs/performance.md`. |
+| Model trained on dermatoscopic images, users shoot phone photos | Public release blocked pending clinician-labelled phone-photo and skin-tone validation. See `RELEASE_READINESS.md`. |
+| Training-image commercial rights unresolved | No monetization or weight publication until the data chain has written legal clearance. |
 | User over-relies on the app instead of seeing a doctor | Explicit routing to care on every screen; reminders framed as "check with a professional." |
 | ~6 GB on-device model too large for low-end phones | Set a minimum-spec floor; offer a smaller-quant fallback (see design.md §tech). |
 

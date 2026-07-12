@@ -1,13 +1,15 @@
 package com.sunny.skin.inference.download
 
+import com.sunny.skin.BuildConfig
+
 /**
  * The two files that make up the on-device model (exports/MODELS.md). Sizes are
  * the exact measured byte counts; [sha256Prefix] is the first 16 hex chars
  * recorded in MODELS.md — enough to catch a corrupt/wrong download. Replace with
  * the FULL sha256 once published for stronger verification.
  *
- * [remotePath] is appended to [ModelSource.baseUrl]. Point that at the Hugging
- * Face repo (or CDN) the GGUFs get pushed to; see exports/MODELS.md route B.
+ * [remotePath] is appended to [ModelSource.baseUrl]. Configure a rights-cleared
+ * HTTPS repository or CDN at build time; see exports/MODELS.md route B.
  */
 enum class ModelAsset(
     val fileName: String,
@@ -35,17 +37,14 @@ enum class ModelAsset(
 }
 
 /**
- * Where the weights are fetched from. Set [baseUrl] to your published repo, e.g.
- * a Hugging Face resolve URL:
- *   https://huggingface.co/<user>/<repo>/resolve/main/
- * Kept in one place so swapping to a smaller re-quant (int8 mmproj / Q4_0 LM)
- * is a config change, not a code change.
+ * Where the weights are fetched from. The URL is empty by default and supplied
+ * with the modelBaseUrl Gradle property or SUNNY_MODEL_BASE_URL environment
+ * variable only after publication and data-rights clearance.
  */
 object ModelSource {
-    // TODO: replace with the real published base URL before enabling download.
-    const val baseUrl: String = "https://huggingface.co/REPLACE_ME/sunny-gemma4-e4b-derm/resolve/main/"
+    val baseUrl: String = BuildConfig.SUNNY_MODEL_BASE_URL
 
-    val isConfigured: Boolean get() = !baseUrl.contains("REPLACE_ME")
+    val isConfigured: Boolean get() = baseUrl.isNotBlank()
 
     fun urlFor(asset: ModelAsset): String = baseUrl + asset.remotePath
 }

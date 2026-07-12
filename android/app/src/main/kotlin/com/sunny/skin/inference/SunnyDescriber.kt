@@ -16,6 +16,7 @@ sealed interface DescribeResult {
     ) : DescribeResult
 
     data object Unreadable : DescribeResult
+    data object ModelUnavailable : DescribeResult
 }
 
 /**
@@ -44,6 +45,7 @@ class SunnyDescriber(private val model: SunnyModel) {
 
     suspend fun warmUp() = model.warmUp()
     val isReady: Boolean get() = model.isReady
+    fun close() = model.close()
 
     companion object {
         private const val MAX_ATTEMPTS = 2   // initial + one re-run (F-06)

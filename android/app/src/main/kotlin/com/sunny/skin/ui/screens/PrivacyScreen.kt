@@ -36,9 +36,10 @@ fun PrivacyScreen(onBack: () -> Unit) {
 
             Section(
                 "What Sunny stores, and where",
-                "Photos you capture, the model's description of each, and any PDF reports are " +
-                    "kept in this app's private storage only — and encrypted at rest using a " +
-                    "key held in your device's hardware-backed keystore. Your app-lock PIN is " +
+                "Photos, descriptions, PDF reports, ABCDE responses and reminder details are " +
+                    "kept in this app's private storage and encrypted at rest using a key " +
+                    "protected by Android Keystore (hardware-backed where supported). Reports " +
+                    "are stream-decrypted when shared, without a plaintext cache copy. Your PIN is " +
                     "stored only as a salted hash, never in plain text.",
             )
             Section(
@@ -61,9 +62,9 @@ fun PrivacyScreen(onBack: () -> Unit) {
             )
             Section(
                 "Medical disclaimer",
-                "Sunny is a tracking tool only. It provides visual descriptions, not medical " +
-                    "diagnoses or advice. Always consult a qualified healthcare professional for " +
-                    "any skin concern.",
+                "Sunny provides experimental visual descriptions, not diagnosis, risk, urgency, " +
+                    "or advice. It is not clinically validated for phone photos or all skin tones. " +
+                    "Always consult a qualified healthcare professional for any concern.",
             )
             Section(
                 "Your control",

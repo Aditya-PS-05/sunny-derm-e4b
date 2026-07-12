@@ -9,6 +9,11 @@ MedGemma; here we use E4B because its vision path converts cleanly to Android ru
 > longitudinal tracking. It must never assert benign/malignant or a diagnosis, and the
 > app must route any medical concern to a qualified clinician.
 
+> **Research status:** the training/export pipeline is complete, but public or
+> commercial release is blocked. The model has not been clinically validated on
+> phone photos or across skin tones, and commercial rights to the training images
+> are unresolved. See `RELEASE_READINESS.md`.
+
 ## Output schema (matches the app UI)
 `Lesion Type · Colour · Symmetry · Borders · Texture · Summary`
 
@@ -81,7 +86,7 @@ enabled, warm session, six-field schema parsing, safety guardrails).
 - **`pull_weights.sh`** — run on *your* machine to rsync the GGUFs + adapter from
   the GPU host into `exports/model_on_host/` (`./pull_weights.sh <ssh-alias>`).
 
-## Status — COMPLETE end-to-end ✅
+## Status — research pipeline complete; public release blocked
 - ✅ Data: full HAM10000 (13,354 imgs) fetched on host; balanced 1,343-img sample.
 - ✅ Labels: hybrid teacher (OpenCV morphometry + vision prose + safety filter) →
   1,341 grounded labels (1,207 train / 134 val), 2 dropped.
@@ -91,6 +96,11 @@ enabled, warm session, six-field schema parsing, safety guardrails).
 - ✅ Export: merged (15 GB) → **Q4_K_M GGUF 5.0 GB** + **vision mmproj 990 MB**
   (≈6 GB on-device). Quantized model loads & generates.
 - ✅ Android: LiteRT-LM + llama.cpp/mtmd integration documented.
+- ⛔ Clinical: no clinician-labelled phone-photo, skin-tone, human-factors, or
+  real-device performance validation.
+- ⛔ Rights: the dataset mirror grants no commercial license and says its uploader
+  owns no rights to the images. Do not monetize or publish derived weights until
+  qualified counsel clears the data chain.
 
 **`google/gemma-4-E4B-it` is ungated** — no HF token or license acceptance needed.
 (The gated model is the older `gemma-3n-E4B-it`; we do not use it.)
@@ -104,8 +114,10 @@ was ungated and no token was needed. It was never required and should be **rotat
 anyway (regenerate at huggingface.co/settings/tokens). The scripts read any token
 from the environment and never embed it.
 
-## Key caveat — domain gap
+## Release-blocking domain gap
 HAM10000 is **dermatoscopic** imagery (through-the-scope). A phone app captures
 **macro photos**. The pipeline is correct and complete on this data, but a
 production model needs a second fine-tuning pass on phone-camera photos (or a
 clip-on dermatoscope accessory). See `docs/android_integration.md` §6.
+
+Android release builds enforce both external gates; see `RELEASE_READINESS.md`.

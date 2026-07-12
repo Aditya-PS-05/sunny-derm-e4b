@@ -11,7 +11,10 @@ import com.sunny.skin.data.model.Analysis
 object SchemaParser {
 
     private fun field(text: String, label: String): String? =
-        Regex("${Regex.escape(label)}:\\s*(.+)", RegexOption.IGNORE_CASE)
+        Regex(
+            "^${Regex.escape(label)}:[\\t ]*([^\\r\\n]+)[\\t ]*$",
+            setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE),
+        )
             .find(text)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
 
     fun parse(text: String): Analysis? {

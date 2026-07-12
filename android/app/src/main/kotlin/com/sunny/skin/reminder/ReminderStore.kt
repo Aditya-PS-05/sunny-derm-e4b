@@ -1,6 +1,7 @@
 package com.sunny.skin.reminder
 
 import android.content.Context
+import com.sunny.skin.data.crypto.EncryptedPreferenceValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,18 +12,27 @@ import kotlinx.coroutines.flow.asStateFlow
  * schema migration. Exposes a reactive [reminders] flow for the UI.
  */
 class ReminderStore(context: Context) {
-    private val prefs = context.applicationContext
+    private val appCtx = context.applicationContext
+    private val prefs = appCtx
         .getSharedPreferences("sunny_reminders", Context.MODE_PRIVATE)
 
     private val _reminders = MutableStateFlow(load())
     val reminders: StateFlow<List<Reminder>> = _reminders.asStateFlow()
 
-    private fun load(): List<Reminder> =
-        Reminder.listFromJson(prefs.getString(KEY, "[]") ?: "[]")
-            .sortedBy { it.triggerAt }
+    private fun load(): List<Reminder> {
+        val stored = prefs.getString(KEY, null) ?: return emptyList()
+        val plain = EncryptedPreferenceValue.decode(appCtx, stored) ?: return emptyList()
+        if (!EncryptedPreferenceValue.isEncrypted(stored)) {
+            prefs.edit().putString(KEY, EncryptedPreferenceValue.encode(appCtx, plain)).apply()
+        }
+        return Reminder.listFromJson(plain).sortedBy { it.triggerAt }
+    }
 
     private fun persist(list: List<Reminder>) {
-        prefs.edit().putString(KEY, Reminder.listToJson(list)).apply()
+        prefs.edit().putString(
+            KEY,
+            EncryptedPreferenceValue.encode(appCtx, Reminder.listToJson(list)),
+        ).apply()
         _reminders.value = list.sortedBy { it.triggerAt }
     }
 

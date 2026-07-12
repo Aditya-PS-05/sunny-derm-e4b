@@ -142,6 +142,7 @@ fun ReviewScanScreen(vm: SunnyViewModel, onSaved: () -> Unit, onDiscard: () -> U
                 AnalysisState.Idle, AnalysisState.Running -> AnalysingState()
                 is AnalysisState.Ready -> AnalysisCard(state.result.analysis)
                 AnalysisState.Unreadable -> UnreadableState(onRetry = { vm.retryAnalysis() })
+                AnalysisState.ModelUnavailable -> ModelUnavailableState()
             }
         }
     }
@@ -151,6 +152,23 @@ fun ReviewScanScreen(vm: SunnyViewModel, onSaved: () -> Unit, onDiscard: () -> U
             selected = capture.bodyPart,
             onSelect = { vm.setBodyPart(it); showPartPicker = false },
             onDismiss = { showPartPicker = false },
+        )
+    }
+}
+
+@Composable
+private fun ModelUnavailableState() {
+    Column {
+        Text(
+            "AI model required",
+            style = MaterialTheme.typography.titleMedium,
+            color = SunnyColors.TextPrimary,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            "This scan was not analysed. Install the real on-device model from Settings before scanning.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = SunnyColors.TextSecondary,
         )
     }
 }

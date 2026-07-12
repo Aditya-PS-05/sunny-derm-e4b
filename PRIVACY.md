@@ -8,7 +8,7 @@ explains exactly what the app does and does not do with your data.
 ## The short version
 - Your photos and the AI descriptions of them **stay on your device**. They are
   never uploaded, and there is no account, cloud sync, or analytics.
-- All of your health data is **encrypted at rest** on the device.
+- Health data is **encrypted at rest** by Sunny in addition to Android's device protections.
 - Sunny **describes** what a spot looks like and helps you track changes over
   time. It is **not a medical device** and does not diagnose.
 
@@ -16,8 +16,9 @@ explains exactly what the app does and does not do with your data.
 - **Photos** you capture or choose, the model’s six‑field description of each,
   and any PDF reports you generate are stored in the app’s **private storage on
   your device only**.
-- This data is **encrypted at rest** using a key held in your device’s hardware‑
-  backed keystore (AES‑GCM for photos and reports; SQLCipher for the database).
+- This data, ABCDE responses, and reminder metadata are **encrypted at rest** using
+  a key protected by Android Keystore (hardware-backed where the device supports
+  it): AES-GCM for files/preferences and SQLCipher for the database.
 - An optional **app‑lock PIN** is stored only as a salted hash — never in plain
   text — and repeated wrong attempts are rate‑limited.
 
@@ -28,7 +29,8 @@ explains exactly what the app does and does not do with your data.
   the AI model files. That download only *pulls* model data over HTTPS; it never
   *sends* anything. It can be restricted to Wi‑Fi.
 - If you tap **Share** on a report, you choose the destination app; the report
-  leaves the device only through that action you initiate.
+  leaves the device only through that action. Sunny decrypts it into an operating-
+  system pipe and does not leave a plaintext sharing copy in its cache.
 
 ## Permissions
 - **Camera** — to take photos of a spot. Images go straight to private storage.
@@ -52,4 +54,4 @@ Deleting a scan removes its photos from the device. Uninstalling the app removes
 all of its data.
 
 ## Contact
-Questions about privacy: add your contact address here before publishing.
+For privacy questions, use the developer contact listed on Sunny's app-store page.

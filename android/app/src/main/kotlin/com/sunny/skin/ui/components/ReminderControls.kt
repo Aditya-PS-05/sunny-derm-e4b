@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -104,9 +103,8 @@ fun rememberNotificationRequester(): (afterAsk: (granted: Boolean) -> Unit) -> U
 fun ReCheckReminderDialog(
     onPick: (days: Int) -> Unit,
     onDismiss: () -> Unit,
-    recommendedDays: Int? = null,
 ) {
-    var selected by remember { mutableIntStateOf(recommendedDays ?: 30) }
+    var selected by remember { mutableStateOf<Int?>(null) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -168,7 +166,6 @@ fun ReCheckReminderDialog(
                         OptionRow(
                             label = label,
                             selected = selected == days,
-                            recommended = recommendedDays != null && days == recommendedDays,
                             onClick = { selected = days },
                         )
                         if (i < RECHECK_OPTIONS.lastIndex) {
@@ -185,7 +182,8 @@ fun ReCheckReminderDialog(
                 // Primary action — orange glass pill.
                 GlassButton(
                     text = "Set Reminder",
-                    onClick = { onPick(selected) },
+                    enabled = selected != null,
+                    onClick = { selected?.let(onPick) },
                 )
                 Spacer(Modifier.height(6.dp))
                 Box(
@@ -241,7 +239,6 @@ private fun OptionRow(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
-    recommended: Boolean = false,
 ) {
     Row(
         Modifier.fillMaxWidth()
@@ -260,16 +257,6 @@ private fun OptionRow(
             color = SunnyColors.TextPrimary,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         )
-        if (recommended) {
-            Spacer(Modifier.size(8.dp))
-            Box(
-                Modifier.clip(RoundedCornerShape(50)).background(SunnyColors.Orange)
-                    .padding(horizontal = 8.dp, vertical = 3.dp),
-            ) {
-                Text("Recommended", style = MaterialTheme.typography.labelSmall,
-                    color = Color.White, fontWeight = FontWeight.SemiBold)
-            }
-        }
         Spacer(Modifier.weight(1f))
         if (selected) {
             Box(
@@ -288,18 +275,21 @@ private fun OptionRow(
 }
 
 @Composable
-private fun GlassButton(text: String, onClick: () -> Unit) {
+private fun GlassButton(text: String, enabled: Boolean, onClick: () -> Unit) {
     Box(
         Modifier.fillMaxWidth().height(54.dp)
             .clip(RoundedCornerShape(27.dp))
             .background(
-                Brush.verticalGradient(listOf(SunnyColors.Orange, SunnyColors.OrangeDark)),
+                Brush.verticalGradient(
+                    if (enabled) listOf(SunnyColors.Orange, SunnyColors.OrangeDark)
+                    else listOf(SunnyColors.TextTertiary, SunnyColors.TextTertiary),
+                ),
             )
             .border(
                 BorderStroke(1.dp, Color.White.copy(alpha = 0.35f)),
                 RoundedCornerShape(27.dp),
             )
-            .clickable(onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Text(text, style = MaterialTheme.typography.titleMedium,

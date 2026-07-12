@@ -63,11 +63,12 @@ import java.io.File
 
 /**
  * Edit an existing scan: rename it, replace its photo, and/or re-run the
- * on-device diagnosis. Changes are only persisted when the user taps Save.
+ * on-device description. Changes are only persisted when the user taps Save.
  */
 @Composable
 fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
     val scan by vm.scan(scanId).collectAsStateWithLifecycle(initialValue = null)
+    val modelAvailable by vm.modelAvailable.collectAsStateWithLifecycle()
     val data = scan
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -120,6 +121,8 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
                     if (newBitmap != null) analysisMatchesNewPhoto = true
                 }
                 DescribeResult.Unreadable -> error = "Couldn't read this image. Try a clearer photo."
+                DescribeResult.ModelUnavailable -> error =
+                    "Install the AI model from Settings before re-analysing a photo."
             }
             redoing = false
         }
@@ -139,6 +142,10 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
                     )
                     DescribeResult.Unreadable -> {
                         error = "Couldn't read the new photo. Try a clearer one."; redoing = false
+                    }
+                    DescribeResult.ModelUnavailable -> {
+                        error = "Install the AI model from Settings before changing a photo."
+                        redoing = false
                     }
                 }
             }
@@ -204,6 +211,7 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ActionButton(
                     Modifier.weight(1f), Icons.Filled.PhotoLibrary, "Change Photo",
+                    enabled = modelAvailable,
                     onClick = {
                         picker.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
@@ -212,7 +220,8 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
                 )
                 ActionButton(
                     Modifier.weight(1f), Icons.Filled.Replay,
-                    if (redoing) "Analysing…" else "Redo Diagnosis",
+                    if (redoing) "Analysing…" else "Redo Description",
+                    enabled = modelAvailable,
                     onClick = { if (!redoing) redo() },
                     loading = redoing,
                 )
@@ -223,8 +232,8 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
             }
             Spacer(Modifier.height(20.dp))
 
-            // Current diagnosis preview
-            SectionLabel("Diagnosis")
+            // Current visual-description preview
+            SectionLabel("Description")
             analysis?.let { AnalysisCard(it) }
         }
     }
@@ -242,12 +251,13 @@ private fun ActionButton(
     modifier: Modifier,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     loading: Boolean = false,
 ) {
     Box(
         modifier.height(52.dp).clip(RoundedCornerShape(16.dp))
-            .background(SunnyColors.Surface).clickable(onClick = onClick),
+            .background(SunnyColors.Surface).clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -255,10 +265,20 @@ private fun ActionButton(
                 CircularProgressIndicator(Modifier.size(18.dp), color = SunnyColors.Orange,
                     strokeWidth = 2.dp)
             } else {
-                Icon(icon, null, tint = SunnyColors.TextPrimary, modifier = Modifier.size(20.dp))
+                Icon(
+                    icon,
+                    null,
+                    tint = if (enabled) SunnyColors.TextPrimary else SunnyColors.TextTertiary,
+                    modifier = Modifier.size(20.dp),
+                )
             }
             Spacer(Modifier.size(8.dp))
-            Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = if (enabled) SunnyColors.TextPrimary else SunnyColors.TextTertiary,
+            )
         }
     }
 }

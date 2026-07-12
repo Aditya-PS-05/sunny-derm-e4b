@@ -69,8 +69,7 @@ class ModelDownloadService : Service() {
             }
             ModelDownloadManager.publishVerifying()
             if (ModelProvider.weightsPresent(applicationContext)) {
-                ModelProvider.reset()
-                ModelDownloadManager.publishReady()
+                ModelDownloadManager.activateInstalledModel()
             } else {
                 ModelDownloadManager.publishFailed("files missing after download")
             }

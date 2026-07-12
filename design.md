@@ -86,9 +86,9 @@ Observation   { id, lesion_id, captured_at, image_path,
 - Images stored in app-private storage; never uploaded.
 - `raw_output` retained for debugging/audit; `model_version` stamps which
   checkpoint produced each description (so upgrades are traceable).
-- Change detection = field-level comparison of consecutive `Observation` rows for
-  the same `lesion_id`, using the known controlled vocabularies as an ordinal
-  scale (e.g. Borders: smooth < somewhat irregular < ragged).
+- Comparison = literal field-level differences between consecutive `Observation`
+  rows. The app does not turn those differences into an ordinal score, stability
+  label, risk level, urgency verdict, or recommended care interval.
 
 ## 6. Technical architecture (on-device inference)
 
@@ -119,11 +119,12 @@ load cost. For low-end devices, ship a more aggressively quantized fallback
 The model scored 100% on format/safety/disclaimer in evaluation, but a health app
 must not rely on the model alone. The UI/logic layer enforces:
 1. **Persistent disclaimer** on every result and timeline screen.
-2. **Non-lesion image rejection** via a cheap pre-check before inference.
+2. **Fail closed without the real model**; no synthetic/demo analysis can surface.
 3. **Banned-word post-filter** (cancer, melanoma, carcinoma, benign, biopsy,
    malignant, tumour…) — suppress + re-run if the model ever emits one.
 4. **No verdicts** — the app never converts a description into a risk level.
-5. **Routing to care** on any detected change and always reachable.
+5. **Routing to care** on any description difference and always reachable; no
+   claim that an absent difference means stability or safety.
 
 ## 8. Visual design notes
 - **Palette:** neutral/clinical (soft blues, greys, off-white); reserve any accent

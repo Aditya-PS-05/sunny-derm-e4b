@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
@@ -40,6 +41,7 @@ import com.sunny.skin.ui.screens.SettingsScreen
 @Composable
 fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
     val nav = rememberNavController()
+    val modelAvailable by vm.modelAvailable.collectAsStateWithLifecycle()
     val backStack by nav.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
     val showBar = currentRoute in Routes.topLevel
@@ -71,7 +73,9 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
                     SunnyBottomBar(
                         currentRoute = currentRoute,
                         onSelectTab = ::openTab,
-                        onCapture = { nav.navigate(Routes.CAPTURE) },
+                        onCapture = {
+                            nav.navigate(if (modelAvailable) Routes.CAPTURE else Routes.MODEL_SETUP)
+                        },
                     )
                 }
             }
@@ -120,7 +124,7 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
                 )
             }
 
-            captureGraph(nav, vm)
+            captureGraph(nav, vm, modelAvailable)
 
             composable(Routes.SCAN_DETAIL) { entry ->
                 val scanId = entry.arguments?.getString("scanId").orEmpty()
@@ -151,15 +155,20 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
 private fun NavGraphBuilder.captureGraph(
     nav: androidx.navigation.NavHostController,
     vm: SunnyViewModel,
+    modelAvailable: Boolean,
 ) {
     composable(Routes.CAPTURE) {
-        CaptureScreen(
-            vm = vm,
-            onOpenCamera = { nav.navigate(Routes.CAMERA) },
-            onImageChosen = { nav.navigate(Routes.REVIEW) },
-            onGuided = { nav.navigate(Routes.BODY_GUIDE) },
-            onBack = { nav.popBackStack() },
-        )
+        if (modelAvailable) {
+            CaptureScreen(
+                vm = vm,
+                onOpenCamera = { nav.navigate(Routes.CAMERA) },
+                onImageChosen = { nav.navigate(Routes.REVIEW) },
+                onGuided = { nav.navigate(Routes.BODY_GUIDE) },
+                onBack = { nav.popBackStack() },
+            )
+        } else {
+            ModelSetupScreen(onBack = { nav.popBackStack() })
+        }
     }
     composable(Routes.BODY_GUIDE) {
         BodyGuideScreen(

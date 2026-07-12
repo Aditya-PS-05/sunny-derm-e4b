@@ -39,8 +39,8 @@ import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.theme.SunnyColors
 
 /**
- * First-run model download. The app runs on a schema-faithful demo model until
- * the real ~6 GB weights are installed here; this screen upgrades it. The
+ * First-run model download. Scanning remains disabled until the real ~6 GB
+ * weights and native runtime are available. The
  * download is Wi-Fi-gated, resumable and checksum-verified, and never transmits
  * any user data — it only pulls the model files.
  */
@@ -114,9 +114,10 @@ fun ModelSetupScreen(onBack: () -> Unit) {
 
             Spacer(Modifier.weight(1f))
             DisclaimerCard(
-                title = "Private by design",
-                body = "The download pulls only the model files. Your photos and descriptions " +
-                    "never leave this device.",
+                title = "Research limitation",
+                body = "The download pulls only model files, but the model is experimental. " +
+                    "It has not been clinically validated for phone photos or all skin tones, " +
+                    "and must not be used to delay professional care.",
             )
         }
     }
@@ -137,7 +138,7 @@ private fun StatusHeader(status: ModelStatus) {
         ModelStatus.Verifying -> "Verifying"
         ModelStatus.NotConfigured -> "Not configured"
         is ModelStatus.Failed -> "Download failed"
-        ModelStatus.Idle -> "Using demo model"
+        ModelStatus.Idle -> "Model required"
     }
     Text(label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 }
@@ -145,10 +146,10 @@ private fun StatusHeader(status: ModelStatus) {
 @Composable
 private fun NotConfiguredBody() {
     Text(
-        "No download source is set — and none is needed if the weights already " +
-            "exist locally. Push them onto this device with " +
-            "scripts/push_weights_to_device.sh (adb), then reopen this screen. " +
-            "Until the weights are present, Sunny runs on the built-in demo model.",
+        "No download source is configured. Scanning is disabled until the real weights " +
+            "and native runtime are installed. If the weights already exist locally, " +
+            "push them onto this device with " +
+            "scripts/push_weights_to_device.sh (adb), then reopen this screen.",
         style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
         textAlign = TextAlign.Center,
     )

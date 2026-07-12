@@ -68,15 +68,11 @@
             </intent-filter>
         </receiver>
 
-        <!-- Share exported PDF reports without exposing app-private storage. -->
+        <!-- Stream-decrypt exported PDFs only for an explicit user share. -->
         <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
+            android:name=".report.EncryptedReportProvider"
+            android:authorities="${applicationId}.reports"
             android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
+            android:grantUriPermissions="true" />
     </application>
 </manifest>

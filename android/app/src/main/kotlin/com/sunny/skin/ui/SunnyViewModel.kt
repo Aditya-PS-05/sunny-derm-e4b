@@ -11,6 +11,8 @@ import com.sunny.skin.data.db.ScanWithObservations
 import com.sunny.skin.data.model.BodyPart
 import com.sunny.skin.inference.DescribeResult
 import com.sunny.skin.inference.ModelProvider
+import com.sunny.skin.inference.download.ModelDownloadManager
+import com.sunny.skin.inference.download.ModelStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +34,10 @@ sealed interface AnalysisState {
     data object Running : AnalysisState
     data class Ready(val result: DescribeResult.Success) : AnalysisState
     data object Unreadable : AnalysisState
+    data object ModelUnavailable : AnalysisState
 }
+
+enum class RecheckResult { SAVED, UNREADABLE, MODEL_UNAVAILABLE }
 
 /** Seeds the next capture from the guided full-body flow: preset body part + a
  *  framing hint shown over the camera so photos stay consistent for alignment. */
@@ -66,9 +71,17 @@ data class HabitStats(
 
 class SunnyViewModel(app: Application) : AndroidViewModel(app) {
 
+    private val appCtx = app.applicationContext
     private val repo = (app as SunnyApp).repository
-    private val describer = ModelProvider.describer(app)
     val settings = SettingsStore(app)
+
+    val modelAvailable: StateFlow<Boolean> = ModelDownloadManager.status
+        .map { it is ModelStatus.Ready }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            ModelProvider.realModelAvailable(appCtx),
+        )
 
     val scans: StateFlow<List<ScanWithObservations>> =
         repo.scans.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -108,7 +121,6 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     fun clearPin() { settings.clearPin(); _pinEnabled.value = false }
 
     // ---- Reminders ----
-    private val appCtx = app.applicationContext
     private val reminderStore = com.sunny.skin.reminder.ReminderStore(appCtx)
     val reminders: StateFlow<List<com.sunny.skin.reminder.Reminder>> = reminderStore.reminders
 
@@ -168,12 +180,11 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     // ---- Re-check: add a follow-up photo to an existing scan ----
     /**
      * Analyse [bitmap] and append it as a new dated observation on [scanId],
-     * building the timeline that powers History and Compare. [onResult] gets
-     * true on success, false if the image was unreadable.
+     * building the timeline that powers History and Compare.
      */
-    fun addRecheck(scanId: String, bitmap: Bitmap, onResult: (Boolean) -> Unit) {
+    fun addRecheck(scanId: String, bitmap: Bitmap, onResult: (RecheckResult) -> Unit) {
         viewModelScope.launch {
-            when (val r = describer.describe(bitmap)) {
+            when (val r = describe(bitmap)) {
                 is DescribeResult.Success -> {
                     val path = repo.imageStore().save(bitmap)
                     repo.addObservation(
@@ -184,17 +195,18 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
                         rawOutput = r.rawOutput,
                         now = System.currentTimeMillis(),
                     )
-                    onResult(true)
+                    onResult(RecheckResult.SAVED)
                 }
-                DescribeResult.Unreadable -> onResult(false)
+                DescribeResult.Unreadable -> onResult(RecheckResult.UNREADABLE)
+                DescribeResult.ModelUnavailable -> onResult(RecheckResult.MODEL_UNAVAILABLE)
             }
         }
     }
 
     // ---- Edit an existing scan ----
 
-    /** Run the on-device model on a bitmap (used by the edit "redo diagnosis"). */
-    suspend fun runDescribe(bitmap: Bitmap): DescribeResult = describer.describe(bitmap)
+    /** Run the installed on-device model, failing closed if it cannot start. */
+    suspend fun runDescribe(bitmap: Bitmap): DescribeResult = describe(bitmap)
 
     /**
      * Persist edits to a scan: rename it and replace its latest observation's
@@ -220,35 +232,48 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     init {
-        // Warm the model early so the first real scan doesn't pay the load cost (N-02).
-        viewModelScope.launch { runCatching { describer.warmUp() } }
+        // React to a completed install even when this ViewModel existed beforehand.
+        viewModelScope.launch {
+            ModelDownloadManager.status.collect { status ->
+                if (status is ModelStatus.Ready) {
+                    runCatching { ModelProvider.describer(appCtx)?.warmUp() }
+                        .onFailure { markModelUnavailable() }
+                }
+            }
+        }
     }
 
     fun scan(scanId: String) = repo.scan(scanId)
 
     /** Display name for Settings › About › AI Model. */
     fun modelName(): String =
-        if (ModelProvider.usingRealModel) "Sunny-Gemma4-E4B" else "Sunny-Gemma4-E4B (demo)"
+        if (modelAvailable.value) "Sunny-Gemma4-E4B" else "Not installed"
 
     // ---- Capture flow ----
 
     fun startCapture(bitmap: Bitmap) {
         val preset = _capturePreset.value
+        val initialAnalysis = if (modelAvailable.value) {
+            AnalysisState.Running
+        } else {
+            AnalysisState.ModelUnavailable
+        }
         _capture.value = CaptureState(
             bitmap = bitmap,
             bodyPart = preset?.bodyPart ?: CaptureState().bodyPart,
-            analysis = AnalysisState.Running,
+            analysis = initialAnalysis,
         )
-        runAnalysis(bitmap)
+        if (initialAnalysis is AnalysisState.Running) runAnalysis(bitmap)
     }
 
     private fun runAnalysis(bitmap: Bitmap) {
         viewModelScope.launch {
-            val result = describer.describe(bitmap)
+            val result = describe(bitmap)
             _capture.value = _capture.value.copy(
                 analysis = when (result) {
                     is DescribeResult.Success -> AnalysisState.Ready(result)
                     DescribeResult.Unreadable -> AnalysisState.Unreadable
+                    DescribeResult.ModelUnavailable -> AnalysisState.ModelUnavailable
                 },
             )
         }
@@ -256,6 +281,10 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
 
     fun retryAnalysis() {
         val bmp = _capture.value.bitmap ?: return
+        if (!modelAvailable.value) {
+            _capture.value = _capture.value.copy(analysis = AnalysisState.ModelUnavailable)
+            return
+        }
         _capture.value = _capture.value.copy(analysis = AnalysisState.Running)
         runAnalysis(bmp)
     }
@@ -290,6 +319,22 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     fun deleteScan(scan: ScanWithObservations) {
         viewModelScope.launch { repo.deleteScan(scan) }
         abcdeStore.clear(scan.scan.id)
+    }
+
+    private suspend fun describe(bitmap: Bitmap): DescribeResult {
+        val current = ModelProvider.describer(appCtx) ?: return DescribeResult.ModelUnavailable
+        return runCatching { current.describe(bitmap) }
+            .getOrElse {
+                markModelUnavailable()
+                DescribeResult.ModelUnavailable
+            }
+    }
+
+    private fun markModelUnavailable() {
+        ModelProvider.reset()
+        ModelDownloadManager.publishFailed(
+            "The installed AI model could not start. Reinstall it before scanning.",
+        )
     }
 
     /** Bucket capture times into rolling 7-day windows and derive the streak. */

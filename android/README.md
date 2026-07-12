@@ -9,6 +9,10 @@ FAB) and enforces the product's hard safety/privacy contract.
 > and timeline screen shows the not-a-diagnosis disclaimer and routes concern to
 > a clinician. See `../requirements.md` (S-01…S-07, P-01…P-05).
 
+> **Research build only.** Public release is blocked until training-data rights
+> and clinician-labelled phone-photo/skin-tone validation are complete. See
+> `../RELEASE_READINESS.md`.
+
 ## Build & run
 
 Prereqs: JDK 17, Android SDK (platform 35, build-tools 35). `local.properties`
@@ -22,22 +26,17 @@ cd android
 
 Verified: `./gradlew assembleDebug` produces a ~20 MB debug APK.
 
-## The model: mock by default, real via native bridge + download
+## The model: real or unavailable
 
-The app talks to the model through `inference/SunnyModel` and picks an
-implementation at runtime (`inference/ModelProvider`):
-
-- **`MockSunnyModel`** (default) — emits the exact six-field schema using the
-  training-time controlled vocabulary, deterministically per image. Lets the
-  whole UI/parser/guardrail/storage/report pipeline run and demo on any device
-  **without** the 6 GB weights. Settings shows "Sunny-Gemma4-E4B (demo)".
-- **`LlamaCppSunnyModel`** (real, llama.cpp/mtmd — the verified path) — used
-  automatically once BOTH the native lib and the weights are present.
+The app talks to `LlamaCppSunnyModel` through `inference/SunnyModel`. Scanning is
+disabled unless both exact GGUF files and `libsunny_llama.so` are available. No
+mock implementation is packaged in the app, preventing plausible fake health
+output.
 
 The prompt (`inference/Prompt`), greedy decoding, six-field parse
 (`SchemaParser`), banned-word post-filter (`Guardrails`) and single re-run
-(`SunnyDescriber`) are all runtime-independent, so both models enforce the same
-boundary. Prompt is byte-identical to `../docs/USING_THE_MODEL.md` §2.
+(`SunnyDescriber`) enforce the boundary. Prompt is byte-identical to
+`../docs/USING_THE_MODEL.md` §2.
 
 ### Going live — two steps, both built
 
@@ -52,7 +51,7 @@ toolchain:
 ```
 
 Without `-PwithLlama` the `.so` is absent, `LlamaBridge.ensureLibrary()` returns
-false, and `ModelProvider` stays on the mock.
+false, and scanning remains disabled.
 
 **2. Weights.** The GGUFs already exist locally in this repo
 (`../exports/model_on_host/`), so **no download is required**. `ModelProvider`
@@ -66,23 +65,26 @@ files: `filesDir/models/`, the app's external files dir, or `/data/local/tmp/sun
   Then **Settings › AI Model** shows "Model installed" and the real model runs.
 - **Download (optional, for distribution):** `inference/download/*` also
   implements a resumable, checksum-verified download into `filesDir/models/`
-  (Wi-Fi-gated, progress UI). Set `ModelSource.baseUrl` to a published URL to
-  enable it. INTERNET is used for **only** this optional download; the core
+  (Wi-Fi-gated, progress UI). After rights clearance, set an HTTPS base URL
+  ending in `/` with `-PmodelBaseUrl=https://example.invalid/models/` or the
+  `SUNNY_MODEL_BASE_URL` CI environment variable. The empty default disables
+  downloads. INTERNET is used for **only** this optional download; the core
   describe/track loop stays offline.
 
-Either way `ModelProvider.reset()` upgrades the live session mock → real once the
-files appear. To shrink the ~6 GB footprint, re-quantize on the GPU host (int8
+Either way `ModelProvider.reset()` closes any prior native session and the active
+ViewModel dynamically resolves the newly installed model. To shrink the ~6 GB
+footprint, re-quantize on the GPU host (int8
 mmproj + Q4_0/Q3 LM → ~4 GB) and drop the smaller files in the same folder — no
 app code changes.
 
 ## Structure
 
 ```
-inference/   SunnyModel interface, Mock + llama.cpp impls, Prompt, parser, guardrails, describer
+inference/   SunnyModel interface, llama.cpp impl, parser, guardrails, describer
 inference/download/  resumable checksum-verified weight downloader + status manager
 cpp/         sunny_llama.cpp (JNI/mtmd bridge) + CMakeLists (built with -PwithLlama)
 data/        Room (scans + observations), repository, image + settings stores
-report/      on-device PDF generation + store (share via FileProvider)
+report/      encrypted PDF generation + stream-decrypting share provider
 ui/theme     Sunny palette / type / theme
 ui/nav       NavHost, floating bottom bar + capture FAB
 ui/components body template, analysis card, chips, disclaimer, scaffold
@@ -96,13 +98,13 @@ ui/screens   Overview · Saved · ScanDetail · Settings · Capture · Camera ·
   storage; backup/transfer excluded (P-01…P-03).
 - Persistent disclaimer on every analysis, timeline and report (S-02).
 - Banned-word filter suppresses + re-runs on any disease/verdict term (S-03).
-- Change detection is shown as routing ("consider seeing a clinician"), never a
-  verdict or risk score (F-14, S-05).
+- Timeline comparison shows literal description-field differences only. It never
+  scores pixels, declares stability, or recommends a care interval (F-14, S-05).
 - Optional Face ID / device-credential lock gates the app locally.
 
 ## Known limitation carried from the model
 
-Trained on **dermatoscopic** images; on raw phone photos accuracy drops. The
-capture flow pushes toward close-up, well-lit, filled-frame shots, and the
-"couldn't read this image" state guides retries. See `../docs/performance.md`.
+Trained on **dermatoscopic** images; phone-photo and skin-tone performance is not
+clinically established. The limitation is acknowledged during onboarding and
+repeated beside results. See `../docs/performance.md`.
 ```

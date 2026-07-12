@@ -1,6 +1,7 @@
 package com.sunny.skin.data
 
 import android.content.Context
+import com.sunny.skin.data.crypto.EncryptedPreferenceValue
 import org.json.JSONObject
 
 /**
@@ -56,12 +57,22 @@ enum class AbcdeAnswer { UNSET, NO, YES, UNSURE }
  * the photo history — same rationale as [com.sunny.skin.reminder.ReminderStore].
  */
 class AbcdeStore(context: Context) {
-    private val prefs = context.applicationContext
+    private val appCtx = context.applicationContext
+    private val prefs = appCtx
         .getSharedPreferences("sunny_abcde", Context.MODE_PRIVATE)
+
+    private fun read(scanId: String): String {
+        val stored = prefs.getString(scanId, null) ?: return "{}"
+        val plain = EncryptedPreferenceValue.decode(appCtx, stored) ?: return "{}"
+        if (!EncryptedPreferenceValue.isEncrypted(stored)) {
+            prefs.edit().putString(scanId, EncryptedPreferenceValue.encode(appCtx, plain)).apply()
+        }
+        return plain
+    }
 
     /** All answers for [scanId]; items with no recorded answer are [AbcdeAnswer.UNSET]. */
     fun get(scanId: String): Map<AbcdeItem, AbcdeAnswer> {
-        val obj = runCatching { JSONObject(prefs.getString(scanId, "{}") ?: "{}") }
+        val obj = runCatching { JSONObject(read(scanId)) }
             .getOrDefault(JSONObject())
         return AbcdeItem.entries.associateWith { item ->
             runCatching { AbcdeAnswer.valueOf(obj.optString(item.name, "UNSET")) }
@@ -71,10 +82,13 @@ class AbcdeStore(context: Context) {
 
     /** Record [answer] for [item] on [scanId]. */
     fun set(scanId: String, item: AbcdeItem, answer: AbcdeAnswer) {
-        val obj = runCatching { JSONObject(prefs.getString(scanId, "{}") ?: "{}") }
+        val obj = runCatching { JSONObject(read(scanId)) }
             .getOrDefault(JSONObject())
         obj.put(item.name, answer.name)
-        prefs.edit().putString(scanId, obj.toString()).apply()
+        prefs.edit().putString(
+            scanId,
+            EncryptedPreferenceValue.encode(appCtx, obj.toString()),
+        ).apply()
     }
 
     /** Drop all answers for a scan (called when the scan is deleted). */

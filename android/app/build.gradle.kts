@@ -14,14 +14,46 @@ val keystoreProps = Properties().apply {
     if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
 }
 
+// Public release is deliberately blocked until these external obligations have
+// written evidence. Debug builds remain available for engineering and research.
+val dataRightsCleared = providers.gradleProperty("dataRightsCleared")
+    .map { it.toBoolean() }
+    .getOrElse(false)
+val clinicalValidationComplete = providers.gradleProperty("clinicalValidationComplete")
+    .map { it.toBoolean() }
+    .getOrElse(false)
+val modelBaseUrl = providers.gradleProperty("modelBaseUrl")
+    .orElse(providers.environmentVariable("SUNNY_MODEL_BASE_URL"))
+    .getOrElse("")
+    .trim()
+check(modelBaseUrl.isEmpty() || (modelBaseUrl.startsWith("https://") && modelBaseUrl.endsWith("/"))) {
+    "modelBaseUrl/SUNNY_MODEL_BASE_URL must be an HTTPS base URL ending in /."
+}
+val escapedModelBaseUrl = modelBaseUrl.replace("\\", "\\\\").replace("\"", "\\\"")
+
+tasks.configureEach {
+    if (name == "preReleaseBuild") {
+        doFirst {
+            check(dataRightsCleared) {
+                "Release blocked: document commercial training-data/model rights, then pass " +
+                    "-PdataRightsCleared=true. See RELEASE_READINESS.md."
+            }
+            check(clinicalValidationComplete) {
+                "Release blocked: complete clinician-labelled phone-photo, skin-tone, safety, " +
+                    "and real-device validation, then pass -PclinicalValidationComplete=true. " +
+                    "See RELEASE_READINESS.md."
+            }
+        }
+    }
+}
+
 android {
     namespace = "com.sunny.skin"
     compileSdk = 35
 
     // Build the native llama.cpp/mtmd model bridge only when explicitly requested
     // (./gradlew assembleDebug -PwithLlama) AND llama.cpp has been vendored
-    // (scripts/vendor_llama.sh). The default build ships the schema-faithful
-    // mock so it always assembles without the native toolchain or 6 GB weights.
+    // (scripts/vendor_llama.sh). Default builds contain no inference fallback.
     val withLlama = project.hasProperty("withLlama") &&
         file("src/main/cpp/llama.cpp/CMakeLists.txt").exists()
 
@@ -33,6 +65,7 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
+        buildConfigField("String", "SUNNY_MODEL_BASE_URL", "\"$escapedModelBaseUrl\"")
 
         if (withLlama) {
             // A 6 GB model needs a 64-bit address space — arm64 only.
@@ -90,7 +123,10 @@ android {
             "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
         )
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
         // The GGUF model files are shipped as uncompressed assets so llama.cpp

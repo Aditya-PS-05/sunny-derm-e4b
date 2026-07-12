@@ -16,8 +16,8 @@ import android.graphics.Bitmap
  *
  * This class is intentionally a thin declaration: it compiles without the .so
  * present; calls throw UnsatisfiedLinkError until the native lib is bundled,
- * which is why [ModelProvider] falls back to [MockSunnyModel] when the weights
- * or library are absent.
+ * which is why [ModelProvider] disables analysis when the weights or library
+ * are absent.
  */
 internal object LlamaBridge {
     @Volatile private var loaded = false

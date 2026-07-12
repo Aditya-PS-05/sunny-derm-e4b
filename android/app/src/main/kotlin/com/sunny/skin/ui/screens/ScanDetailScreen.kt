@@ -38,7 +38,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -56,9 +55,10 @@ import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ObservationEntity
 import com.sunny.skin.data.model.Analysis
 import com.sunny.skin.ui.SunnyViewModel
+import com.sunny.skin.ui.RecheckResult
 import com.sunny.skin.ui.components.AbcdeCard
 import com.sunny.skin.ui.components.AnalysisCard
-import com.sunny.skin.ui.components.ChangeScoreCard
+import com.sunny.skin.ui.components.ChangeSummaryCard
 import com.sunny.skin.ui.components.CircleButton
 import com.sunny.skin.ui.components.MetaChip
 import com.sunny.skin.ui.components.ReCheckReminderDialog
@@ -67,7 +67,6 @@ import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.rememberNotificationRequester
 import com.sunny.skin.ui.theme.SunnyColors
 import com.sunny.skin.util.BitmapLoader
-import com.sunny.skin.util.ChangeAnalysis
 import com.sunny.skin.util.Format
 import java.io.File
 
@@ -76,6 +75,7 @@ fun ScanDetailScreen(
     vm: SunnyViewModel, scanId: String, onBack: () -> Unit, onEdit: () -> Unit, onCompare: () -> Unit,
 ) {
     val scan by vm.scan(scanId).collectAsStateWithLifecycle(initialValue = null)
+    val modelAvailable by vm.modelAvailable.collectAsStateWithLifecycle()
     val data = scan
     var showDelete by remember { mutableStateOf(false) }
 
@@ -107,25 +107,13 @@ fun ScanDetailScreen(
         val latest = timeline.firstOrNull() ?: return@ScreenScaffold
         val previous = timeline.getOrNull(1)
 
-        // Which described aspects moved since the previous photo (excluding the
-        // summary rollup) — feeds both the field highlight and the change score.
+        // Literal field differences only. No risk, stability, or urgency score.
         val changedFieldsSet = previous?.let {
             changedFields(it.analysis.toAnalysis(), latest.analysis.toAnalysis())
         } ?: emptySet()
         val aspectLabels = changedFieldsSet.filter { it != "Summary" }
 
         val context = LocalContext.current
-
-        // Quantified change vs the previous photo: aligned pixel diff blended with
-        // the field diff. Recomputed off the UI thread when either photo changes.
-        val changeResult by produceState<ChangeAnalysis.ChangeResult?>(
-            initialValue = null, key1 = latest.imagePath, key2 = previous?.imagePath,
-        ) {
-            value = previous?.let {
-                ChangeAnalysis.compare(context, it.imagePath, latest.imagePath, aspectLabels.size)
-            }
-        }
-        val recommendedDays = changeResult?.let { ChangeAnalysis.recommendedRecheckDays(it.level) }
 
         // Per-spot ABCDE self-check answers (persisted; mirrored locally for the UI).
         val abcdeAnswers = remember(scanId) {
@@ -141,12 +129,16 @@ fun ScanDetailScreen(
             if (uri != null) {
                 adding = true
                 val bmp = BitmapLoader.fromUri(context, uri)
-                vm.addRecheck(scanId, bmp) { ok ->
+                vm.addRecheck(scanId, bmp) { result ->
                     adding = false
                     android.widget.Toast.makeText(
                         context,
-                        if (ok) "Follow-up photo added — now you can compare."
-                        else "Couldn't read that image. Try a clearer photo.",
+                        when (result) {
+                            RecheckResult.SAVED -> "Follow-up photo added — now you can compare."
+                            RecheckResult.UNREADABLE -> "Couldn't read that image. Try a clearer photo."
+                            RecheckResult.MODEL_UNAVAILABLE ->
+                                "Install the AI model from Settings before adding a follow-up."
+                        },
                         android.widget.Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -168,11 +160,9 @@ fun ScanDetailScreen(
             }
             Spacer(Modifier.height(16.dp))
 
-            // Change-detection hero — the reason to re-open the app. Only once there
-            // is a previous photo to compare against.
+            // Neutral description comparison; never a stability or urgency verdict.
             if (previous != null) {
-                ChangeScoreCard(
-                    result = changeResult,
+                ChangeSummaryCard(
                     sinceDate = Format.date(previous.capturedAt),
                     changedAspects = aspectLabels,
                 )
@@ -181,9 +171,17 @@ fun ScanDetailScreen(
 
             // Add a follow-up photo (builds the timeline that Compare needs).
             SunnyCard(onClick = {
-                if (!adding) picker.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                )
+                if (!modelAvailable) {
+                    android.widget.Toast.makeText(
+                        context,
+                        "Install the AI model from Settings before adding a follow-up.",
+                        android.widget.Toast.LENGTH_SHORT,
+                    ).show()
+                } else if (!adding) {
+                    picker.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                    )
+                }
             }) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -200,9 +198,16 @@ fun ScanDetailScreen(
                     }
                     Spacer(Modifier.size(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(if (adding) "Analysing…" else "Add a follow-up photo",
+                        Text(
+                            when {
+                                !modelAvailable -> "AI model required"
+                                adding -> "Analysing…"
+                                else -> "Add a follow-up photo"
+                            },
                             style = MaterialTheme.typography.titleMedium)
-                        Text("Re-photograph this spot to track how it changes",
+                        Text(
+                            if (modelAvailable) "Re-photograph this spot to compare descriptions"
+                            else "Install the real model from Settings to enable analysis",
                             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                     }
                 }
@@ -294,7 +299,6 @@ fun ScanDetailScreen(
                     }
                 },
                 onDismiss = { showReminder = false },
-                recommendedDays = recommendedDays,
             )
         }
 
