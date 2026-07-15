@@ -4,6 +4,17 @@ Sunny is currently an engineering/research build. Public release, monetization,
 and model-weight publication are blocked until both gates below have written
 evidence and an accountable reviewer has approved them.
 
+The temporary GPU inference and contribution services are beta-only. Release
+builds additionally fail unless device inference and disabled contribution are
+selected through the environment.
+
+Before inviting external beta participants, the temporary service must also use
+TLS, authenticated and rate-limited endpoints, metadata-only gateway logs,
+encrypted contribution storage, named operator access, a documented retention
+period, and a working contribution-deletion process. A compatible gateway
+template is provided in `ops/beta-gateway/`; storage and deletion remain backend
+responsibilities.
+
 ## 1. Data and model rights
 
 The current fine-tune used `marmal88/skin_cancer`, a HAM10000 mirror whose card
@@ -33,8 +44,17 @@ For an approved release build only:
 
 ```bash
 ./gradlew bundleRelease \
+  -PwithLlama \
+  -PmodelBaseUrl=https://cdn.example/models/ \
+  -PprivacyContact=privacy@example.com \
   -PdataRightsCleared=true \
   -PclinicalValidationComplete=true
 ```
 
 Command-line flags are attestations, not substitutes for the evidence above.
+The `release` build type is the public distribution mode: it hard-codes empty
+inference/contribution endpoints and tokens, enables shrinking, and uses public
+on-device/privacy copy. Debug builds retain the environment-controlled beta mode.
+The build also refuses a release without the native llama runtime, an HTTPS model
+source, and full model digests. The checked-in digests were calculated from the
+canonical local GGUF artifacts; override them only when those artifacts change.

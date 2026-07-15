@@ -2,6 +2,8 @@ package com.sunny.skin.inference.download
 
 import android.app.ActivityManager
 import android.content.Context
+import android.os.StatFs
+import android.os.storage.StorageManager
 
 /** Result of the pre-download device check. */
 sealed interface Preflight {
@@ -18,7 +20,11 @@ object DownloadPreflight {
 
     fun check(context: Context): Preflight {
         val need = (ModelAsset.totalBytes * 1.1).toLong()
-        val free = context.filesDir.usableSpace
+        val storage = context.getSystemService(StorageManager::class.java)
+        val free = runCatching {
+            storage?.getAllocatableBytes(StorageManager.UUID_DEFAULT)
+                ?: StatFs(context.filesDir.absolutePath).availableBytes
+        }.getOrElse { StatFs(context.filesDir.absolutePath).availableBytes }
         if (free < need) {
             return Preflight.Blocked(
                 "Not enough storage — the model needs about ${gb(need)} free, " +

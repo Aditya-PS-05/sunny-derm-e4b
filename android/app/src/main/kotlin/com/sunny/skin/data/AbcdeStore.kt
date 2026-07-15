@@ -95,4 +95,8 @@ class AbcdeStore(context: Context) {
     fun clear(scanId: String) {
         prefs.edit().remove(scanId).apply()
     }
+
+    fun clearAll() {
+        prefs.edit().clear().apply()
+    }
 }

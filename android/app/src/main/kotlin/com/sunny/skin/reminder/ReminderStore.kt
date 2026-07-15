@@ -49,6 +49,11 @@ class ReminderStore(context: Context) {
         persist(_reminders.value.filterNot { it.id == id })
     }
 
+    fun clear() {
+        prefs.edit().clear().apply()
+        _reminders.value = emptyList()
+    }
+
     private companion object {
         const val KEY = "reminders_json"
     }

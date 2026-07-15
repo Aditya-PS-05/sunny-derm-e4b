@@ -1,5 +1,6 @@
 package com.sunny.skin.ui.screens
 
+import android.animation.ValueAnimator
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,8 +25,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CenterFocusStrong
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -64,11 +69,15 @@ import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.theme.SunnyColors
 import com.sunny.skin.util.AlignTransform
+import com.sunny.skin.util.AlignmentResult
+import com.sunny.skin.util.FramingQuality
 import com.sunny.skin.util.Format
 import com.sunny.skin.util.ImageAlignment
-import java.io.File
+import kotlinx.coroutines.delay
 
-private enum class CompareMode(val label: String) { FADE("Fade"), WIPE("Slide"), SIDE("Side by side") }
+private enum class CompareMode(val label: String) {
+    FADE("Fade"), WIPE("Wipe"), BLINK("Blink"), SIDE("Side")
+}
 
 /** Applies a resolution-independent [AlignTransform] about the image centre. */
 private fun Modifier.applyAlign(t: AlignTransform): Modifier = graphicsLayer {
@@ -109,11 +118,13 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
         var mode by remember { mutableStateOf(CompareMode.FADE) }
         var fade by remember { mutableFloatStateOf(0.5f) }
         var wipe by remember { mutableFloatStateOf(0.5f) }
+        var blinkAfter by remember { mutableStateOf(false) }
+        var blinkPlaying by remember { mutableStateOf(ValueAnimator.areAnimatorsEnabled()) }
 
         // Auto-alignment state for the selected pair.
         var alignOn by remember { mutableStateOf(true) }
         var aligning by remember { mutableStateOf(false) }
-        var auto by remember { mutableStateOf(AlignTransform.Identity) }
+        var alignment by remember { mutableStateOf(AlignmentResult()) }
         var nudge by remember { mutableStateOf(Offset.Zero) } // manual fine-tune (normalised)
 
         // Clamp against the current list so a reactive shrink can't crash and the
@@ -128,13 +139,24 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
         LaunchedEffect(before.imagePath, after.imagePath) {
             nudge = Offset.Zero
             aligning = true
-            auto = ImageAlignment.compute(alignCtx, before.imagePath, after.imagePath)
+            alignment = ImageAlignment.computeResult(alignCtx, before.imagePath, after.imagePath)
             aligning = false
         }
 
+        LaunchedEffect(mode, blinkPlaying, before.imagePath, after.imagePath) {
+            if (mode != CompareMode.BLINK || !blinkPlaying) return@LaunchedEffect
+            while (true) {
+                delay(720)
+                blinkAfter = !blinkAfter
+            }
+        }
+
         // Effective transform applied to the "after" photo.
-        val eff = if (alignOn) {
-            auto.copy(tx = auto.tx + nudge.x, ty = auto.ty + nudge.y)
+        val eff = if (alignOn && alignment.isUsable) {
+            alignment.transform.copy(
+                tx = alignment.transform.tx + nudge.x,
+                ty = alignment.transform.ty + nudge.y,
+            )
         } else {
             AlignTransform.Identity
         }
@@ -180,13 +202,26 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
                         Text("Aligning…", style = MaterialTheme.typography.bodyMedium,
                             color = SunnyColors.TextSecondary)
                     }
-                    alignOn -> {
+                    alignOn && alignment.isUsable -> {
                         Icon(Icons.Filled.CenterFocusStrong, null, tint = SunnyColors.Orange,
                             modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text("Spot matched" + if (nudge != Offset.Zero) " · nudged" else "",
+                        Text(
+                            when (alignment.quality) {
+                                FramingQuality.HIGH -> "High framing match"
+                                FramingQuality.MODERATE -> "Moderate framing match"
+                                FramingQuality.LOW -> "Low framing match"
+                            } + if (nudge != Offset.Zero) " · adjusted" else "",
                             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
+                        if (nudge != Offset.Zero) {
+                            IconButton(onClick = { nudge = Offset.Zero }, modifier = Modifier.size(36.dp)) {
+                                Icon(Icons.Filled.Refresh, "Reset manual alignment",
+                                    tint = SunnyColors.TextSecondary, modifier = Modifier.size(18.dp))
+                            }
+                        }
                     }
+                    alignOn -> Text("Photos could not be aligned confidently",
+                        style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                     else -> Text("Showing raw photos", style = MaterialTheme.typography.bodyMedium,
                         color = SunnyColors.TextSecondary)
                 }
@@ -197,6 +232,15 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
                 CompareMode.FADE -> FadeCompare(before, after, eff, alignOn, fade,
                     onFade = { fade = it }, onNudge = { nudge += it })
                 CompareMode.WIPE -> WipeCompare(before, after, eff, wipe) { wipe = it }
+                CompareMode.BLINK -> BlinkCompare(
+                    before = before,
+                    after = after,
+                    transform = eff,
+                    showAfter = blinkAfter,
+                    playing = blinkPlaying,
+                    onTogglePlaying = { blinkPlaying = !blinkPlaying },
+                    onToggleFrame = { blinkAfter = !blinkAfter },
+                )
                 CompareMode.SIDE -> SideCompare(before, after, eff)
             }
 
@@ -209,9 +253,15 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
             Spacer(Modifier.height(20.dp))
 
             // Photo pickers
-            PhotoPicker("Before (older)", obs, beforeIdx) { beforeIdx = it }
+            PhotoPicker("Before (older)", obs, 0 until obs.lastIndex, beforeIdx) {
+                beforeIdx = it
+                if (afterIdx <= it) afterIdx = (it + 1).coerceAtMost(obs.lastIndex)
+            }
             Spacer(Modifier.height(12.dp))
-            PhotoPicker("After (newer)", obs, afterIdx) { afterIdx = it }
+            PhotoPicker("After (newer)", obs, 1..obs.lastIndex, afterIdx) {
+                afterIdx = it
+                if (beforeIdx >= it) beforeIdx = (it - 1).coerceAtLeast(0)
+            }
 
             Spacer(Modifier.height(20.dp))
 
@@ -231,6 +281,27 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
                         Spacer(Modifier.height(6.dp))
                         Text("Changes here are a prompt to show a clinician — never a verdict.",
                             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
+                    }
+
+                    val beforeSize = before.approximateSizeMm
+                    val afterSize = after.approximateSizeMm
+                    if (beforeSize != null || afterSize != null) {
+                        Spacer(Modifier.height(12.dp))
+                        Text("Reference-based estimates", style = MaterialTheme.typography.labelLarge,
+                            color = SunnyColors.TextSecondary)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Before: ${beforeSize?.let(::formatMillimetres) ?: "Not recorded"}   ·   " +
+                                "After: ${afterSize?.let(::formatMillimetres) ?: "Not recorded"}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SunnyColors.TextPrimary,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "These estimates depend on marker placement and are not clinical measurements.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SunnyColors.TextSecondary,
+                        )
                     }
                 }
             }
@@ -322,6 +393,55 @@ private fun WipeCompare(
 }
 
 @Composable
+private fun BlinkCompare(
+    before: ObservationEntity,
+    after: ObservationEntity,
+    transform: AlignTransform,
+    showAfter: Boolean,
+    playing: Boolean,
+    onTogglePlaying: () -> Unit,
+    onToggleFrame: () -> Unit,
+) {
+    Box(
+        Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(20.dp))
+            .background(SunnyColors.SurfaceMuted).clickable(onClick = onToggleFrame),
+    ) {
+        AsyncImage(
+            EncryptedImage(if (showAfter) after.imagePath else before.imagePath),
+            contentDescription = if (showAfter) "Newer comparison photo" else "Older comparison photo",
+            modifier = Modifier.fillMaxSize().then(
+                if (showAfter) Modifier.applyAlign(transform) else Modifier,
+            ),
+            contentScale = ContentScale.Crop,
+        )
+        DateTag(
+            Format.date(if (showAfter) after.capturedAt else before.capturedAt),
+            Alignment.TopStart,
+            faded = false,
+        )
+        Box(
+            Modifier.align(Alignment.BottomEnd).padding(10.dp).clip(RoundedCornerShape(50))
+                .background(Color.Black.copy(alpha = 0.55f)),
+        ) {
+            IconButton(onClick = onTogglePlaying) {
+                Icon(
+                    if (playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = if (playing) "Pause blinking" else "Play blinking",
+                    tint = Color.White,
+                )
+            }
+        }
+    }
+    Spacer(Modifier.height(8.dp))
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(if (showAfter) "After" else "Before", style = MaterialTheme.typography.labelMedium,
+            color = SunnyColors.TextSecondary)
+        Text(if (playing) "Playing" else "Paused", style = MaterialTheme.typography.labelMedium,
+            color = SunnyColors.TextTertiary)
+    }
+}
+
+@Composable
 private fun SideCompare(before: ObservationEntity, after: ObservationEntity, transform: AlignTransform) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         // Older on the left (untransformed reference).
@@ -367,16 +487,26 @@ private fun androidx.compose.foundation.layout.BoxScope.DateTag(
 
 @Composable
 private fun PhotoPicker(
-    label: String, obs: List<ObservationEntity>, selected: Int, onSelect: (Int) -> Unit,
+    label: String,
+    obs: List<ObservationEntity>,
+    indices: IntRange,
+    selected: Int,
+    onSelect: (Int) -> Unit,
 ) {
     Text(label.uppercase(), style = MaterialTheme.typography.labelSmall,
         color = SunnyColors.TextTertiary, fontWeight = FontWeight.SemiBold,
         modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        obs.forEachIndexed { i, o ->
+        indices.forEach { i ->
+            val o = obs[i]
             SunnyChip(Format.date(o.capturedAt), selected = i == selected, onClick = { onSelect(i) })
         }
     }
+}
+
+private fun formatMillimetres(value: Float): String {
+    val rounded = kotlin.math.round(value * 10f) / 10f
+    return if (rounded % 1f == 0f) "${rounded.toInt()} mm" else "$rounded mm"
 }
 
 private fun changedFieldsBetween(prev: Analysis, curr: Analysis): List<String> =

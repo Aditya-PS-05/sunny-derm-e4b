@@ -9,7 +9,9 @@ import com.sunny.skin.data.db.ScanType
 import com.sunny.skin.data.db.ScanWithObservations
 import com.sunny.skin.data.db.SunnyDatabase
 import com.sunny.skin.data.model.Analysis
+import com.sunny.skin.data.model.ApproximateMeasurement
 import com.sunny.skin.data.model.BodyPart
+import com.sunny.skin.data.model.CaptureAlignment
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
@@ -40,6 +42,8 @@ class ScanRepository(context: Context) {
         modelVersion: String,
         rawOutput: String,
         now: Long,
+        measurement: ApproximateMeasurement? = null,
+        alignment: CaptureAlignment? = null,
     ): String {
         val scanId = UUID.randomUUID().toString()
         val name = "${scanType.prefix} - ${bodyPart.label}"
@@ -53,7 +57,17 @@ class ScanRepository(context: Context) {
                 updatedAt = now,
             )
         )
-        addObservation(scanId, imagePath, analysis, modelVersion, rawOutput, now)
+        addObservation(
+            scanId,
+            imagePath,
+            analysis,
+            modelVersion,
+            rawOutput,
+            now,
+            promoteToTracked = false,
+            measurement = measurement,
+            alignment = alignment,
+        )
         return scanId
     }
 
@@ -65,6 +79,9 @@ class ScanRepository(context: Context) {
         modelVersion: String,
         rawOutput: String,
         now: Long,
+        promoteToTracked: Boolean = true,
+        measurement: ApproximateMeasurement? = null,
+        alignment: CaptureAlignment? = null,
     ) {
         dao.insertObservation(
             ObservationEntity(
@@ -75,14 +92,30 @@ class ScanRepository(context: Context) {
                 analysis = AnalysisColumns.from(analysis),
                 modelVersion = modelVersion,
                 rawOutput = rawOutput,
+                approximateSizeMm = measurement?.takeIf { it.isValid }?.approximateSizeMm,
+                sizeReferenceMm = measurement?.takeIf { it.isValid }?.referenceSizeMm,
+                sizeReferenceSpan = measurement?.takeIf { it.isValid }?.referenceSpan,
+                sizeTargetSpan = measurement?.takeIf { it.isValid }?.targetSpan,
+                alignmentScore = alignment?.score,
+                alignmentTranslationX = alignment?.translationX,
+                alignmentTranslationY = alignment?.translationY,
+                alignmentScale = alignment?.scale,
+                alignmentRotationDegrees = alignment?.rotationDegrees,
             )
         )
-        dao.touchScan(scanId, now)
+        if (promoteToTracked) {
+            dao.updateScanType(scanId, ScanType.TRACKED, now)
+        } else {
+            dao.touchScan(scanId, now)
+        }
     }
 
     /** Rename a scan (edit flow). */
     suspend fun renameScan(scanId: String, name: String, now: Long) =
         dao.renameScan(scanId, name.trim().ifEmpty { "Scan" }, now)
+
+    suspend fun updateNotes(scanId: String, notes: String, now: Long) =
+        dao.updateNotes(scanId, notes.trim().take(2_000), now)
 
     /**
      * Replace an existing observation's photo and/or analysis in place (edit
@@ -115,6 +148,11 @@ class ScanRepository(context: Context) {
     suspend fun deleteScan(scan: ScanWithObservations) {
         scan.observations.forEach { images.delete(it.imagePath) }
         dao.deleteScan(scan.scan.id)
+    }
+
+    suspend fun deleteAll() {
+        dao.allScansOnce().flatMap { it.observations }.forEach { images.delete(it.imagePath) }
+        dao.deleteAllScans()
     }
 
     fun imageStore(): ImageStore = images

@@ -30,6 +30,7 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
@@ -54,6 +55,7 @@ import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ScanWithObservations
 import com.sunny.skin.data.model.BodyRegion
 import com.sunny.skin.report.ReportGenerator
+import com.sunny.skin.report.ReportOptions
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.LiquidGlassDialog
 import com.sunny.skin.ui.components.ScreenScaffold
@@ -82,6 +84,7 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
     var endMs by remember { mutableStateOf<Long?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showConfirm by remember { mutableStateOf(false) }
+    var visitNote by remember { mutableStateOf("") }
 
     // Scans the user has explicitly unchecked (everything else is included).
     val deselected = remember { mutableStateListOf<String>() }
@@ -156,7 +159,7 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                         Spacer(Modifier.weight(1f))
                         if (candidates.isNotEmpty()) {
                             Text(if (allSelected) "Clear all" else "Select all",
-                                style = MaterialTheme.typography.bodyMedium, color = SunnyColors.Orange,
+                                style = MaterialTheme.typography.bodyMedium, color = SunnyColors.OrangeText,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.clip(RoundedCornerShape(50)).clickable {
                                     if (allSelected) deselected.addAll(candidates.map { it.scan.id })
@@ -189,6 +192,17 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
 
                 item {
                     Spacer(Modifier.height(10.dp))
+                    SectionHeader("Visit Details")
+                    OutlinedTextField(
+                        value = visitNote,
+                        onValueChange = { visitNote = it.take(500) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Reason for sharing (optional)") },
+                        minLines = 2,
+                        maxLines = 4,
+                        shape = RoundedCornerShape(8.dp),
+                    )
+                    Spacer(Modifier.height(18.dp))
                     SectionHeader("Report Preview")
                     SunnyCard {
                         Column(Modifier.padding(horizontal = 16.dp)) {
@@ -256,7 +270,7 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                         startMs = s; endMs = e; dateRangeOn = true
                     }
                     showDatePicker = false
-                }) { Text("Apply", color = SunnyColors.Orange, fontWeight = FontWeight.SemiBold) }
+                }) { Text("Apply", color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold) }
             }
         }
     }
@@ -266,9 +280,9 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
             onDismissRequest = { showConfirm = false },
             title = { Text("Save Report to Device?") },
             text = {
-                Text("A PDF report of the ${included.size} selected " +
-                    "${if (included.size == 1) "scan" else "scans"} will be generated and saved to " +
-                    "your device. This report is not a medical diagnosis.")
+                Text("A clinician-ready visual tracking PDF containing aligned comparisons, " +
+                    "automated-description provenance and uncropped originals will be saved on " +
+                    "this device. It is not a medical diagnosis.")
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -276,11 +290,15 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                     val toReport = included
                     scope.launch {
                         val file = withContext(Dispatchers.IO) {
-                            ReportGenerator(context).generate(toReport, System.currentTimeMillis())
+                            ReportGenerator(context).generate(
+                                toReport,
+                                System.currentTimeMillis(),
+                                ReportOptions(visitNote = visitNote),
+                            )
                         }
                         onOpenReport(file.nameWithoutExtension)
                     }
-                }) { Text("Save", color = SunnyColors.Orange) }
+                }) { Text("Save", color = SunnyColors.OrangeText) }
             },
             dismissButton = { TextButton(onClick = { showConfirm = false }) { Text("Cancel") } },
             containerColor = SunnyColors.Surface,

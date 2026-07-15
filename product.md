@@ -71,10 +71,22 @@ capabilities of the shipped checkpoint.
 
 ## 6. Core features (MVP)
 - **Capture** a lesion photo (with framing/lighting guidance).
-- **Describe** — on-device model returns the six-field structured description.
+- **Describe** — the production on-device model returns the six-field structured
+  description. The temporary, explicitly disclosed beta can use the same model
+  through a remote GPU server while phone-photo data is collected and evaluated.
 - **Track** — each lesion is a timeline of dated photos + descriptions; the app
   highlights field-level changes (e.g. "Borders: smooth → somewhat irregular").
+- **Recheck consistently** — the previous encrypted photo can guide framing;
+  technical matching helps reproduce centering, distance and phone angle.
+- **Compare** — inspect any older/newer pair with fade, wipe, blink or aligned
+  side-by-side views, with a raw-photo fallback when registration is unreliable.
+- **Photo-check sessions** — work through a resumable checklist of saved areas,
+  marking each complete or skipped without implying a complete clinical exam.
+- **Measure optionally** — record an explicitly approximate reference-to-area
+  size ratio for personal tracking, never as a clinical measurement.
 - **Remind** — optional re-check reminders (e.g. every 3 months).
+- **Share** — generate a clinician-oriented visual tracking pack with aligned
+  comparison, model provenance, user notes and uncropped originals.
 - **Educate & route** — plain-language "what to watch for" (the ABCDE rule) and a
   persistent "see a clinician" path.
 
@@ -82,15 +94,20 @@ capabilities of the shipped checkpoint.
 - Any diagnostic claim, risk score, or benign/malignant classification.
 - Cloud sync / account system (privacy stance; may revisit as encrypted opt-in).
 - Multi-image or conversational analysis (the model is one-image-in/one-out).
-- Body-map / full-body photography workflows.
+- Diagnostic or automated whole-body completeness claims.
 
 ## 8. Business model (future, blocked)
 No monetization or public model distribution is permitted until the training-data
 rights and clinical/regulatory gates in `RELEASE_READINESS.md` are cleared.
-After clearance, an indicative model is: free tier tracks up to N lesions; one-time unlock or low subscription for
-unlimited lesions, reminders, and export (PDF summary to bring to a dermatologist).
-All processing stays on-device regardless of tier — privacy is not a paywalled
-feature.
+After clearance, an indicative model is: the free tier delivers the complete
+tracking outcome for a limited number of saved areas, including reminders,
+quality safeguards, export and deletion. A one-time unlock or low subscription
+can expand capacity and convenience through unlimited areas, batch photo checks,
+advanced comparisons, encrypted multi-device backup and family profiles.
+Production processing stays on-device regardless of tier — privacy is not a
+paywalled feature. The private model-improvement beta is a temporary exception:
+it is build-mode selected, requires explicit disclosure, and is blocked from
+release builds.
 
 ## 9. Key risks & mitigations
 | Risk | Mitigation |
@@ -107,3 +124,5 @@ feature.
 - **Trust:** disclaimer comprehension (surveyed), low rate of misinterpretation.
 - **Quality:** on-device description latency, field-parse success rate (target
   100%), zero disease-name leakage.
+- **Core loop:** percentage of saved areas that receive a technically comparable
+  follow-up photo; median time from reminder to completed follow-up pair.

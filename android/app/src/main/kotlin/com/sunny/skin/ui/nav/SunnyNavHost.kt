@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,10 +24,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.sunny.skin.LaunchRequest
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.screens.BodyGuideScreen
 import com.sunny.skin.ui.screens.CameraScreen
 import com.sunny.skin.ui.screens.CaptureScreen
+import com.sunny.skin.ui.screens.CheckSessionScreen
 import com.sunny.skin.ui.screens.CompareScreen
 import com.sunny.skin.ui.screens.EditScanScreen
 import com.sunny.skin.ui.screens.GenerateReportScreen
@@ -39,8 +45,13 @@ import com.sunny.skin.ui.screens.ScanDetailScreen
 import com.sunny.skin.ui.screens.SettingsScreen
 
 @Composable
-fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
+fun SunnyNavHost(
+    vm: SunnyViewModel = viewModel(),
+    launchRequest: LaunchRequest? = null,
+    onLaunchRequestHandled: () -> Unit = {},
+) {
     val nav = rememberNavController()
+    var openReminderCenter by remember { mutableStateOf(false) }
     val modelAvailable by vm.modelAvailable.collectAsStateWithLifecycle()
     val backStack by nav.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
@@ -59,6 +70,20 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
                 restoreState = true
             }
         }
+    }
+
+    LaunchedEffect(launchRequest) {
+        launchRequest ?: return@LaunchedEffect
+        when {
+            launchRequest.scanId != null -> nav.navigate(Routes.scanDetail(launchRequest.scanId)) {
+                launchSingleTop = true
+            }
+            launchRequest.openReminders -> {
+                openReminderCenter = true
+                openTab(Routes.SAVED)
+            }
+        }
+        onLaunchRequestHandled()
     }
 
     Scaffold(
@@ -87,7 +112,14 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
             modifier = Modifier.fillMaxSize(),
         ) {
             composable(Routes.OVERVIEW) {
-                OverviewScreen(vm, onScanClick = { nav.navigate(Routes.scanDetail(it)) })
+                OverviewScreen(
+                    vm,
+                    onScanClick = { nav.navigate(Routes.scanDetail(it)) },
+                    onCheckSession = {
+                        vm.startCheckSession()
+                        nav.navigate(Routes.CHECK_SESSION) { launchSingleTop = true }
+                    },
+                )
             }
             composable(Routes.SAVED) {
                 SavedScreen(
@@ -97,6 +129,8 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
                     onGenerateReport = { nav.navigate(Routes.GENERATE_REPORT) },
                     onOpenReports = { nav.navigate(Routes.REPORTS) },
                     onOpenReport = { nav.navigate(Routes.reportDetail(it)) },
+                    openReminderCenter = openReminderCenter,
+                    onReminderCenterOpened = { openReminderCenter = false },
                 )
             }
             composable(Routes.SETTINGS) {
@@ -124,13 +158,23 @@ fun SunnyNavHost(vm: SunnyViewModel = viewModel()) {
                 )
             }
 
+            composable(Routes.CHECK_SESSION) {
+                CheckSessionScreen(
+                    vm = vm,
+                    onBack = { nav.popBackStack() },
+                    onCapture = { nav.navigate(Routes.CAMERA) },
+                )
+            }
+
             captureGraph(nav, vm, modelAvailable)
 
             composable(Routes.SCAN_DETAIL) { entry ->
                 val scanId = entry.arguments?.getString("scanId").orEmpty()
                 ScanDetailScreen(vm, scanId, onBack = { nav.popBackStack() },
                     onEdit = { nav.navigate(Routes.editScan(scanId)) },
-                    onCompare = { nav.navigate(Routes.compare(scanId)) })
+                    onCompare = { nav.navigate(Routes.compare(scanId)) },
+                    onCaptureFollowUp = { nav.navigate(Routes.CAMERA) },
+                    onReviewFollowUp = { nav.navigate(Routes.REVIEW) })
             }
             composable(Routes.COMPARE) { entry ->
                 val scanId = entry.arguments?.getString("scanId").orEmpty()
@@ -191,13 +235,49 @@ private fun NavGraphBuilder.captureGraph(
     composable(Routes.REVIEW) {
         ReviewScanScreen(
             vm = vm,
-            onSaved = {
-                nav.navigate(Routes.SAVED) {
-                    popUpTo(Routes.OVERVIEW)
-                    launchSingleTop = true
+            onSaved = { scanId, wasRecheck, checkSessionId ->
+                if (checkSessionId != null) {
+                    if (!nav.popBackStack(Routes.CHECK_SESSION, inclusive = false)) {
+                        nav.navigate(Routes.CHECK_SESSION) {
+                            popUpTo(Routes.OVERVIEW)
+                            launchSingleTop = true
+                        }
+                    }
+                } else if (wasRecheck) {
+                    val returnedToDetail = nav.popBackStack(Routes.SCAN_DETAIL, inclusive = false)
+                    if (!returnedToDetail) {
+                        nav.navigate(Routes.scanDetail(scanId)) {
+                            popUpTo(Routes.OVERVIEW)
+                            launchSingleTop = true
+                        }
+                    }
+                } else {
+                    nav.navigate(Routes.SAVED) {
+                        popUpTo(Routes.OVERVIEW)
+                        launchSingleTop = true
+                    }
                 }
             },
-            onDiscard = { nav.popBackStack(Routes.OVERVIEW, inclusive = false) },
+            onDiscard = { targetScanId, checkSessionId ->
+                if (checkSessionId != null) {
+                    if (!nav.popBackStack(Routes.CHECK_SESSION, inclusive = false)) {
+                        nav.navigate(Routes.CHECK_SESSION) { launchSingleTop = true }
+                    }
+                } else if (targetScanId == null) {
+                    nav.popBackStack(Routes.OVERVIEW, inclusive = false)
+                } else if (!nav.popBackStack(Routes.SCAN_DETAIL, inclusive = false)) {
+                    nav.navigate(Routes.scanDetail(targetScanId)) {
+                        popUpTo(Routes.OVERVIEW)
+                        launchSingleTop = true
+                    }
+                }
+            },
+            onRetake = {
+                val route = if (vm.capture.value.targetScanId != null) Routes.CAMERA else Routes.CAPTURE
+                nav.navigate(route) {
+                    popUpTo(Routes.REVIEW) { inclusive = true }
+                }
+            },
         )
     }
     composable(Routes.GENERATE_REPORT) {

@@ -1,8 +1,9 @@
 package com.sunny.skin.ui.screens
 
+import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,42 +21,42 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sunny.skin.reminder.Reminder
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.DisclaimerCard
+import com.sunny.skin.ui.components.LiquidGlassDialog
 import com.sunny.skin.ui.components.SectionHeader
 import com.sunny.skin.ui.components.SunnyToggle
 import com.sunny.skin.ui.components.SunnyCard
-import com.sunny.skin.ui.components.SunnyChip
-import com.sunny.skin.ui.components.SunnyToggle
-import com.sunny.skin.ui.components.rememberNotificationRequester
 import com.sunny.skin.ui.theme.SunnyColors
-import com.sunny.skin.util.Format
 
 @Composable
 fun SettingsScreen(
@@ -69,10 +70,12 @@ fun SettingsScreen(
 ) {
     val pinOn by vm.pinEnabled.collectAsStateWithLifecycle()
     val improve by vm.improveSunny.collectAsStateWithLifecycle()
-    val reminders by vm.reminders.collectAsStateWithLifecycle()
-    val recurring = reminders.firstOrNull { it.id == Reminder.RECURRING_ID }
-    var interval by remember { mutableIntStateOf(recurring?.intervalDays ?: 30) }
-    val requestNotif = rememberNotificationRequester()
+    val contributionStatus by vm.contributionStatus.collectAsStateWithLifecycle()
+    val useServer by vm.useServerInference.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    var showContributionConsent by remember { mutableStateOf(false) }
+    var showExport by remember { mutableStateOf(false) }
+    var showDeleteAll by remember { mutableStateOf(false) }
 
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState())
@@ -96,12 +99,13 @@ fun SettingsScreen(
                 SunnyToggle(
                     checked = pinOn,
                     onCheckedChange = { on -> if (on) onSetupPin() else vm.clearPin() },
+                    accessibilityLabel = "App lock",
                 )
             }
         }
         Spacer(Modifier.height(8.dp))
         Text("When enabled, you will need to enter your PIN each time you open Sunny. " +
-            com.sunny.skin.AppMode.dataPrivacySubtitle,
+            com.sunny.skin.AppMode.dataPrivacySubtitle(vm.serverModeAvailable && useServer),
             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
             modifier = Modifier.padding(horizontal = 4.dp))
         if (pinOn) {
@@ -119,63 +123,34 @@ fun SettingsScreen(
         }
         Spacer(Modifier.height(20.dp))
 
-        SectionHeader("Reminders")
+        SectionHeader("Your data")
         SunnyCard {
-            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconBadge(Icons.Filled.NotificationsActive, SunnyColors.TextPrimary, iconSize = 28.dp)
+            Row(
+                Modifier.fillMaxWidth().clickable { showExport = true }.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconBadge(Icons.Filled.Download, SunnyColors.TextPrimary)
                 Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("Regular skin check", style = MaterialTheme.typography.titleMedium)
-                    Text("Get reminded to check your skin", style = MaterialTheme.typography.bodyMedium,
-                        color = SunnyColors.TextSecondary)
+                    Text("Encrypted backup", style = MaterialTheme.typography.titleMedium)
+                    Text("Export scans, notes, reminders and reports",
+                        style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                 }
-                SunnyToggle(
-                    checked = recurring != null,
-                    onCheckedChange = { on ->
-                        if (on) requestNotif { vm.setRecurringReminder(true, interval) }
-                        else vm.setRecurringReminder(false, 0)
-                    },
-                )
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SunnyColors.TextTertiary)
             }
-        }
-        if (recurring != null) {
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("Weekly" to 7, "Monthly" to 30, "Every 3 months" to 90).forEach { (label, d) ->
-                    SunnyChip(label, selected = interval == d, onClick = {
-                        interval = d
-                        requestNotif { vm.setRecurringReminder(true, d) }
-                    })
+            HorizontalDivider(color = SunnyColors.Divider)
+            Row(
+                Modifier.fillMaxWidth().clickable { showDeleteAll = true }.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconBadge(Icons.Filled.DeleteForever, SunnyColors.Danger)
+                Spacer(Modifier.size(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Delete all local data", style = MaterialTheme.typography.titleMedium,
+                        color = SunnyColors.Danger)
+                    Text("Remove every scan, reminder and report",
+                        style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                 }
-            }
-        }
-        if (reminders.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
-            Text("UPCOMING", style = MaterialTheme.typography.labelSmall,
-                color = SunnyColors.TextTertiary, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp))
-            reminders.forEach { r ->
-                SunnyCard {
-                    Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(r.title, style = MaterialTheme.typography.titleMedium)
-                            Text(
-                                if (r.recurring) intervalLabel(r.intervalDays)
-                                else Format.date(r.triggerAt),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = SunnyColors.TextSecondary,
-                            )
-                        }
-                        Box(
-                            Modifier.size(32.dp).clip(RoundedCornerShape(50))
-                                .clickable { vm.cancelReminder(r.id) },
-                            contentAlignment = Alignment.Center,
-                        ) { Icon(Icons.Filled.Close, "Remove", tint = SunnyColors.TextTertiary,
-                            modifier = Modifier.size(18.dp)) }
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
             }
         }
         Spacer(Modifier.height(20.dp))
@@ -192,6 +167,37 @@ fun SettingsScreen(
         }
         Spacer(Modifier.height(20.dp))
 
+        if (vm.serverModeAvailable) {
+            SectionHeader("Analysis source (beta)")
+            SunnyCard {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconBadge(Icons.Filled.Memory, SunnyColors.Orange, iconSize = 26.dp)
+                    Spacer(Modifier.size(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(if (useServer) "Beta server" else "On-device",
+                            style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            if (useServer) {
+                                "Scans run on Sunny's GPU server. Photos leave the phone " +
+                                    "to be described."
+                            } else {
+                                "Scans run entirely on this phone. Nothing leaves the device — " +
+                                    "needs the 6 GB model installed on a 64-bit phone."
+                            },
+                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
+                        )
+                    }
+                    Spacer(Modifier.size(12.dp))
+                    SunnyToggle(
+                        checked = useServer,
+                        onCheckedChange = { vm.setUseServerInference(it) },
+                        accessibilityLabel = "Use beta server for analysis",
+                    )
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+        }
+
         if (com.sunny.skin.BuildConfig.SUNNY_CONTRIBUTE_URL.isNotBlank()) {
             SectionHeader("Help improve Sunny")
             SunnyCard {
@@ -202,16 +208,176 @@ fun SettingsScreen(
                         Text("Contribute to improving Sunny",
                             style = MaterialTheme.typography.titleMedium)
                         Text(
-                            "Beta: your scans and any corrections are securely uploaded to help " +
+                            "Beta: your scans and any corrections are uploaded with your consent to help " +
                                 "train Sunny's AI. Off by default — turn it off anytime.",
                             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
                         )
                     }
                     Spacer(Modifier.size(12.dp))
-                    SunnyToggle(checked = improve, onCheckedChange = { vm.setImproveSunny(it) })
+                    SunnyToggle(
+                        checked = improve,
+                        onCheckedChange = { enabled ->
+                            if (enabled) showContributionConsent = true
+                            else vm.setImproveSunny(false)
+                        },
+                        accessibilityLabel = "Contribute scans to improve Sunny",
+                    )
                 }
             }
+            if (improve && contributionStatus != com.sunny.skin.ui.ContributionStatus.IDLE) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    when (contributionStatus) {
+                        com.sunny.skin.ui.ContributionStatus.UPLOADING -> "Sending latest contribution…"
+                        com.sunny.skin.ui.ContributionStatus.SENT -> "Latest contribution sent."
+                        com.sunny.skin.ui.ContributionStatus.FAILED ->
+                            "Latest contribution could not be sent. Future scans remain enabled."
+                        com.sunny.skin.ui.ContributionStatus.IDLE -> ""
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (contributionStatus == com.sunny.skin.ui.ContributionStatus.FAILED) {
+                        SunnyColors.Danger
+                    } else {
+                        SunnyColors.TextSecondary
+                    },
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
             Spacer(Modifier.height(20.dp))
+        }
+
+        if (showContributionConsent) {
+            AlertDialog(
+                onDismissRequest = { showContributionConsent = false },
+                title = { Text("Contribute beta scans?") },
+                text = {
+                    Text(
+                        "Future saved scans will send the photo, body area, model description, " +
+                            "any correction, device model and app version to Sunny's beta " +
+                            "contribution server for model improvement. This is separate from " +
+                            "inference and can be turned off for future scans at any time."
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        vm.setImproveSunny(true)
+                        showContributionConsent = false
+                    }) { Text("I agree") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showContributionConsent = false }) { Text("Cancel") }
+                },
+            )
+        }
+
+
+        if (showExport) {
+            var password by remember { mutableStateOf("") }
+            var confirmPassword by remember { mutableStateOf("") }
+            var exporting by remember { mutableStateOf(false) }
+            var error by remember { mutableStateOf<String?>(null) }
+            LiquidGlassDialog(onDismiss = { if (!exporting) showExport = false }) {
+                Text("Encrypted backup", style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 8.dp))
+                Text(
+                    "Use a password you can remember. Sunny cannot recover it.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = SunnyColors.TextSecondary,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp),
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it; error = null },
+                    label = { Text("Password") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 6.dp),
+                )
+                OutlinedTextField(
+                    value = confirmPassword,
+                    onValueChange = { confirmPassword = it; error = null },
+                    label = { Text("Confirm password") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    supportingText = {
+                        when {
+                            password.isNotEmpty() && password.length < 10 -> Text("Use at least 10 characters")
+                            confirmPassword.isNotEmpty() && confirmPassword != password -> Text("Passwords do not match")
+                            error != null -> Text(error.orEmpty())
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp),
+                )
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (exporting) {
+                        CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.size(8.dp))
+                    }
+                    TextButton(onClick = { showExport = false }, enabled = !exporting) { Text("Cancel") }
+                    TextButton(
+                        enabled = !exporting && password.length >= 10 && password == confirmPassword,
+                        onClick = {
+                            exporting = true
+                            val secret = password.toCharArray()
+                            password = ""
+                            confirmPassword = ""
+                            vm.exportEncryptedBackup(secret) { uri, message ->
+                                exporting = false
+                                if (uri != null) {
+                                    showExport = false
+                                    val share = Intent(Intent.ACTION_SEND).apply {
+                                        type = "application/octet-stream"
+                                        putExtra(Intent.EXTRA_STREAM, uri)
+                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    }
+                                    context.startActivity(Intent.createChooser(share, "Share encrypted backup"))
+                                } else {
+                                    error = message ?: "Backup could not be created."
+                                }
+                            }
+                        },
+                    ) { Text("Export", color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold) }
+                }
+            }
+        }
+
+        if (showDeleteAll) {
+            AlertDialog(
+                onDismissRequest = { showDeleteAll = false },
+                title = { Text("Delete all local data?") },
+                text = {
+                    Text(
+                        if (com.sunny.skin.AppMode.publicRelease) {
+                            "Every scan, photo, size estimate, private note, ABCDE answer, reminder, " +
+                                "photo-check session, report and encrypted backup will be permanently " +
+                                "removed. This cannot be undone."
+                        } else {
+                            "Every scan, photo, size estimate, private note, ABCDE answer, reminder, " +
+                                "photo-check session, report and cached backup will be permanently " +
+                                "removed. Contributions already sent during " +
+                                "the beta cannot be deleted from this phone. This cannot be undone."
+                        },
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDeleteAll = false
+                        vm.deleteAllLocalData {
+                            android.widget.Toast.makeText(
+                                context, "All local health data deleted.", android.widget.Toast.LENGTH_SHORT,
+                            ).show()
+                        }
+                    }) { Text("Delete everything", color = SunnyColors.Danger, fontWeight = FontWeight.SemiBold) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteAll = false }) { Text("Cancel") }
+                },
+            )
         }
 
         SectionHeader("About")
@@ -232,13 +398,7 @@ fun SettingsScreen(
                 "or advice. Always consult a qualified healthcare professional for any skin concerns.",
         )
     }
-}
 
-private fun intervalLabel(days: Int): String = when (days) {
-    7 -> "Every week"
-    30 -> "Every month"
-    90 -> "Every 3 months"
-    else -> "Every $days days"
 }
 
 @Composable

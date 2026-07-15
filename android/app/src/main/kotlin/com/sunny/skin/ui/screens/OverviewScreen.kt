@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -54,9 +55,14 @@ import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.theme.SunnyColors
 
 @Composable
-fun OverviewScreen(vm: SunnyViewModel, onScanClick: (String) -> Unit) {
+fun OverviewScreen(
+    vm: SunnyViewModel,
+    onScanClick: (String) -> Unit,
+    onCheckSession: () -> Unit,
+) {
     val stats by vm.stats.collectAsStateWithLifecycle()
     val habit by vm.habit.collectAsStateWithLifecycle()
+    val checkSession by vm.checkSession.collectAsStateWithLifecycle()
     var side by remember { mutableStateOf(BodySide.FRONT) }
     // One-time balloon greeting for a brand-new user landing on Overview.
     var showBalloons by remember { mutableStateOf(!vm.settings.seenGreeting) }
@@ -131,13 +137,43 @@ fun OverviewScreen(vm: SunnyViewModel, onScanClick: (String) -> Unit) {
         StreakCard(habit)
         Spacer(Modifier.height(16.dp))
 
+        SunnyCard(onClick = onCheckSession) {
+            Row(
+                Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier.size(42.dp).clip(CircleShape).background(SunnyColors.OrangeSoft),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.Checklist, null, tint = SunnyColors.Orange,
+                        modifier = Modifier.size(23.dp))
+                }
+                Spacer(Modifier.size(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (checkSession == null) "Start a photo check" else "Continue photo check",
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        checkSession?.let { "${it.resolvedCount} of ${it.items.size} areas reviewed" }
+                            ?: if (stats.scanned == 0) "Create a checklist after saving an area"
+                            else "Review ${stats.scanned} saved area${if (stats.scanned == 1) "" else "s"}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = SunnyColors.TextSecondary,
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+
         // Body coverage
         SunnyCard {
             Column(Modifier.padding(16.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Body Coverage", style = MaterialTheme.typography.titleMedium)
                     Text("${(stats.coverage * 100).toInt()}%",
-                        style = MaterialTheme.typography.titleMedium, color = SunnyColors.Orange)
+                        style = MaterialTheme.typography.titleMedium, color = SunnyColors.OrangeText)
                 }
                 Spacer(Modifier.height(10.dp))
                 LinearProgressIndicator(

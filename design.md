@@ -18,10 +18,11 @@ This document covers how the app looks, flows, and is built.
 
 ### 2a. First-time capture
 ```
-Onboarding (privacy + "not a diagnosis" consent)
+Onboarding (3-step shared motion: capture → timeline → privacy, then explicit consent;
+            beta-server disclosure replaces the on-device privacy copy when enabled)
   → Add lesion → name/locate it (body area)
   → Camera with framing guides (distance, lighting, fill-frame)
-  → Capture → on-device inference (progress spinner, ~seconds)
+  → Capture → configured inference provider (on-device in production; GPU server in private beta)
   → Result: six-field description + disclaimer banner
   → Save to this lesion's timeline
 ```
@@ -46,7 +47,7 @@ Lesion → Export → PDF: photos over time + descriptions + dates
 ## 3. Screen inventory
 | Screen | Purpose | Key elements |
 |---|---|---|
-| Onboarding | Consent + privacy + limits | "Not a diagnosis" acknowledgement, offline promise |
+| Onboarding | Value, consent + limits | Swipeable shared-element capture/timeline/privacy story; reduced-motion fallback; explicit acknowledgement |
 | Home | List of tracked lesions | Thumbnail, name, body area, last-checked, change badge |
 | Capture | Take the photo | Live framing guides, lighting hint, capture button |
 | Result | Show the description | Six fields, disclaimer banner, "see a clinician" link, Save |
@@ -83,14 +84,15 @@ Observation   { id, lesion_id, captured_at, image_path,
                 lesion_type, colour, symmetry, borders, texture, summary,
                 model_version, raw_output }
 ```
-- Images stored in app-private storage; never uploaded.
+- Images are stored only in app-private storage. A disclosed private-beta build
+  can transmit an in-memory copy for inference or separately opted-in contribution.
 - `raw_output` retained for debugging/audit; `model_version` stamps which
   checkpoint produced each description (so upgrades are traceable).
 - Comparison = literal field-level differences between consecutive `Observation`
   rows. The app does not turn those differences into an ordinal score, stability
   label, risk level, urgency verdict, or recommended care interval.
 
-## 6. Technical architecture (on-device inference)
+## 6. Technical architecture (production on-device + temporary server beta)
 
 ```
 Camera → JPEG → [pre-check: is-this-a-lesion heuristic]

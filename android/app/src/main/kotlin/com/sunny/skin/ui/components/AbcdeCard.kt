@@ -73,7 +73,7 @@ fun AbcdeCard(
                         modifier = Modifier.size(16.dp))
                     Spacer(Modifier.size(6.dp))
                     Text("What's this?", style = MaterialTheme.typography.bodyMedium,
-                        color = SunnyColors.Orange, fontWeight = FontWeight.SemiBold)
+                        color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -110,7 +110,7 @@ private fun AbcdeRow(item: AbcdeItem, answer: AbcdeAnswer, onAnswer: (AbcdeAnswe
             contentAlignment = Alignment.Center,
         ) {
             Text(item.letter, style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold, color = SunnyColors.Orange)
+                fontWeight = FontWeight.Bold, color = SunnyColors.OrangeText)
         }
         Spacer(Modifier.size(12.dp))
         Column(Modifier.weight(1f)) {
@@ -179,7 +179,7 @@ private fun AbcdeInfoDialog(onDismiss: () -> Unit) {
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(item.letter, style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold, color = SunnyColors.Orange)
+                            fontWeight = FontWeight.Bold, color = SunnyColors.OrangeText)
                     }
                     Spacer(Modifier.size(12.dp))
                     Column {

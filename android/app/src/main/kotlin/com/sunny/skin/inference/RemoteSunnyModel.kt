@@ -2,13 +2,44 @@ package com.sunny.skin.inference
 
 import android.graphics.Bitmap
 import android.util.Base64
+import com.sunny.skin.BuildConfig
+import com.sunny.skin.network.EndpointPolicy
+import com.sunny.skin.network.JsonHttpRequest
+import com.sunny.skin.network.JsonHttpTransport
+import com.sunny.skin.network.UrlConnectionJsonTransport
 import java.io.ByteArrayOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+
+object RemoteInferenceContract {
+    fun requestPayload(imageDataUri: String): ByteArray = JSONObject().apply {
+        put("messages", JSONArray().put(JSONObject().apply {
+            put("role", "user")
+            put("content", JSONArray().apply {
+                put(JSONObject().apply {
+                    put("type", "image_url")
+                    put("image_url", JSONObject().put("url", imageDataUri))
+                })
+                put(JSONObject().apply {
+                    put("type", "text")
+                    put("text", Prompt.SCHEMA_PROMPT)
+                })
+            })
+        }))
+        put("max_tokens", 1024)
+        put("temperature", Prompt.TEMPERATURE.toDouble())
+    }.toString().toByteArray(Charsets.UTF_8)
+
+    fun parseResponse(response: String): String {
+        val content = JSONObject(response).getJSONArray("choices").getJSONObject(0)
+            .getJSONObject("message").getString("content")
+        val start = content.lastIndexOf("Lesion Type:")
+        val block = if (start >= 0) content.substring(start) else content
+        return block.replace(Regex("<[|/a-zA-Z_]{0,32}>"), "").trim()
+    }
+}
 
 /**
  * INTERIM "server method": instead of running on-device, this sends the scan
@@ -21,8 +52,13 @@ import org.json.JSONObject
  * configured API. Enabled only when [com.sunny.skin.BuildConfig.SUNNY_INFERENCE_API_URL]
  * is set at build time.
  */
-class RemoteSunnyModel(baseUrl: String) : SunnyModel {
-    private val endpoint = baseUrl.trimEnd('/') + "/v1/chat/completions"
+class RemoteSunnyModel(
+    baseUrl: String,
+    private val apiToken: String = BuildConfig.SUNNY_INFERENCE_API_TOKEN,
+    allowCleartext: Boolean = BuildConfig.DEBUG && BuildConfig.SUNNY_ALLOW_INSECURE_BETA_ENDPOINTS,
+    private val transport: JsonHttpTransport = UrlConnectionJsonTransport(),
+) : SunnyModel {
+    private val endpoint = EndpointPolicy.resolve(baseUrl, "/v1/chat/completions", allowCleartext)
 
     override val version: String = "Sunny-Gemma4-E4B (server)"
 
@@ -32,63 +68,66 @@ class RemoteSunnyModel(baseUrl: String) : SunnyModel {
     override suspend fun warmUp() { ready = true }
 
     override suspend fun describeRaw(bitmap: Bitmap): String = withContext(Dispatchers.IO) {
-        val jpeg = ByteArrayOutputStream().use { bos ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 92, bos); bos.toByteArray()
-        }
+        val jpeg = encodeForServer(bitmap)
         val dataUri = "data:image/jpeg;base64," + Base64.encodeToString(jpeg, Base64.NO_WRAP)
 
-        // Image FIRST, then the schema prompt (F-03), greedy + capped (F-04).
-        val body = JSONObject().apply {
-            put("messages", JSONArray().put(JSONObject().apply {
-                put("role", "user")
-                put("content", JSONArray().apply {
-                    put(JSONObject().apply {
-                        put("type", "image_url")
-                        put("image_url", JSONObject().put("url", dataUri))
-                    })
-                    put(JSONObject().apply {
-                        put("type", "text"); put("text", Prompt.SCHEMA_PROMPT)
-                    })
-                })
-            }))
-            // The server model reasons before the answer, so it needs a wider
-            // budget than the on-device path to reach the final schema block.
-            put("max_tokens", 1024)
-            put("temperature", Prompt.TEMPERATURE.toDouble())
-        }
-
-        val conn = (URL(endpoint).openConnection() as HttpURLConnection).apply {
-            requestMethod = "POST"
-            connectTimeout = 20_000
-            readTimeout = 180_000
-            doOutput = true
-            setRequestProperty("Content-Type", "application/json")
-        }
-        conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
-        val code = conn.responseCode
-        val text = (if (code in 200..299) conn.inputStream else conn.errorStream)
-            ?.bufferedReader()?.use { it.readText() }.orEmpty()
-        if (code !in 200..299) {
+        // Image FIRST, then the schema prompt (F-03). The server model reasons
+        // before its schema, so it uses a wider internal token budget.
+        val payload = RemoteInferenceContract.requestPayload(dataUri)
+        try {
+            val response = transport.post(
+                JsonHttpRequest(
+                    url = endpoint,
+                    payload = payload,
+                    bearerToken = apiToken,
+                    connectTimeoutMs = 20_000,
+                    readTimeoutMs = 180_000,
+                ),
+            )
+            if (response.code !in 200..299) {
+                throw RuntimeException(
+                    "inference API HTTP ${response.code}: ${response.body.take(200)}",
+                )
+            }
+            ready = true
+            RemoteInferenceContract.parseResponse(response.body)
+        } catch (error: Exception) {
             ready = false
-            throw RuntimeException("inference API HTTP $code: ${text.take(200)}")
+            throw error
         }
-        ready = true
-        val content = JSONObject(text).getJSONArray("choices").getJSONObject(0)
-            .getJSONObject("message").getString("content")
-        cleanSchemaBlock(content)
     }
 
-    /**
-     * The server model emits reasoning/channel scaffolding before the final
-     * answer. Keep the last schema block (from the final "Lesion Type:") and drop
-     * any residual channel/special markers, so [SunnyDescriber]'s parser sees the
-     * same six clean lines the on-device model would produce.
-     */
-    private fun cleanSchemaBlock(raw: String): String {
-        val start = raw.lastIndexOf("Lesion Type:")
-        val block = if (start >= 0) raw.substring(start) else raw
-        return block.replace(Regex("<[|/a-zA-Z_]{0,32}>"), "").trim()
+    private fun encodeForServer(bitmap: Bitmap): ByteArray {
+        val maxDimension = maxOf(bitmap.width, bitmap.height)
+        val scaled = if (maxDimension > MAX_IMAGE_DIMENSION) {
+            val ratio = MAX_IMAGE_DIMENSION.toFloat() / maxDimension
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * ratio).toInt().coerceAtLeast(1),
+                (bitmap.height * ratio).toInt().coerceAtLeast(1),
+                true,
+            )
+        } else {
+            bitmap
+        }
+        return try {
+            ByteArrayOutputStream().use { output ->
+                check(scaled.compress(Bitmap.CompressFormat.JPEG, 88, output)) {
+                    "Could not encode scan photo."
+                }
+                output.toByteArray().also {
+                    check(it.size <= MAX_IMAGE_BYTES) { "Encoded scan photo is too large." }
+                }
+            }
+        } finally {
+            if (scaled !== bitmap) scaled.recycle()
+        }
     }
 
     override fun close() {}
+
+    private companion object {
+        const val MAX_IMAGE_DIMENSION = 1600
+        const val MAX_IMAGE_BYTES = 5 * 1024 * 1024
+    }
 }

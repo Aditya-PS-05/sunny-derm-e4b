@@ -21,7 +21,7 @@ class BootReceiver : BroadcastReceiver() {
             when {
                 r.triggerAt > now -> ReminderScheduler.schedule(context, r)
                 r.recurring -> {
-                    val step = r.intervalDays * DAY_MS
+                    val step = r.intervalMillis
                     var t = r.triggerAt
                     while (t <= now) t += step
                     val next = r.copy(triggerAt = t)
@@ -31,9 +31,5 @@ class BootReceiver : BroadcastReceiver() {
                 else -> store.remove(r.id) // stale one-shot
             }
         }
-    }
-
-    private companion object {
-        const val DAY_MS = 24L * 60 * 60 * 1000
     }
 }

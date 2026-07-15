@@ -20,20 +20,32 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,12 +60,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.content.ContextCompat
+import com.sunny.skin.reminder.ReminderInterval
+import com.sunny.skin.reminder.ReminderIntervalUnit
+import com.sunny.skin.reminder.reminderIntervalLabel
 import com.sunny.skin.ui.theme.SunnyColors
 
 /** Selectable delay options for a re-check reminder. */
@@ -195,6 +211,122 @@ fun ReCheckReminderDialog(
                     Text("Cancel", style = MaterialTheme.typography.titleMedium,
                         color = SunnyColors.TextSecondary, fontWeight = FontWeight.Medium)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun RecurringIntervalDialog(
+    initialHours: Int,
+    onPick: (hours: Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val initial = remember(initialHours) { ReminderInterval.fromHours(initialHours) }
+    var unit by remember(initialHours) { mutableStateOf(initial.unit) }
+    var valueText by remember(initialHours) { mutableStateOf(initial.value.toString()) }
+    val value = valueText.toIntOrNull()?.takeIf { it in 1..unit.maxValue }
+    val totalHours = value?.let { ReminderInterval(it, unit).totalHours }
+
+    LiquidGlassDialog(onDismiss = onDismiss) {
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                .padding(horizontal = 22.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                Modifier.size(52.dp).clip(CircleShape)
+                    .background(SunnyColors.OrangeSoft.copy(alpha = 0.9f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.NotificationsActive,
+                    contentDescription = null,
+                    tint = SunnyColors.Orange,
+                    modifier = Modifier.size(25.dp),
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Reminder interval",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = SunnyColors.TextPrimary,
+            )
+            Spacer(Modifier.height(16.dp))
+
+            FlowRow(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ReminderIntervalUnit.entries.forEach { option ->
+                    SunnyChip(
+                        label = option.label,
+                        selected = unit == option,
+                        onClick = {
+                            val current = ReminderInterval(value ?: 1, unit)
+                            val converted = current.convertedTo(option)
+                            unit = option
+                            valueText = converted.value.toString()
+                        },
+                    )
+                }
+            }
+            Spacer(Modifier.height(18.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    enabled = (value ?: 1) > 1,
+                    onClick = { valueText = ((value ?: 1) - 1).coerceAtLeast(1).toString() },
+                ) {
+                    Icon(Icons.Filled.Remove, contentDescription = "Decrease interval")
+                }
+                OutlinedTextField(
+                    value = valueText,
+                    onValueChange = { input ->
+                        if (input.isEmpty() || input.all(Char::isDigit)) {
+                            valueText = input.take(4)
+                        }
+                    },
+                    modifier = Modifier.width(112.dp),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.titleLarge.copy(
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(8.dp),
+                )
+                IconButton(
+                    enabled = (value ?: 0) < unit.maxValue,
+                    onClick = {
+                        valueText = ((value ?: 0) + 1).coerceAtMost(unit.maxValue).toString()
+                    },
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Increase interval")
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                totalHours?.let(::reminderIntervalLabel) ?: "Enter an interval",
+                style = MaterialTheme.typography.bodyLarge,
+                color = SunnyColors.TextSecondary,
+                fontWeight = FontWeight.Medium,
+            )
+            Spacer(Modifier.height(20.dp))
+
+            Button(
+                onClick = { totalHours?.let(onPick) },
+                enabled = totalHours != null,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Orange),
+            ) {
+                Text("Set interval", fontWeight = FontWeight.SemiBold)
+            }
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                Text("Cancel", color = SunnyColors.TextSecondary)
             }
         }
     }

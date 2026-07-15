@@ -16,6 +16,9 @@ object Guardrails {
         "benign", "malignant", "biopsy", "tumour", "tumor",
         "precancerous", "pre-cancerous", "metasta", "lesion is dangerous",
         "keratosis", "nevus", "nevi", "dermatofibroma",
+        "risk", "urgent", "urgency", "safe to wait", "harmless", "reassur",
+        "concerning", "suspicious", "worrisome", "dangerous", "recommend",
+        "should see", "seek care",
     )
 
     /** True if the text is clean (no banned terms). */

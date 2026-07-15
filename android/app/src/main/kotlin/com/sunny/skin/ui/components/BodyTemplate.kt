@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
@@ -19,11 +18,12 @@ import androidx.compose.ui.unit.IntSize
 import com.sunny.skin.R
 import com.sunny.skin.data.model.BodySide
 import com.sunny.skin.data.model.BodyZone
+import com.sunny.skin.ui.theme.SunnyColors
 import kotlin.math.roundToInt
 
 /**
  * Front/back anatomical body figure (design reference). A single grey figure
- * asset is drawn, then each scanned [BodyZone] is re-drawn tinted amber but
+ * asset is drawn, then each scanned [BodyZone] is re-drawn in the brand orange but
  * clipped to that zone's rectangle — so the highlight follows the body's real
  * contour (arms, torso, legs) instead of floating boxes. The figure image
  * already carries its own alpha, so the tint only ever paints on the body.
@@ -38,7 +38,7 @@ fun BodyTemplate(
     val figure = ImageBitmap.imageResource(
         if (side == BodySide.FRONT) R.drawable.body_figure else R.drawable.body_figure_back,
     )
-    val hot = Color(0xFFF2A33C)  // amber highlight
+    val hot = SunnyColors.Orange
 
     Box(modifier.fillMaxWidth()) {
         Canvas(
@@ -57,7 +57,7 @@ fun BodyTemplate(
                 filterQuality = FilterQuality.High,
             )
 
-            // Amber highlight for each scanned zone, clipped to the zone's box
+            // Brand-orange highlight for each scanned zone, clipped to the zone's box
             // and (via the image's own alpha) to the body silhouette.
             val tint = ColorFilter.tint(hot, BlendMode.SrcIn)
             zoneRects(side).forEach { (zone, rects) ->
@@ -78,7 +78,7 @@ fun BodyTemplate(
 
 /**
  * A small standalone thumbnail: the anatomical figure with a single [zone] lit
- * amber, sized by [modifier] (keeps the figure's 560:1151 aspect). Used as the
+ * orange, sized by [modifier] (keeps the figure's 560:1151 aspect). Used as the
  * per-pose "asset" in the guided full-body flow so each row shows exactly where
  * on the body that step is — no generic icons, no coloured chips.
  */
@@ -87,7 +87,7 @@ fun BodyZoneThumb(side: BodySide, zone: BodyZone, modifier: Modifier = Modifier)
     val figure = ImageBitmap.imageResource(
         if (side == BodySide.FRONT) R.drawable.body_figure else R.drawable.body_figure_back,
     )
-    val hot = Color(0xFFF2A33C)
+    val hot = SunnyColors.Orange
     val rects = zoneRects(side).firstOrNull { it.first == zone }?.second ?: emptyList()
 
     Canvas(modifier) {
@@ -124,7 +124,7 @@ fun BodyZoneThumb(side: BodySide, zone: BodyZone, modifier: Modifier = Modifier)
             dstOffset = IntOffset.Zero, dstSize = dst, filterQuality = FilterQuality.High,
         )
 
-        // Amber highlight, clipped to the zone box mapped into the cropped canvas.
+        // Brand-orange highlight, clipped to the zone box mapped into the cropped canvas.
         val tint = ColorFilter.tint(hot, BlendMode.SrcIn)
         rects.forEach { rr ->
             val x0 = (rr.l - clN) / cwN * w

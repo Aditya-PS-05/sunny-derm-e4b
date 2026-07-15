@@ -97,7 +97,7 @@ Java_com_sunny_skin_inference_LlamaBridge_nativeInit(
     if (!ctx->model) { LOGE("failed to load model: %s", model_path.c_str()); delete ctx; return 0; }
 
     llama_context_params cparams = llama_context_default_params();
-    cparams.n_ctx        = 4096;
+    cparams.n_ctx        = 1024;   // image(~256)+prompt(~130)+output(180) fits; small KV = less RAM thrash on low-end phones
     cparams.n_batch      = 512;
     cparams.n_ubatch     = 512;
     cparams.n_threads    = ctx->n_threads;

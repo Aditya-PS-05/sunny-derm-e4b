@@ -36,6 +36,14 @@ class SchemaParserTest {
         assertNull(SchemaParser.parse(VALID.replace("Borders: smooth, well-defined", "Borders:   ")))
     }
 
+    @Test
+    fun rejectsOversizedField() {
+        assertNull(SchemaParser.parse(VALID.replace(
+            "Summary: A visual description only, not a diagnosis.",
+            "Summary: ${"x".repeat(601)}",
+        )))
+    }
+
     private companion object {
         const val VALID = """Lesion Type: pigmented macule
 Colour: light brown

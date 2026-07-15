@@ -3,6 +3,7 @@ package com.sunny.skin.inference
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import com.sunny.skin.BuildConfig
+import com.sunny.skin.data.SettingsStore
 import java.io.File
 
 /**
@@ -77,12 +78,21 @@ object ModelProvider {
     val serverApiUrl: String get() = BuildConfig.SUNNY_INFERENCE_API_URL
 
     /**
-     * Analysis is available when EITHER a remote inference API is configured
-     * (interim server method) OR the on-device weights + native runtime are both
-     * present. This does not load the 6 GB model.
+     * Whether the next scan should use the remote server. True only when a server
+     * URL is baked into this (beta) build AND the runtime "analysis source" toggle
+     * selects it. Release builds have a blank URL, so this is always false there.
+     */
+    fun useServer(context: Context): Boolean =
+        !BuildConfig.SUNNY_PUBLIC_RELEASE && serverApiUrl.isNotBlank() &&
+            SettingsStore(context.applicationContext).useServerInference
+
+    /**
+     * Analysis is available when EITHER the server path is selected and configured
+     * OR the on-device weights + native runtime are both present. This does not
+     * load the 6 GB model.
      */
     fun realModelAvailable(context: Context): Boolean =
-        serverApiUrl.isNotBlank() ||
+        useServer(context) ||
             (resolveWeights(context) != null && LlamaBridge.ensureLibrary())
 
     /** Single shared describer per process (keeps the model warm across screens). */
@@ -93,8 +103,8 @@ object ModelProvider {
         return synchronized(this) {
             describer?.let { return@synchronized it }
             val app = context.applicationContext
-            // Server method (interim): a configured API wins over on-device weights.
-            if (serverApiUrl.isNotBlank()) {
+            // Server method (interim): used when the runtime toggle selects it.
+            if (useServer(app)) {
                 return@synchronized SunnyDescriber(RemoteSunnyModel(serverApiUrl)).also {
                     describer = it
                     usingRealModel = true

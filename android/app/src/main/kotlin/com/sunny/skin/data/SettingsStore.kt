@@ -81,8 +81,18 @@ class SettingsStore(context: Context) {
     // ---- First-run flags ----
 
     var seenOnboarding: Boolean
-        get() = prefs.getBoolean(KEY_ONBOARDED, false)
-        set(v) = prefs.edit().putBoolean(KEY_ONBOARDED, v).apply()
+        get() = prefs.getBoolean(KEY_ONBOARDED, false) &&
+            prefs.getInt(KEY_ONBOARDING_CONSENT_VERSION, 0) == ONBOARDING_CONSENT_VERSION
+        set(v) {
+            prefs.edit()
+                .putBoolean(KEY_ONBOARDED, v)
+                .putInt(KEY_ONBOARDING_CONSENT_VERSION, if (v) ONBOARDING_CONSENT_VERSION else 0)
+                .putLong(KEY_ONBOARDING_CONSENT_AT, if (v) System.currentTimeMillis() else 0L)
+                .apply()
+        }
+
+    val onboardingConsentAt: Long
+        get() = prefs.getLong(KEY_ONBOARDING_CONSENT_AT, 0L)
 
     var seenGreeting: Boolean
         get() = prefs.getBoolean(KEY_GREETED, false)
@@ -94,8 +104,30 @@ class SettingsStore(context: Context) {
      * for everyone who doesn't explicitly turn this on.
      */
     var improveSunny: Boolean
-        get() = prefs.getBoolean(KEY_IMPROVE, false)
-        set(v) = prefs.edit().putBoolean(KEY_IMPROVE, v).apply()
+        get() = prefs.getBoolean(KEY_IMPROVE, false) && improveSunnyConsentAt > 0L &&
+            prefs.getInt(KEY_IMPROVE_CONSENT_VERSION, 0) == IMPROVE_CONSENT_VERSION
+        set(v) {
+            prefs.edit()
+                .putBoolean(KEY_IMPROVE, v)
+                .putLong(KEY_IMPROVE_CONSENT_AT, if (v) System.currentTimeMillis() else 0L)
+                .putInt(KEY_IMPROVE_CONSENT_VERSION, if (v) IMPROVE_CONSENT_VERSION else 0)
+                .apply()
+        }
+
+    /** Timestamp of the current explicit contribution consent, or zero when off. */
+    val improveSunnyConsentAt: Long
+        get() = prefs.getLong(KEY_IMPROVE_CONSENT_AT, 0L)
+
+    /**
+     * Beta "analysis source" switch: when true, scans run on the configured remote
+     * inference server; when false, on the on-device model. Only meaningful in a
+     * beta build that has a server URL baked in (the Settings row is hidden and
+     * this value is ignored otherwise). Defaults to server so the beta works on
+     * hardware — like the emulator — that cannot run the 6 GB on-device model.
+     */
+    var useServerInference: Boolean
+        get() = prefs.getBoolean(KEY_USE_SERVER, true)
+        set(v) = prefs.edit().putBoolean(KEY_USE_SERVER, v).apply()
 
     private companion object {
         const val KEY_PIN = "app_lock_pin"       // legacy plaintext key (cleared on migration)
@@ -104,7 +136,14 @@ class SettingsStore(context: Context) {
         const val KEY_FAILS = "pin_failed_attempts"
         const val KEY_LOCKOUT = "pin_lockout_until"
         const val KEY_ONBOARDED = "seen_onboarding"
+        const val KEY_ONBOARDING_CONSENT_AT = "onboarding_consent_at"
+        const val KEY_ONBOARDING_CONSENT_VERSION = "onboarding_consent_version"
         const val KEY_GREETED = "seen_greeting"
         const val KEY_IMPROVE = "improve_sunny_optin"
+        const val KEY_IMPROVE_CONSENT_AT = "improve_sunny_consent_at"
+        const val KEY_IMPROVE_CONSENT_VERSION = "improve_sunny_consent_version"
+        const val KEY_USE_SERVER = "use_server_inference"
+        const val ONBOARDING_CONSENT_VERSION = 2
+        const val IMPROVE_CONSENT_VERSION = 1
     }
 }

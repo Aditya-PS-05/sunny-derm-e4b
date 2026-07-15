@@ -3,6 +3,7 @@ package com.sunny.skin.util
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.camera.core.ImageProxy
 import com.sunny.skin.data.crypto.CryptoManager
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,30 @@ data class AlignTransform(
     companion object { val Identity = AlignTransform() }
 }
 
+enum class FramingQuality { HIGH, MODERATE, LOW }
+
+data class AlignmentResult(
+    val transform: AlignTransform = AlignTransform.Identity,
+    val score: Float = 0f,
+) {
+    val quality: FramingQuality
+        get() = when {
+            score >= 0.55f -> FramingQuality.HIGH
+            score >= 0.32f -> FramingQuality.MODERATE
+            else -> FramingQuality.LOW
+        }
+
+    val isUsable: Boolean get() = quality != FramingQuality.LOW
+
+    /** Strict enough for live camera feedback; this describes framing only. */
+    val framingReady: Boolean
+        get() = score >= 0.46f &&
+            kotlin.math.abs(transform.tx) <= 0.07f &&
+            kotlin.math.abs(transform.ty) <= 0.07f &&
+            kotlin.math.abs(transform.scale - 1f) <= 0.13f &&
+            kotlin.math.abs(transform.rotationDeg) <= 6f
+}
+
 /**
  * Intensity-based image registration with no native/OpenCV dependency. Both
  * photos are reduced to a small, per-image contrast-normalised greyscale grid
@@ -40,11 +65,25 @@ object ImageAlignment {
     private const val G = 64 // working grid (G×G)
 
     suspend fun compute(context: Context, beforePath: String, afterPath: String): AlignTransform =
+        computeResult(context, beforePath, afterPath).transform
+
+    suspend fun computeResult(context: Context, beforePath: String, afterPath: String): AlignmentResult =
         withContext(Dispatchers.Default) {
-            val before = loadGray(context, beforePath) ?: return@withContext AlignTransform.Identity
-            val after = loadGray(context, afterPath) ?: return@withContext AlignTransform.Identity
+            val before = loadGray(context, beforePath) ?: return@withContext AlignmentResult()
+            val after = loadGray(context, afterPath) ?: return@withContext AlignmentResult()
             align(before, after)
         }
+
+    /** Decrypt and prepare a reference once, then reuse it for live camera frames. */
+    suspend fun loadReferenceGrid(context: Context, path: String): FloatArray? =
+        withContext(Dispatchers.Default) { loadGray(context, path) }
+
+    /** Match a prepared reference against a camera analysis frame without retaining the frame. */
+    fun matchPreview(reference: FloatArray, image: ImageProxy): AlignmentResult {
+        if (reference.size != G * G) return AlignmentResult()
+        val current = imageToGray(image) ?: return AlignmentResult()
+        return align(reference, current, coarseSteps = 5, iterations = 24)
+    }
 
     /** Decrypt → decode → G×G greyscale → zero-mean / unit-variance normalise. */
     private fun loadGray(context: Context, path: String): FloatArray? {
@@ -52,10 +91,13 @@ object ImageAlignment {
             ?: return null
         val bmp = runCatching { BitmapFactory.decodeByteArray(bytes, 0, bytes.size) }.getOrNull()
             ?: return null
-        // Centre-crop to a square first so the working grid matches what the UI
-        // shows (every Compare surface renders with ContentScale.Crop into a 1:1
-        // box). Scoring on the stretched full frame would misregister non-square
-        // photos, worst near the edges.
+        val result = bitmapToGray(bmp)
+        bmp.recycle()
+        return result
+    }
+
+    private fun bitmapToGray(bmp: Bitmap): FloatArray {
+        // Centre-crop to a square first so the working grid matches the UI.
         val side = minOf(bmp.width, bmp.height)
         val square = Bitmap.createBitmap(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side)
         val scaled = Bitmap.createScaledBitmap(square, G, G, true)
@@ -69,15 +111,61 @@ object ImageAlignment {
             val b = c and 0xFF
             g[i] = 0.299f * r + 0.587f * gg + 0.114f * b
         }
+        if (scaled !== square) scaled.recycle()
+        if (square !== bmp) square.recycle()
+        return normalize(g)
+    }
+
+    /** Upright, centre-cropped luminance grid matching PreviewView's fill-centre framing. */
+    private fun imageToGray(image: ImageProxy): FloatArray? {
+        val plane = image.planes.firstOrNull() ?: return null
+        val buffer = plane.buffer
+        val rawW = image.width
+        val rawH = image.height
+        val rotation = image.imageInfo.rotationDegrees.mod(360)
+        val uprightW = if (rotation == 90 || rotation == 270) rawH else rawW
+        val uprightH = if (rotation == 90 || rotation == 270) rawW else rawH
+        val side = minOf(uprightW, uprightH).toFloat()
+        val left = (uprightW - side) / 2f
+        val top = (uprightH - side) / 2f
+        val grid = FloatArray(G * G)
+
+        for (gy in 0 until G) {
+            val uy = top + (gy + 0.5f) * side / G
+            for (gx in 0 until G) {
+                val ux = left + (gx + 0.5f) * side / G
+                val (rawX, rawY) = when (rotation) {
+                    90 -> uy to (rawH - 1f - ux)
+                    180 -> (rawW - 1f - ux) to (rawH - 1f - uy)
+                    270 -> (rawW - 1f - uy) to ux
+                    else -> ux to uy
+                }
+                val x = rawX.toInt().coerceIn(0, rawW - 1)
+                val y = rawY.toInt().coerceIn(0, rawH - 1)
+                val index = y * plane.rowStride + x * plane.pixelStride
+                grid[gy * G + gx] = if (index < buffer.limit()) {
+                    (buffer.get(index).toInt() and 0xff).toFloat()
+                } else {
+                    0f
+                }
+            }
+        }
+        return normalize(grid)
+    }
+
+    private fun normalize(values: FloatArray): FloatArray {
         var mean = 0f
-        for (v in g) mean += v
-        mean /= g.size
+        for (value in values) mean += value
+        mean /= values.size
         var variance = 0f
-        for (v in g) { val d = v - mean; variance += d * d }
-        variance /= g.size
+        for (value in values) {
+            val delta = value - mean
+            variance += delta * delta
+        }
+        variance /= values.size
         val std = sqrt(variance).coerceAtLeast(1e-3f)
-        for (i in g.indices) g[i] = (g[i] - mean) / std
-        return g
+        for (index in values.indices) values[index] = (values[index] - mean) / std
+        return values
     }
 
     /** Bilinear sample at centred-normalised coord [-0.5,0.5]; out of bounds → 0. */
@@ -115,12 +203,17 @@ object ImageAlignment {
         return sum / (G * G)
     }
 
-    private fun align(before: FloatArray, after: FloatArray): AlignTransform {
+    private fun align(
+        before: FloatArray,
+        after: FloatArray,
+        coarseSteps: Int = 9,
+        iterations: Int = 80,
+    ): AlignmentResult {
         var best = AlignTransform.Identity
         var bestScore = score(before, after, best)
 
         // Coarse translation grid — the dominant misalignment.
-        val range = 0.18f; val steps = 9
+        val range = 0.18f; val steps = coarseSteps
         for (iy in -steps..steps) for (ix in -steps..steps) {
             val t = AlignTransform(tx = ix * range / steps, ty = iy * range / steps)
             val s = score(before, after, t)
@@ -129,7 +222,7 @@ object ImageAlignment {
 
         // Pattern search over all four parameters, shrinking steps on stall.
         var stepT = 0.04f; var stepS = 0.06f; var stepR = 4f
-        repeat(80) {
+        repeat(iterations) {
             val cands = listOf(
                 best.copy(tx = best.tx + stepT), best.copy(tx = best.tx - stepT),
                 best.copy(ty = best.ty + stepT), best.copy(ty = best.ty - stepT),
@@ -145,9 +238,9 @@ object ImageAlignment {
             }
             if (!improved) {
                 stepT *= 0.5f; stepS *= 0.5f; stepR *= 0.5f
-                if (stepT < 0.004f) return best
+                if (stepT < 0.004f) return AlignmentResult(best, bestScore.coerceIn(-1f, 1f))
             }
         }
-        return best
+        return AlignmentResult(best, bestScore.coerceIn(-1f, 1f))
     }
 }

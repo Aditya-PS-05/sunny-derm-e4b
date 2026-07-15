@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  INTERIM (server method): cleartext HTTP is permitted ONLY to the model
-  inference server. Every other destination keeps the platform default
-  (cleartext blocked; HTTPS required) — the R2 model download stays HTTPS.
--->
+<!-- Release/default policy. Debug beta builds provide a narrowly-scoped override. -->
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">34.238.98.220</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
 </network-security-config>

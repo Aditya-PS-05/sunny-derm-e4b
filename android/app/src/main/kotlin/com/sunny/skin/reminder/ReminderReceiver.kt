@@ -30,7 +30,7 @@ class ReminderReceiver : BroadcastReceiver() {
             // still land in the past if delivery was deferred (Doze) by more than
             // one interval, and setAndAllowWhileIdle would then fire immediately
             // in a loop — so catch up like BootReceiver does.
-            val step = reminder.intervalDays * DAY_MS
+            val step = reminder.intervalMillis
             val now = System.currentTimeMillis()
             var next = reminder.triggerAt + step
             while (next <= now) next += step
@@ -51,9 +51,7 @@ class ReminderReceiver : BroadcastReceiver() {
             PackageManager.PERMISSION_GRANTED
         ) return
 
-        val tapIntent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
+        val tapIntent = reminderTapIntent(context, reminder)
         val pi = PendingIntent.getActivity(
             context, reminder.id.hashCode(), tapIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
@@ -74,8 +72,11 @@ class ReminderReceiver : BroadcastReceiver() {
             // Permission can be revoked between the check and notify call.
         }
     }
-
-    private companion object {
-        const val DAY_MS = 24L * 60 * 60 * 1000
-    }
 }
+
+internal fun reminderTapIntent(context: Context, reminder: Reminder): Intent =
+    Intent(context, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        reminder.scanId?.let { putExtra(MainActivity.EXTRA_SCAN_ID, it) }
+            ?: putExtra(MainActivity.EXTRA_OPEN_REMINDERS, true)
+    }

@@ -6,7 +6,10 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import java.security.KeyStore
 import java.security.SecureRandom
+import java.io.InputStream
+import java.io.OutputStream
 import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
@@ -97,4 +100,19 @@ object CryptoManager {
 
     /** Decrypt a blob produced by [encrypt]. Throws on tamper/wrong key. */
     fun decrypt(context: Context, blob: ByteArray): ByteArray = gcmDecrypt(fileKey(context), blob)
+
+    /** Stream-decrypt a stored file blob without creating a plaintext temp file. */
+    fun decryptTo(context: Context, input: InputStream, output: OutputStream) {
+        val iv = ByteArray(IV_LEN)
+        var offset = 0
+        while (offset < iv.size) {
+            val count = input.read(iv, offset, iv.size - offset)
+            if (count < 0) break
+            offset += count
+        }
+        require(offset == IV_LEN) { "encrypted file is truncated" }
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(Cipher.DECRYPT_MODE, fileKey(context), GCMParameterSpec(GCM_TAG_BITS, iv))
+        CipherInputStream(input, cipher).use { decrypted -> decrypted.copyTo(output) }
+    }
 }

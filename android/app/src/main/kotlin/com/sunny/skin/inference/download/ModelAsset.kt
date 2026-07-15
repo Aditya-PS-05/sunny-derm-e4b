@@ -4,9 +4,8 @@ import com.sunny.skin.BuildConfig
 
 /**
  * The two files that make up the on-device model (exports/MODELS.md). Sizes are
- * the exact measured byte counts; [sha256Prefix] is the first 16 hex chars
- * recorded in MODELS.md — enough to catch a corrupt/wrong download. Replace with
- * the FULL sha256 once published for stronger verification.
+ * the exact measured byte counts. Debug builds may use the recorded 16-character
+ * digest prefixes; release builds require full SHA-256 values at build time.
  *
  * [remotePath] is appended to [ModelSource.baseUrl]. Configure a rights-cleared
  * HTTPS repository or CDN at build time; see exports/MODELS.md route B.
@@ -14,19 +13,19 @@ import com.sunny.skin.BuildConfig
 enum class ModelAsset(
     val fileName: String,
     val sizeBytes: Long,
-    val sha256Prefix: String,
+    val sha256: String,
     val remotePath: String,
 ) {
     LANGUAGE_MODEL(
         fileName = "e4b-derm-Q4_K_M.gguf",
         sizeBytes = 5_302_272_736L,
-        sha256Prefix = "e41e8bf3d8184980",
+        sha256 = BuildConfig.SUNNY_MODEL_LANGUAGE_SHA256,
         remotePath = "e4b-derm-Q4_K_M.gguf",
     ),
     VISION_PROJECTOR(
         fileName = "mmproj-e4b-derm-f16.gguf",
         sizeBytes = 990_372_192L,
-        sha256Prefix = "23474645acf3e10f",
+        sha256 = BuildConfig.SUNNY_MODEL_PROJECTOR_SHA256,
         remotePath = "mmproj-e4b-derm-f16.gguf",
     );
 

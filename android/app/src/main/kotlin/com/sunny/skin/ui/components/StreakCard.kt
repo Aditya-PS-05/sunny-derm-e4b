@@ -1,6 +1,7 @@
 package com.sunny.skin.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,9 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.theme.SunnyColors
 
 /**
@@ -41,6 +44,40 @@ fun StreakCard(habit: com.sunny.skin.ui.HabitStats, modifier: Modifier = Modifie
                 ) {
                     Icon(Icons.Filled.LocalFireDepartment, null, tint = SunnyColors.Orange,
                         modifier = Modifier.size(36.dp))
+                    Canvas(
+                        Modifier.size(12.dp, 17.dp).align(Alignment.BottomCenter).offset(y = (-6).dp),
+                    ) {
+                        val core = Path().apply {
+                            moveTo(size.width * 0.52f, 0f)
+                            cubicTo(
+                                size.width * 0.5f, size.height * 0.25f,
+                                size.width * 0.16f, size.height * 0.4f,
+                                size.width * 0.16f, size.height * 0.68f,
+                            )
+                            cubicTo(
+                                size.width * 0.16f, size.height * 0.9f,
+                                size.width * 0.32f, size.height,
+                                size.width * 0.5f, size.height,
+                            )
+                            cubicTo(
+                                size.width * 0.78f, size.height,
+                                size.width * 0.9f, size.height * 0.8f,
+                                size.width * 0.86f, size.height * 0.6f,
+                            )
+                            cubicTo(
+                                size.width * 0.82f, size.height * 0.38f,
+                                size.width * 0.65f, size.height * 0.24f,
+                                size.width * 0.52f, 0f,
+                            )
+                            close()
+                        }
+                        drawPath(core, SunnyColors.FlameCore)
+                        drawCircle(
+                            color = SunnyColors.OrangeLight,
+                            radius = size.minDimension * 0.1f,
+                            center = Offset(size.width * 0.53f, size.height * 0.73f),
+                        )
+                    }
                 }
                 Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {

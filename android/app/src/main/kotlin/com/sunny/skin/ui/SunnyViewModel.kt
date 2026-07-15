@@ -6,9 +6,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sunny.skin.SunnyApp
 import com.sunny.skin.data.SettingsStore
+import com.sunny.skin.data.CheckSessionStatus
 import com.sunny.skin.data.db.ScanType
 import com.sunny.skin.data.db.ScanWithObservations
+import com.sunny.skin.data.model.ApproximateMeasurement
 import com.sunny.skin.data.model.BodyPart
+import com.sunny.skin.data.model.CaptureAlignment
 import com.sunny.skin.inference.DescribeResult
 import com.sunny.skin.inference.ModelProvider
 import com.sunny.skin.inference.download.ModelDownloadManager
@@ -19,7 +22,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.sunny.skin.util.AlignmentResult
 
 /** UI state for the in-progress capture → analysis → review flow. */
 data class CaptureState(
@@ -27,17 +36,27 @@ data class CaptureState(
     val bodyPart: BodyPart = BodyPart.SHOULDER,
     val scanType: ScanType = ScanType.SINGLE,
     val analysis: AnalysisState = AnalysisState.Idle,
+    val targetScanId: String? = null,
+    val referenceImagePath: String? = null,
+    val measurement: ApproximateMeasurement? = null,
+    val alignment: CaptureAlignment? = null,
+    val checkSessionId: String? = null,
 )
 
 sealed interface AnalysisState {
     data object Idle : AnalysisState
-    data object Running : AnalysisState
+    data class Running(val phase: AnalysisPhase) : AnalysisState
     data class Ready(val result: DescribeResult.Success) : AnalysisState
     data object Unreadable : AnalysisState
     data object ModelUnavailable : AnalysisState
+    data object Cancelled : AnalysisState
+    data class PoorQuality(val issue: com.sunny.skin.util.PhotoQualityIssue) : AnalysisState
 }
 
+enum class AnalysisPhase { PREPARING, REMOTE, ON_DEVICE }
+
 enum class RecheckResult { SAVED, UNREADABLE, MODEL_UNAVAILABLE }
+enum class ContributionStatus { IDLE, UPLOADING, SENT, FAILED }
 
 /** Seeds the next capture from the guided full-body flow: preset body part + a
  *  framing hint shown over the camera so photos stay consistent for alignment. */
@@ -71,7 +90,8 @@ data class HabitStats(
 
 class SunnyViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val appCtx = app.applicationContext
+    private val appCtx: android.content.Context
+        get() = getApplication<Application>().applicationContext
     private val repo = (app as SunnyApp).repository
     val settings = SettingsStore(app)
 
@@ -103,6 +123,8 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _capture = MutableStateFlow(CaptureState())
     val capture: StateFlow<CaptureState> = _capture.asStateFlow()
+    private val pendingCaptureStore = com.sunny.skin.data.PendingCaptureStore(appCtx)
+    private var analysisJob: Job? = null
 
     // ---- Guided full-body capture ----
     private val _capturePreset = MutableStateFlow<CapturePreset?>(null)
@@ -110,7 +132,30 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Begin capturing a specific body zone with a framing hint (guided flow). */
     fun beginGuidedCapture(bodyPart: BodyPart, poseHint: String) {
+        clearPendingCapture()
+        _capture.value = CaptureState(bodyPart = bodyPart)
         _capturePreset.value = CapturePreset(bodyPart, poseHint)
+    }
+
+    /** Prepare a follow-up capture while keeping the previous encrypted photo as a camera guide. */
+    fun beginRecheckCapture(
+        scanId: String,
+        bodyPart: BodyPart,
+        referenceImagePath: String,
+        checkSessionId: String? = null,
+    ) {
+        clearPendingCapture()
+        _capture.value = CaptureState(
+            bodyPart = bodyPart,
+            scanType = ScanType.TRACKED,
+            targetScanId = scanId,
+            referenceImagePath = referenceImagePath,
+            checkSessionId = checkSessionId,
+        )
+        _capturePreset.value = CapturePreset(
+            bodyPart = bodyPart,
+            poseHint = "Match the previous photo's distance and angle.",
+        )
     }
 
     // ---- App-lock PIN ----
@@ -124,6 +169,22 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     private val _improveSunny = MutableStateFlow(settings.improveSunny)
     val improveSunny: StateFlow<Boolean> = _improveSunny.asStateFlow()
     fun setImproveSunny(v: Boolean) { settings.improveSunny = v; _improveSunny.value = v }
+    private val _contributionStatus = MutableStateFlow(ContributionStatus.IDLE)
+    val contributionStatus: StateFlow<ContributionStatus> = _contributionStatus.asStateFlow()
+
+    // ---- Beta "analysis source" switch (server vs on-device) ----
+    /** True only in a beta build that has a server URL baked in; hides the row otherwise. */
+    val serverModeAvailable: Boolean = ModelProvider.serverApiUrl.isNotBlank()
+    private val _useServerInference = MutableStateFlow(settings.useServerInference)
+    val useServerInference: StateFlow<Boolean> = _useServerInference.asStateFlow()
+
+    /** Switch analysis engine at runtime; the next scan resolves the new source. */
+    fun setUseServerInference(v: Boolean) {
+        settings.useServerInference = v
+        _useServerInference.value = v
+        ModelProvider.reset()          // drop the cached describer so the next scan re-resolves
+        ModelDownloadManager.refresh() // re-emit status so modelAvailable re-evaluates
+    }
 
     /** Upload one contribution off the UI thread — only when the user opted in. */
     private fun contribute(
@@ -134,13 +195,53 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     ) {
         if (!settings.improveSunny) return
         viewModelScope.launch {
-            com.sunny.skin.data.ContributionUploader.submit(bitmap, modelOutput, corrected, bodyZone)
+            _contributionStatus.value = ContributionStatus.UPLOADING
+            val sent = com.sunny.skin.data.ContributionUploader.submit(
+                bitmap,
+                modelOutput,
+                corrected,
+                bodyZone,
+            )
+            _contributionStatus.value = if (sent) ContributionStatus.SENT else ContributionStatus.FAILED
         }
     }
 
     // ---- Reminders ----
     private val reminderStore = com.sunny.skin.reminder.ReminderStore(appCtx)
     val reminders: StateFlow<List<com.sunny.skin.reminder.Reminder>> = reminderStore.reminders
+
+    // ---- Resumable photo-check session ----
+    private val checkSessionStore = com.sunny.skin.data.CheckSessionStore(appCtx)
+    val checkSession: StateFlow<com.sunny.skin.data.CheckSession?> = checkSessionStore.active
+
+    fun startCheckSession(): Boolean {
+        val scanIds = scans.value
+            .filter { it.latest != null }
+            .sortedBy { it.scan.bodyPart.ordinal }
+            .map { it.scan.id }
+        val existing = checkSession.value
+        if (existing != null && existing.items.any { it.scanId in scanIds }) return true
+        if (existing != null) checkSessionStore.clear()
+        return checkSessionStore.start(scanIds) != null
+    }
+
+    fun skipCheckSessionItem(scanId: String) =
+        checkSessionStore.setStatus(scanId, CheckSessionStatus.SKIPPED)
+
+    fun finishCheckSession() = checkSessionStore.clear()
+
+    fun beginCheckSessionRecheck(scanId: String): Boolean {
+        val scan = scans.value.firstOrNull { it.scan.id == scanId } ?: return false
+        val latest = scan.latest ?: return false
+        val sessionId = checkSession.value?.id ?: return false
+        beginRecheckCapture(
+            scanId = scanId,
+            bodyPart = scan.scan.bodyPart,
+            referenceImagePath = latest.imagePath,
+            checkSessionId = sessionId,
+        )
+        return true
+    }
 
     // ---- ABCDE self-check (per scan; educational, no interpretation) ----
     private val abcdeStore = com.sunny.skin.data.AbcdeStore(appCtx)
@@ -155,6 +256,7 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     ) = abcdeStore.set(scanId, item, answer)
 
     private val dayMs = 24L * 60 * 60 * 1000
+    private val hourMs = 60L * 60 * 1000
 
     /** One-shot "re-check this spot" reminder for a saved scan. */
     fun scheduleScanReminder(scanId: String, bodyLabel: String, delayDays: Int) {
@@ -171,20 +273,22 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Enable/replace or disable the recurring "regular skin check" reminder. */
-    fun setRecurringReminder(enabled: Boolean, intervalDays: Int) {
+    fun setRecurringReminder(enabled: Boolean, intervalHours: Int) {
         val id = com.sunny.skin.reminder.Reminder.RECURRING_ID
         if (!enabled) {
             reminderStore.remove(id)
             com.sunny.skin.reminder.ReminderScheduler.cancel(appCtx, id)
             return
         }
+        val safeHours = intervalHours.coerceIn(1, 24 * 365)
         val r = com.sunny.skin.reminder.Reminder(
             id = id,
             scanId = null,
             title = "Time for a skin check",
             body = "Take a few minutes to look over your skin and photograph anything new or changed.",
-            triggerAt = System.currentTimeMillis() + intervalDays * dayMs,
-            intervalDays = intervalDays,
+            triggerAt = System.currentTimeMillis() + safeHours * hourMs,
+            intervalDays = safeHours / 24,
+            intervalHours = safeHours,
         )
         reminderStore.upsert(r)
         com.sunny.skin.reminder.ReminderScheduler.schedule(appCtx, r)
@@ -223,7 +327,7 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- Edit an existing scan ----
 
-    /** Run the installed on-device model, failing closed if it cannot start. */
+    /** Run the configured inference provider, failing closed if it cannot start. */
     suspend fun runDescribe(bitmap: Bitmap): DescribeResult = describe(bitmap)
 
     /**
@@ -238,6 +342,7 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
         analysis: com.sunny.skin.data.model.Analysis,
         modelVersion: String,
         rawOutput: String,
+        bodyZone: String,
         onDone: () -> Unit,
     ) {
         viewModelScope.launch {
@@ -250,7 +355,13 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
             if (settings.improveSunny) {
                 val bmp = newBitmap ?: repo.imageStore().decryptToBitmap(existing.imagePath)
                 if (bmp != null) {
-                    contribute(bmp, existing.analysis.toAnalysis(), corrected = analysis, bodyZone = "")
+                    val labels = com.sunny.skin.data.ContributionLabeler.from(rawOutput, analysis)
+                    contribute(
+                        bmp,
+                        labels.modelOutput,
+                        corrected = labels.correctedOutput,
+                        bodyZone = bodyZone,
+                    )
                 }
             }
             onDone()
@@ -267,9 +378,37 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
         }
+        viewModelScope.launch {
+            val restored = withContext(Dispatchers.IO) { pendingCaptureStore.restore() }
+                ?: return@launch
+            if (_capture.value.bitmap != null) return@launch
+            val targetExists = restored.targetScanId == null ||
+                repo.allScansOnce().any { it.scan.id == restored.targetScanId }
+            val qualityIssue = com.sunny.skin.util.PhotoQuality.assess(restored.bitmap)
+            _capture.value = CaptureState(
+                bitmap = restored.bitmap,
+                bodyPart = restored.bodyPart,
+                scanType = restored.scanType,
+                analysis = when {
+                    qualityIssue != null -> AnalysisState.PoorQuality(qualityIssue)
+                    modelAvailable.value -> AnalysisState.Running(AnalysisPhase.PREPARING)
+                    else -> AnalysisState.ModelUnavailable
+                },
+                targetScanId = restored.targetScanId.takeIf { targetExists },
+                referenceImagePath = restored.referenceImagePath.takeIf { targetExists },
+                measurement = restored.measurement,
+                alignment = restored.alignment,
+                checkSessionId = restored.checkSessionId,
+            )
+            if (_capture.value.analysis is AnalysisState.Running) runAnalysis(restored.bitmap)
+        }
     }
 
     fun scan(scanId: String) = repo.scan(scanId)
+
+    fun setScanNotes(scanId: String, notes: String) {
+        viewModelScope.launch { repo.updateNotes(scanId, notes, System.currentTimeMillis()) }
+    }
 
     /** Display name for Settings › About › AI Model. */
     fun modelName(): String =
@@ -277,24 +416,68 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- Capture flow ----
 
-    fun startCapture(bitmap: Bitmap) {
+    /** Start the ordinary capture chooser without carrying a cancelled re-check target forward. */
+    fun beginNewCapture() {
+        clearPendingCapture()
+        _capture.value = CaptureState()
+        _capturePreset.value = null
+    }
+
+    fun startCapture(bitmap: Bitmap, alignmentResult: AlignmentResult? = null) {
         val preset = _capturePreset.value
-        val initialAnalysis = if (modelAvailable.value) {
-            AnalysisState.Running
+        val pending = _capture.value
+        val qualityIssue = com.sunny.skin.util.PhotoQuality.assess(bitmap)
+        val initialAnalysis = if (qualityIssue != null) {
+            AnalysisState.PoorQuality(qualityIssue)
+        } else if (modelAvailable.value) {
+            AnalysisState.Running(AnalysisPhase.PREPARING)
         } else {
             AnalysisState.ModelUnavailable
         }
         _capture.value = CaptureState(
             bitmap = bitmap,
-            bodyPart = preset?.bodyPart ?: CaptureState().bodyPart,
+            bodyPart = preset?.bodyPart ?: pending.bodyPart,
+            scanType = pending.scanType,
             analysis = initialAnalysis,
+            targetScanId = pending.targetScanId,
+            referenceImagePath = pending.referenceImagePath,
+            measurement = pending.measurement,
+            alignment = alignmentResult?.let {
+                CaptureAlignment(
+                    score = it.score,
+                    translationX = it.transform.tx,
+                    translationY = it.transform.ty,
+                    scale = it.transform.scale,
+                    rotationDegrees = it.transform.rotationDeg,
+                )
+            } ?: pending.alignment,
+            checkSessionId = pending.checkSessionId,
         )
+        runCatching { pendingCaptureStore.save(
+            com.sunny.skin.data.PendingCapture(
+                bitmap = bitmap,
+                bodyPart = _capture.value.bodyPart,
+                scanType = _capture.value.scanType,
+                targetScanId = _capture.value.targetScanId,
+                referenceImagePath = _capture.value.referenceImagePath,
+                measurement = _capture.value.measurement,
+                alignment = _capture.value.alignment,
+                checkSessionId = _capture.value.checkSessionId,
+            ),
+        ) }
         if (initialAnalysis is AnalysisState.Running) runAnalysis(bitmap)
     }
 
     private fun runAnalysis(bitmap: Bitmap) {
-        viewModelScope.launch {
+        analysisJob?.cancel()
+        analysisJob = viewModelScope.launch {
+            _capture.value = _capture.value.copy(
+                analysis = AnalysisState.Running(
+                    if (ModelProvider.useServer(appCtx)) AnalysisPhase.REMOTE else AnalysisPhase.ON_DEVICE,
+                ),
+            )
             val result = describe(bitmap)
+            currentCoroutineContext().ensureActive()
             _capture.value = _capture.value.copy(
                 analysis = when (result) {
                     is DescribeResult.Success -> AnalysisState.Ready(result)
@@ -305,52 +488,167 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun cancelAnalysis() {
+        analysisJob?.cancel()
+        analysisJob = null
+        if (_capture.value.analysis is AnalysisState.Running) {
+            _capture.value = _capture.value.copy(analysis = AnalysisState.Cancelled)
+        }
+    }
+
     fun retryAnalysis() {
         val bmp = _capture.value.bitmap ?: return
         if (!modelAvailable.value) {
             _capture.value = _capture.value.copy(analysis = AnalysisState.ModelUnavailable)
             return
         }
-        _capture.value = _capture.value.copy(analysis = AnalysisState.Running)
+        _capture.value = _capture.value.copy(analysis = AnalysisState.Running(AnalysisPhase.PREPARING))
         runAnalysis(bmp)
     }
 
-    fun setBodyPart(part: BodyPart) { _capture.value = _capture.value.copy(bodyPart = part) }
-    fun setScanType(type: ScanType) { _capture.value = _capture.value.copy(scanType = type) }
+    /** Clear only the captured frame so camera re-entry retains re-check alignment context. */
+    fun prepareRetake() {
+        clearPendingCapture()
+        _capture.value = _capture.value.copy(
+            bitmap = null,
+            analysis = AnalysisState.Idle,
+            measurement = null,
+            alignment = null,
+        )
+    }
 
-    /** Persist the reviewed scan. Returns the new scanId, or null if not ready. */
-    fun saveCapture(now: Long, onSaved: (String) -> Unit) {
+    fun setBodyPart(part: BodyPart) {
+        _capture.value = _capture.value.copy(bodyPart = part)
+        persistPendingCapture()
+    }
+    fun setScanType(type: ScanType) {
+        _capture.value = _capture.value.copy(scanType = type)
+        persistPendingCapture()
+    }
+
+    fun setApproximateMeasurement(measurement: ApproximateMeasurement?) {
+        _capture.value = _capture.value.copy(measurement = measurement?.takeIf { it.isValid })
+        persistPendingCapture()
+    }
+
+    /** Persist the reviewed photo, creating a scan or appending to its re-check target. */
+    fun saveCapture(
+        now: Long,
+        onSaved: (scanId: String, wasRecheck: Boolean, checkSessionId: String?) -> Unit,
+    ) {
         val state = _capture.value
         val bitmap = state.bitmap ?: return
         val ready = state.analysis as? AnalysisState.Ready ?: return
         viewModelScope.launch {
             val path = repo.imageStore().save(bitmap)
-            val scanId = repo.createScan(
-                imagePath = path,
-                bodyPart = state.bodyPart,
-                scanType = state.scanType,
-                analysis = ready.result.analysis,
-                modelVersion = ready.result.modelVersion,
-                rawOutput = ready.result.rawOutput,
-                now = now,
-            )
+            val targetScanId = state.targetScanId
+            val scanId = if (targetScanId != null) {
+                repo.addObservation(
+                    scanId = targetScanId,
+                    imagePath = path,
+                    analysis = ready.result.analysis,
+                    modelVersion = ready.result.modelVersion,
+                    rawOutput = ready.result.rawOutput,
+                    now = now,
+                    measurement = state.measurement,
+                    alignment = state.alignment,
+                )
+                targetScanId
+            } else {
+                repo.createScan(
+                    imagePath = path,
+                    bodyPart = state.bodyPart,
+                    scanType = state.scanType,
+                    analysis = ready.result.analysis,
+                    modelVersion = ready.result.modelVersion,
+                    rawOutput = ready.result.rawOutput,
+                    now = now,
+                    measurement = state.measurement,
+                    alignment = state.alignment,
+                )
+            }
             contribute(bitmap, ready.result.analysis, corrected = null,
                 bodyZone = state.bodyPart.zone.name)
+            state.checkSessionId?.let { sessionId ->
+                if (checkSession.value?.id == sessionId) {
+                    checkSessionStore.setStatus(scanId, CheckSessionStatus.COMPLETED)
+                }
+            }
             _capture.value = CaptureState()
             _capturePreset.value = null
-            onSaved(scanId)
+            clearPendingCapture()
+            onSaved(scanId, targetScanId != null, state.checkSessionId)
         }
     }
 
-    fun discardCapture() { _capture.value = CaptureState(); _capturePreset.value = null }
+    fun discardCapture() {
+        clearPendingCapture()
+        _capture.value = CaptureState()
+        _capturePreset.value = null
+    }
 
     fun deleteScan(scan: ScanWithObservations) {
+        reminderStore.all().filter { it.scanId == scan.scan.id }.forEach {
+            reminderStore.remove(it.id)
+            com.sunny.skin.reminder.ReminderScheduler.cancel(appCtx, it.id)
+        }
         viewModelScope.launch { repo.deleteScan(scan) }
+        checkSessionStore.removeScan(scan.scan.id)
         abcdeStore.clear(scan.scan.id)
     }
 
+    fun exportEncryptedBackup(password: CharArray, onResult: (android.net.Uri?, String?) -> Unit) {
+        viewModelScope.launch {
+            runCatching { com.sunny.skin.data.BackupExporter(appCtx).export(password) }
+                .onSuccess { file ->
+                    onResult(com.sunny.skin.data.BackupStore(appCtx).shareUri(file), null)
+                }
+                .onFailure { onResult(null, it.message ?: "Backup could not be created.") }
+        }
+    }
+
+    fun deleteAllLocalData(onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            reminderStore.all().forEach {
+                com.sunny.skin.reminder.ReminderScheduler.cancel(appCtx, it.id)
+            }
+            repo.deleteAll()
+            abcdeStore.clearAll()
+            reminderStore.clear()
+            checkSessionStore.clear()
+            com.sunny.skin.report.ReportStore(appCtx).deleteAll()
+            com.sunny.skin.data.BackupStore(appCtx).deleteAll()
+            _capture.value = CaptureState()
+            _capturePreset.value = null
+            clearPendingCapture()
+            onDone()
+        }
+    }
+
+    private fun persistPendingCapture() {
+        val state = _capture.value
+        val bitmap = state.bitmap ?: return
+        runCatching { pendingCaptureStore.save(
+            com.sunny.skin.data.PendingCapture(
+                bitmap, state.bodyPart, state.scanType, state.targetScanId, state.referenceImagePath,
+                state.measurement, state.alignment, state.checkSessionId,
+            ),
+        ) }
+    }
+
+    private fun clearPendingCapture() {
+        analysisJob?.cancel()
+        analysisJob = null
+        runCatching { pendingCaptureStore.clear() }
+    }
+
     private suspend fun describe(bitmap: Bitmap): DescribeResult {
-        val current = ModelProvider.describer(appCtx) ?: return DescribeResult.ModelUnavailable
+        val current = runCatching { ModelProvider.describer(appCtx) }
+            .getOrElse {
+                markModelUnavailable()
+                return DescribeResult.ModelUnavailable
+            }
+            ?: return DescribeResult.ModelUnavailable
         return runCatching { current.describe(bitmap) }
             .getOrElse {
                 markModelUnavailable()
@@ -359,9 +657,10 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun markModelUnavailable() {
+        val server = ModelProvider.useServer(appCtx)
         ModelProvider.reset()
         ModelDownloadManager.publishFailed(
-            "The installed AI model could not start. Reinstall it before scanning.",
+            com.sunny.skin.AppMode.unavailableMessage(server),
         )
     }
 

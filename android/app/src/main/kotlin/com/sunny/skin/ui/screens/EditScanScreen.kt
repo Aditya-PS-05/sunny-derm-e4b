@@ -122,7 +122,7 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
                 }
                 DescribeResult.Unreadable -> error = "Couldn't read this image. Try a clearer photo."
                 DescribeResult.ModelUnavailable -> error =
-                    "Install the AI model from Settings before re-analysing a photo."
+                    com.sunny.skin.AppMode.unavailableMessage(com.sunny.skin.AppMode.serverActive(context))
             }
             redoing = false
         }
@@ -138,19 +138,23 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
             scope.launch {
                 when (val r = vm.runDescribe(bmp)) {
                     is DescribeResult.Success -> vm.saveScanEdit(
-                        scanId, obs, name, bmp, r.analysis, r.modelVersion, r.rawOutput, onDone,
+                        scanId, obs, name, bmp, r.analysis, r.modelVersion, r.rawOutput,
+                        data.scan.bodyPart.zone.name, onDone,
                     )
                     DescribeResult.Unreadable -> {
                         error = "Couldn't read the new photo. Try a clearer one."; redoing = false
                     }
                     DescribeResult.ModelUnavailable -> {
-                        error = "Install the AI model from Settings before changing a photo."
+                        error = com.sunny.skin.AppMode.unavailableMessage(com.sunny.skin.AppMode.serverActive(context))
                         redoing = false
                     }
                 }
             }
         } else {
-            vm.saveScanEdit(scanId, obs, name, newBitmap, analysis!!, modelVersion, rawOutput, onDone)
+            vm.saveScanEdit(
+                scanId, obs, name, newBitmap, analysis!!, modelVersion, rawOutput,
+                data.scan.bodyPart.zone.name, onDone,
+            )
         }
     }
 

@@ -5,13 +5,8 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
-    <!--
-      Privacy stance (P-02): the core describe/track loop is fully offline.
-      INTERNET is used for EXACTLY ONE thing — the optional, user-initiated
-      first-run download of the AI model weights. No photo, scan or description
-      is ever transmitted; there is no analytics or sync. ACCESS_NETWORK_STATE
-      lets us gate that large download to unmetered (Wi-Fi) connections.
-    -->
+    <!-- Internet supports model download and the explicitly disclosed beta
+         inference/contribution modes. Release builds are gated to device mode. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -39,10 +34,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.Sunny"
-            android:windowSoftInputMode="adjustResize"
-            android:screenOrientation="portrait">
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

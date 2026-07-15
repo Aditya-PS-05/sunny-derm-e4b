@@ -47,6 +47,13 @@ class ReportStore(private val context: Context) {
         file(reportId).takeIf { it.exists() }?.delete()
     }
 
+    fun deleteAll() {
+        runCatching { dir.deleteRecursively() }
+        dir.mkdirs()
+        runCatching { renderDir.deleteRecursively() }
+        renderDir.mkdirs()
+    }
+
     /** URI served by [EncryptedReportProvider]; no decrypted share file is written. */
     fun shareUri(reportId: String): Uri? = file(reportId).takeIf { it.exists() }?.let {
         Uri.Builder()

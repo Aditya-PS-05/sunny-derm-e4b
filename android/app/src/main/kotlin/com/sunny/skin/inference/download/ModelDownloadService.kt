@@ -78,10 +78,7 @@ class ModelDownloadService : Service() {
     }
 
     private fun stopSelfSafe() {
-        @Suppress("DEPRECATION")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-        } else stopForeground(true)
+        stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
@@ -132,11 +129,7 @@ class ModelDownloadService : Service() {
 
         fun start(context: Context) {
             val i = Intent(context, ModelDownloadService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(i)
-            } else {
-                context.startService(i)
-            }
+            context.startForegroundService(i)
         }
 
         fun cancel(context: Context) {

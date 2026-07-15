@@ -10,7 +10,8 @@ import java.util.UUID
 
 /**
  * Stores captured photos in app-private internal storage, AES-GCM-encrypted at
- * rest (P-01). Files never leave the device and are deleted with their scan.
+ * rest (P-01). Stored files remain app-private and are deleted with their scan;
+ * server beta mode may transmit an in-memory encoded copy after explicit disclosure.
  * The on-disk bytes are ciphertext; readers decrypt via [decryptBytes] or the
  * Coil `EncryptedImage` fetcher.
  */

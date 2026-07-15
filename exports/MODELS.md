@@ -9,12 +9,12 @@ the two ways to retrieve it.
 
 ## Artifacts on the host (`ec2-user@ssh:gpu:~/derm/out/`)
 
-| File | Size | sha256 (first16) | What it is |
+| File | Size | sha256 | What it is |
 |---|---|---|---|
 | `e4b-derm-lora/adapter_model.safetensors` | 139,602,808 B (134 MB) | `4c645ebba206b4d5` | **QLoRA adapter** — the reproducible core. Merge onto the base to reproduce everything else. |
 | `e4b-derm-lora/adapter_config.json` | 14,662 B | — | LoRA config (r=16, targets). *(copied into this folder)* |
-| `e4b-derm-Q4_K_M.gguf` | 5,302,272,736 B (5.0 GB) | `e41e8bf3d8184980` | Quantized **language model** for llama.cpp/mtmd on Android. |
-| `mmproj-e4b-derm-f16.gguf` | 990,372,192 B (990 MB) | `23474645acf3e10f` | **Vision projector** — required with the Q4_K_M file for image input. |
+| `e4b-derm-Q4_K_M.gguf` | 5,302,272,736 B (5.0 GB) | `e41e8bf3d8184980023bb2af2d0b565463f359a9b6c46a8e95b77da61af472ce` | Quantized **language model** for llama.cpp/mtmd on Android. |
+| `mmproj-e4b-derm-f16.gguf` | 990,372,192 B (990 MB) | `23474645acf3e10f7789cfb5dddacbf00a0d693b4f958b37ecc9b217071d7f46` | **Vision projector** — required with the Q4_K_M file for image input. |
 | `e4b-derm-merged/` | ~15 GB | — | Full fp16 merged HF checkpoint (adapter folded in). Re-quantize from here. |
 
 `adapter_model.safetensors` is fetched into this folder (`model_on_host/`) when

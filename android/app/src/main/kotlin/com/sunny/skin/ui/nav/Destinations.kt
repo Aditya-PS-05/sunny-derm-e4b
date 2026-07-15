@@ -9,6 +9,7 @@ object Routes {
     const val CAPTURE = "capture"
     const val CAMERA = "camera"
     const val BODY_GUIDE = "body_guide"
+    const val CHECK_SESSION = "check_session"
     const val REVIEW = "review"
     const val GENERATE_REPORT = "generate_report"
     const val REPORTS = "reports"

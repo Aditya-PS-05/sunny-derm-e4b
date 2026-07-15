@@ -16,10 +16,10 @@ import androidx.core.view.WindowCompat
  * benefits from one predictable, low-anxiety surface.
  */
 private val SunnyColorScheme = lightColorScheme(
-    primary = SunnyColors.Orange,
+    primary = SunnyColors.OrangeText,
     onPrimary = SunnyColors.Surface,
     primaryContainer = SunnyColors.OrangeSoft,
-    onPrimaryContainer = SunnyColors.OrangeDark,
+    onPrimaryContainer = SunnyColors.OrangeText,
     background = SunnyColors.Background,
     onBackground = SunnyColors.TextPrimary,
     surface = SunnyColors.Surface,

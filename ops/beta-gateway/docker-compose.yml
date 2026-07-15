@@ -1,0 +1,29 @@
+services:
+  gateway:
+    image: nginx:1.30.3-alpine
+    restart: unless-stopped
+    ports:
+      - "443:443"
+    environment:
+      SUNNY_BETA_HOST: ${SUNNY_BETA_HOST:?set SUNNY_BETA_HOST}
+      SUNNY_INFERENCE_TOKEN: ${SUNNY_INFERENCE_TOKEN:?set SUNNY_INFERENCE_TOKEN}
+      SUNNY_CONTRIBUTE_TOKEN: ${SUNNY_CONTRIBUTE_TOKEN:?set SUNNY_CONTRIBUTE_TOKEN}
+      INFERENCE_UPSTREAM: ${INFERENCE_UPSTREAM:-host.docker.internal:8080}
+      CONTRIBUTE_UPSTREAM: ${CONTRIBUTE_UPSTREAM:-host.docker.internal:8090}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./certs:/etc/nginx/certs:ro
+    read_only: true
+    tmpfs:
+      - /etc/nginx/conf.d
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE

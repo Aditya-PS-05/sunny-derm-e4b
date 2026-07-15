@@ -26,13 +26,15 @@ import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Compare
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -56,12 +58,12 @@ import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ObservationEntity
 import com.sunny.skin.data.model.Analysis
 import com.sunny.skin.ui.SunnyViewModel
-import com.sunny.skin.ui.RecheckResult
 import com.sunny.skin.ui.components.AbcdeCard
 import com.sunny.skin.ui.components.AnalysisCard
 import com.sunny.skin.ui.components.ChangeSummaryCard
 import com.sunny.skin.ui.components.CircleButton
 import com.sunny.skin.ui.components.MetaChip
+import com.sunny.skin.ui.components.LiquidGlassDialog
 import com.sunny.skin.ui.components.ReCheckReminderDialog
 import com.sunny.skin.ui.components.ScreenScaffold
 import com.sunny.skin.ui.components.SunnyCard
@@ -74,12 +76,19 @@ import java.io.File
 
 @Composable
 fun ScanDetailScreen(
-    vm: SunnyViewModel, scanId: String, onBack: () -> Unit, onEdit: () -> Unit, onCompare: () -> Unit,
+    vm: SunnyViewModel,
+    scanId: String,
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+    onCompare: () -> Unit,
+    onCaptureFollowUp: () -> Unit,
+    onReviewFollowUp: () -> Unit,
 ) {
     val scan by vm.scan(scanId).collectAsStateWithLifecycle(initialValue = null)
     val modelAvailable by vm.modelAvailable.collectAsStateWithLifecycle()
     val data = scan
     var showDelete by remember { mutableStateOf(false) }
+    var showNotes by remember { mutableStateOf(false) }
 
     ScreenScaffold(
         title = data?.scan?.name ?: "Scan",
@@ -124,26 +133,35 @@ fun ScanDetailScreen(
 
         var showReminder by remember { mutableStateOf(false) }
         val requestNotif = rememberNotificationRequester()
-        var adding by remember { mutableStateOf(false) }
+        fun prepareFollowUp() {
+            vm.beginRecheckCapture(
+                scanId = scanId,
+                bodyPart = data.scan.bodyPart,
+                referenceImagePath = latest.imagePath,
+            )
+        }
+
+        fun openFollowUpCamera() {
+            if (!modelAvailable) {
+                android.widget.Toast.makeText(
+                    context,
+                    com.sunny.skin.AppMode.unavailableMessage(com.sunny.skin.AppMode.serverActive(context)),
+                    android.widget.Toast.LENGTH_SHORT,
+                ).show()
+            } else {
+                prepareFollowUp()
+                onCaptureFollowUp()
+            }
+        }
+
         val picker = rememberLauncherForActivityResult(
             ActivityResultContracts.PickVisualMedia(),
         ) { uri ->
             if (uri != null) {
-                adding = true
+                prepareFollowUp()
                 val bmp = BitmapLoader.fromUri(context, uri)
-                vm.addRecheck(scanId, bmp) { result ->
-                    adding = false
-                    android.widget.Toast.makeText(
-                        context,
-                        when (result) {
-                            RecheckResult.SAVED -> "Follow-up photo added — now you can compare."
-                            RecheckResult.UNREADABLE -> "Couldn't read that image. Try a clearer photo."
-                            RecheckResult.MODEL_UNAVAILABLE ->
-                                "Install the AI model from Settings before adding a follow-up."
-                        },
-                        android.widget.Toast.LENGTH_SHORT,
-                    ).show()
-                }
+                vm.startCapture(bmp)
+                onReviewFollowUp()
             }
         }
 
@@ -152,13 +170,14 @@ fun ScanDetailScreen(
                 .padding(inner).padding(horizontal = 16.dp)
                 .padding(bottom = 40.dp),
         ) {
-            ObservationImage(latest)
+            ObservationImage(latest, data.scan.bodyPart.label)
             Spacer(Modifier.height(12.dp))
 
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MetaChip(data.scan.bodyPart.locationLine)
                 MetaChip(Format.date(latest.capturedAt))
                 MetaChip(Format.time(latest.capturedAt))
+                latest.approximateSizeMm?.let { MetaChip("Approx. ${formatApproximateMm(it)}") }
             }
             Spacer(Modifier.height(16.dp))
 
@@ -172,45 +191,48 @@ fun ScanDetailScreen(
             }
 
             // Add a follow-up photo (builds the timeline that Compare needs).
-            SunnyCard(onClick = {
-                if (!modelAvailable) {
-                    android.widget.Toast.makeText(
-                        context,
-                        "Install the AI model from Settings before adding a follow-up.",
-                        android.widget.Toast.LENGTH_SHORT,
-                    ).show()
-                } else if (!adding) {
-                    picker.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                    )
-                }
-            }) {
+            SunnyCard {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         Modifier.size(36.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        if (adding) {
-                            CircularProgressIndicator(Modifier.size(18.dp),
-                                color = SunnyColors.Orange, strokeWidth = 2.dp)
-                        } else {
-                            Icon(Icons.Filled.AddAPhoto, null, tint = SunnyColors.Orange,
-                                modifier = Modifier.size(20.dp))
-                        }
+                        Icon(Icons.Filled.AddAPhoto, null, tint = SunnyColors.Orange,
+                            modifier = Modifier.size(20.dp))
                     }
                     Spacer(Modifier.size(12.dp))
-                    Column(Modifier.weight(1f)) {
+                    Column(
+                        Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                            .clickable(onClick = ::openFollowUpCamera)
+                            .padding(vertical = 4.dp),
+                    ) {
                         Text(
                             when {
                                 !modelAvailable -> "AI model required"
-                                adding -> "Analysing…"
-                                else -> "Add a follow-up photo"
+                                else -> "Take a follow-up photo"
                             },
                             style = MaterialTheme.typography.titleMedium)
                         Text(
-                            if (modelAvailable) "Re-photograph this spot to compare descriptions"
+                            if (modelAvailable) "Use the previous photo as an alignment guide"
                             else "Install the real model from Settings to enable analysis",
                             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
+                    }
+                    Box(
+                        Modifier.size(44.dp).clip(RoundedCornerShape(12.dp))
+                            .background(SunnyColors.SurfaceMuted)
+                            .clickable(enabled = modelAvailable) {
+                                picker.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                                )
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Filled.PhotoLibrary,
+                            contentDescription = "Choose follow-up from library",
+                            tint = if (modelAvailable) SunnyColors.TextPrimary else SunnyColors.TextTertiary,
+                            modifier = Modifier.size(20.dp),
+                        )
                     }
                 }
             }
@@ -230,7 +252,7 @@ fun ScanDetailScreen(
                         Spacer(Modifier.size(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text("Compare over time", style = MaterialTheme.typography.titleMedium)
-                            Text("Fade or wipe between ${timeline.size} photos to spot change",
+                            Text("Align and inspect any two of ${timeline.size} photos",
                                 style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                         }
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
@@ -239,6 +261,28 @@ fun ScanDetailScreen(
                 }
                 Spacer(Modifier.height(12.dp))
             }
+
+            SunnyCard(onClick = { showNotes = true }) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
+                        Icon(Icons.AutoMirrored.Filled.Notes, null, tint = SunnyColors.Orange,
+                            modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.size(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Private note", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            data.scan.notes.ifBlank { "Add context you want to remember" },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SunnyColors.TextSecondary,
+                            maxLines = 2,
+                        )
+                    }
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
+                        tint = SunnyColors.TextTertiary)
+                }
+            }
+            Spacer(Modifier.height(12.dp))
 
             // Re-check reminder
             SunnyCard(onClick = { showReminder = true }) {
@@ -325,6 +369,43 @@ fun ScanDetailScreen(
             )
         }
 
+
+        if (showNotes) {
+            var draft by remember(data.scan.notes) { mutableStateOf(data.scan.notes) }
+            LiquidGlassDialog(onDismiss = { showNotes = false }) {
+                Text(
+                    "Private note",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 8.dp),
+                )
+                Text(
+                    "Stored only with this encrypted scan.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = SunnyColors.TextSecondary,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp),
+                )
+                OutlinedTextField(
+                    value = draft,
+                    onValueChange = { draft = it.take(2_000) },
+                    label = { Text("Note") },
+                    minLines = 4,
+                    maxLines = 8,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 12.dp),
+                )
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 14.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = { showNotes = false }) { Text("Cancel") }
+                    TextButton(onClick = {
+                        vm.setScanNotes(scanId, draft)
+                        showNotes = false
+                    }) { Text("Save", color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold) }
+                }
+            }
+        }
+
         if (showDelete) {
             AlertDialog(
                 onDismissRequest = { showDelete = false },
@@ -355,13 +436,14 @@ fun ScanDetailScreen(
 }
 
 @Composable
-private fun ObservationImage(obs: ObservationEntity) {
+private fun ObservationImage(obs: ObservationEntity, bodyLabel: String) {
     Box(
         Modifier.fillMaxWidth().aspectRatio(1.3f).clip(RoundedCornerShape(20.dp))
             .background(SunnyColors.SurfaceMuted),
     ) {
         AsyncImage(
-            model = EncryptedImage(obs.imagePath), contentDescription = null,
+            model = EncryptedImage(obs.imagePath),
+            contentDescription = "Latest $bodyLabel photo from ${Format.date(obs.capturedAt)}",
             contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize(),
         )
     }
@@ -373,7 +455,8 @@ private fun HistoryRow(obs: ObservationEntity) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.height(48.dp).aspectRatio(1f).clip(RoundedCornerShape(10.dp))
                 .background(SunnyColors.SurfaceMuted)) {
-                AsyncImage(model = EncryptedImage(obs.imagePath), contentDescription = null,
+                AsyncImage(model = EncryptedImage(obs.imagePath),
+                    contentDescription = "Skin photo from ${Format.date(obs.capturedAt)}",
                     contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             }
             Spacer(Modifier.height(0.dp))
@@ -381,6 +464,11 @@ private fun HistoryRow(obs: ObservationEntity) {
                 Text(Format.date(obs.capturedAt), style = MaterialTheme.typography.titleMedium)
                 Text(obs.analysis.summary, style = MaterialTheme.typography.bodyMedium,
                     color = SunnyColors.TextSecondary, maxLines = 2)
+                obs.approximateSizeMm?.let {
+                    Text("Approx. ${formatApproximateMm(it)} · reference-based",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = SunnyColors.TextTertiary)
+                }
             }
         }
     }
@@ -391,3 +479,8 @@ private fun changedFields(prev: Analysis, curr: Analysis): Set<String> =
     Analysis.FIELDS.filterIndexed { i, _ ->
         prev.rows()[i].second.trim() != curr.rows()[i].second.trim()
     }.toSet()
+
+private fun formatApproximateMm(value: Float): String {
+    val rounded = kotlin.math.round(value * 10f) / 10f
+    return if (rounded % 1f == 0f) "${rounded.toInt()} mm" else "$rounded mm"
+}

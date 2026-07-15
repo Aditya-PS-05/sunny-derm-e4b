@@ -7,8 +7,8 @@ import android.net.Uri
 /**
  * Opens the device's maps app to a "dermatologist near you" search. This is the
  * app's bridge to care: Sunny doesn't diagnose, so it helps the user reach
- * someone who can. Only a location query leaves the device — never a photo or any
- * health data — so the "photos never leave this phone" promise is preserved.
+ * someone who can. This action sends only a location query, never a photo or any
+ * health data, regardless of which inference mode produced the local record.
  * Falls back to a web maps URL when no maps app can handle the geo intent (the
  * try/catch avoids needing a package-visibility <queries> entry).
  */

@@ -32,11 +32,20 @@ interface ScanDao {
     @Query("UPDATE scans SET updatedAt = :ts WHERE id = :scanId")
     suspend fun touchScan(scanId: String, ts: Long)
 
+    @Query("UPDATE scans SET scanType = :scanType, updatedAt = :ts WHERE id = :scanId")
+    suspend fun updateScanType(scanId: String, scanType: ScanType, ts: Long)
+
     @Query("UPDATE scans SET name = :name, updatedAt = :ts WHERE id = :scanId")
     suspend fun renameScan(scanId: String, name: String, ts: Long)
 
+    @Query("UPDATE scans SET notes = :notes, updatedAt = :ts WHERE id = :scanId")
+    suspend fun updateNotes(scanId: String, notes: String, ts: Long)
+
     @Query("DELETE FROM scans WHERE id = :scanId")
     suspend fun deleteScan(scanId: String)
+
+    @Query("DELETE FROM scans")
+    suspend fun deleteAllScans()
 
     @Query("DELETE FROM observations WHERE id = :observationId")
     suspend fun deleteObservation(observationId: String)

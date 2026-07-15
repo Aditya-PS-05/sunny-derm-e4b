@@ -8,18 +8,26 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
 import com.sunny.skin.data.crypto.CryptoManager
+import com.sunny.skin.data.BackupStore
 import java.io.FileNotFoundException
 
 /** Read-only provider that decrypts a shared PDF directly into an OS pipe. */
 class EncryptedReportProvider : ContentProvider() {
     override fun onCreate(): Boolean = true
 
-    override fun getType(uri: Uri): String = "application/pdf"
+    override fun getType(uri: Uri): String =
+        if (uri.pathSegments.firstOrNull() == "backups") "application/octet-stream" else "application/pdf"
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor {
         if (mode != "r") throw FileNotFoundException("reports are read-only")
         val ctx = context ?: throw FileNotFoundException("provider unavailable")
         val name = uri.lastPathSegment ?: throw FileNotFoundException("missing report")
+        if (uri.pathSegments.firstOrNull() == "backups") {
+            val backup = runCatching { BackupStore(ctx).file(name) }.getOrNull()
+                ?.takeIf { it.isFile }
+                ?: throw FileNotFoundException("backup not found")
+            return ParcelFileDescriptor.open(backup, ParcelFileDescriptor.MODE_READ_ONLY)
+        }
         val reportId = name.removeSuffix(".pdf")
         val encrypted = runCatching { ReportStore(ctx).file(reportId) }.getOrNull()
             ?.takeIf { it.isFile }

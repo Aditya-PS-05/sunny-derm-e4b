@@ -22,6 +22,7 @@ data class ScanEntity(
     val scanType: ScanType,
     val createdAt: Long,
     val updatedAt: Long,
+    val notes: String = "",
 )
 
 enum class ScanType(val prefix: String) {
@@ -54,6 +55,15 @@ data class ObservationEntity(
     @Embedded(prefix = "field_") val analysis: AnalysisColumns,
     val modelVersion: String,
     val rawOutput: String,
+    val approximateSizeMm: Float? = null,
+    val sizeReferenceMm: Float? = null,
+    val sizeReferenceSpan: Float? = null,
+    val sizeTargetSpan: Float? = null,
+    val alignmentScore: Float? = null,
+    val alignmentTranslationX: Float? = null,
+    val alignmentTranslationY: Float? = null,
+    val alignmentScale: Float? = null,
+    val alignmentRotationDegrees: Float? = null,
 )
 
 /** Flattened columns for [Analysis] so Room can embed it in a row. */

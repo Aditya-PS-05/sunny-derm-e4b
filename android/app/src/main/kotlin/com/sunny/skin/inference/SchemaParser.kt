@@ -15,7 +15,8 @@ object SchemaParser {
             "^${Regex.escape(label)}:[\\t ]*([^\\r\\n]+)[\\t ]*$",
             setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE),
         )
-            .find(text)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotEmpty() }
+            .find(text)?.groupValues?.get(1)?.trim()
+            ?.takeIf { it.isNotEmpty() && it.length <= MAX_FIELD_CHARS }
 
     fun parse(text: String): Analysis? {
         val lesionType = field(text, "Lesion Type") ?: return null
@@ -26,4 +27,6 @@ object SchemaParser {
         val summary = field(text, "Summary") ?: return null
         return Analysis(lesionType, colour, symmetry, borders, texture, summary)
     }
+
+    private const val MAX_FIELD_CHARS = 600
 }

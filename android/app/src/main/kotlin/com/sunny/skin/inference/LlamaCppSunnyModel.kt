@@ -24,7 +24,9 @@ import java.io.File
 class LlamaCppSunnyModel(
     private val modelPath: String,
     private val mmprojPath: String,
-    private val threads: Int = Runtime.getRuntime().availableProcessors().coerceIn(2, 6),
+    // Cap at 4: on big.LITTLE phones (e.g. SD695: 2×A78 + 6×A55) spilling onto the
+    // slow little cores adds contention and can be slower than fewer, faster threads.
+    private val threads: Int = Runtime.getRuntime().availableProcessors().coerceIn(2, 4),
 ) : SunnyModel {
 
     override val version = "gemma4-e4b-derm-q4km"

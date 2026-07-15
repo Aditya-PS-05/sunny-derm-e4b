@@ -10,12 +10,14 @@ Priority: **M** = MVP / must-have, **S** = should-have, **C** = could-have.
 | ID | Pri | Requirement |
 |---|---|---|
 | F-01 | M | The app SHALL capture a lesion photo using the device camera with on-screen framing/lighting guidance. |
-| F-02 | M | The app SHALL run description inference **entirely on-device**; no image or derived data leaves the phone. |
+| F-02 | M | Production/release builds SHALL run description inference **entirely on-device**. An explicitly identified debug beta MAY use remote inference only with truthful disclosure, explicit acknowledgement, and a release gate that prevents it shipping. |
 | F-03 | M | The app SHALL send the model exactly one image plus the verbatim prompt from `docs/USING_THE_MODEL.md` §2, image first. |
-| F-04 | M | The app SHALL use greedy decoding with `max_new_tokens = 180` for reproducible output. |
+| F-04 | M | The production on-device path SHALL use greedy decoding with `max_new_tokens = 180`. A beta server MAY use a larger internal reasoning budget but SHALL return only the guarded six-field schema. |
 | F-05 | M | The app SHALL parse the model output into the six fields (Lesion Type, Colour, Symmetry, Borders, Texture, Summary). |
 | F-06 | M | If any of the six fields fails to parse, the app SHALL NOT show a partial result as final — it SHALL re-run once, then show a "couldn't read this image" state. |
 | F-07 | S | The app SHALL run a pre-inference check to reject clearly non-lesion images (e.g. no skin detected) before calling the model. |
+| F-08 | M | Before inference, the app SHALL flag obviously undersized, underexposed, overexposed, or low-contrast photos and offer retake guidance; the user MAY explicitly continue because the check is photographic, not medical. |
+| F-09 | S | While the camera is open, the app SHALL provide non-medical exposure/detail feedback and tap-to-focus without retaining preview frames. |
 
 ### Tracking
 | ID | Pri | Requirement |
@@ -26,7 +28,13 @@ Priority: **M** = MVP / must-have, **S** = should-have, **C** = could-have.
 | F-13 | M | On re-check, the app SHALL show a field-level diff versus the previous Observation. |
 | F-14 | M | When a field changes materially, the app SHALL prompt the user to consider seeing a clinician — as routing, never as a verdict. |
 | F-15 | S | The app SHALL offer optional re-check reminders at a user-set cadence. |
-| F-16 | C | The app SHALL export a lesion's history as an on-device-generated PDF to share with a clinician. |
+| F-16 | S | The app SHALL export an on-device clinician-oriented visual tracking PDF containing notes, model provenance, aligned first/latest comparison, and all selected uncropped originals. |
+| F-17 | S | A re-check camera SHALL offer the previous encrypted photo as an optional alignment overlay and append the reviewed result to the same timeline. |
+| F-18 | S | Saved scans SHALL be searchable by name/location and sortable by update date or name. |
+| F-19 | S | Re-check capture SHALL provide technical centering, distance and rotation guidance derived from the previous photo, without retaining preview frames or expressing a medical conclusion. |
+| F-19A | S | Compare SHALL constrain selection to an older/newer pair, expose fade/wipe/blink/side views, and fall back to raw photos when automatic registration confidence is low. |
+| F-19B | S | The app SHALL offer one encrypted, resumable photo-check session over saved areas with pending, completed and skipped states, while stating that it is not a complete examination. |
+| F-19C | C | The user MAY record an approximate size from a manually positioned known-width reference; the stored record SHALL retain the reference and target spans used for the ratio. |
 
 ### Education & routing
 | ID | Pri | Requirement |
@@ -39,19 +47,21 @@ Priority: **M** = MVP / must-have, **S** = should-have, **C** = could-have.
 | S-01 | M | The app SHALL NEVER present output as a diagnosis, risk score, or benign/malignant classification. |
 | S-02 | M | Every result and timeline screen SHALL display a visible "this is a visual description only, not a diagnosis" disclaimer. |
 | S-03 | M | The app SHALL post-filter model output against a banned-word list (cancer, melanoma, carcinoma, benign, malignant, biopsy, tumour, precancerous, …) and suppress+re-run if any appears. |
-| S-04 | M | The app SHALL obtain explicit user acknowledgement of the not-a-diagnosis limitation during onboarding. |
+| S-04 | M | The app SHALL obtain explicit user acknowledgement of the not-a-diagnosis limitation during onboarding and, in server beta mode, remote photo processing. |
 | S-05 | M | The app SHALL NOT convert any description into a risk level or urgency verdict. |
 | S-06 | M | The app SHALL NOT build multi-image or conversational analysis on this model (out of its trained distribution). |
 | S-07 | S | Marketing and store copy SHALL avoid diagnostic claims to stay within non-medical-device positioning; seek regulatory review before any claim change. |
+| S-08 | M | Reference-based size values SHALL always be labelled approximate and SHALL NOT be presented as clinical measurements, growth verdicts, risk or urgency. |
 
 ## 3. Privacy & data requirements
 | ID | Pri | Requirement |
 |---|---|---|
-| P-01 | M | All photos and descriptions SHALL be stored only in app-private on-device storage. |
-| P-02 | M | The app SHALL function fully offline; no network permission is required for the core describe/track loop. |
+| P-01 | M | Persistent photos and descriptions SHALL be stored only in app-private on-device storage. A debug server beta MAY transmit a disclosed in-memory copy for inference or separately opted-in contribution. |
+| P-02 | M | Production/release builds SHALL function fully offline for the core describe/track loop. Debug server beta networking SHALL be explicit, mode-gated, and blocked from release. |
 | P-03 | M | The app SHALL NOT include analytics that transmit image content or descriptions off-device. |
 | P-04 | S | The app SHALL let the user delete a lesion (and all its Observations) permanently. |
 | P-05 | C | Any future cloud sync SHALL be opt-in and end-to-end encrypted. |
+| P-06 | S | Active photo-check progress and reference-based measurement metadata SHALL be encrypted at rest and cleared by Delete all local data. |
 
 ## 4. Non-functional requirements
 

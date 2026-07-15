@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 
 /**
  * Schedules reminder alarms via [AlarmManager]. Uses inexact alarms
@@ -46,11 +45,7 @@ object ReminderScheduler {
         val am = context.getSystemService(AlarmManager::class.java) ?: return
         val pi = pendingIntent(context, reminder.id)
         // Inexact but wakes the device; grouped by the system to save battery.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.triggerAt, pi)
-        } else {
-            am.set(AlarmManager.RTC_WAKEUP, reminder.triggerAt, pi)
-        }
+        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.triggerAt, pi)
     }
 
     fun cancel(context: Context, id: String) {

@@ -31,6 +31,13 @@ class GuardrailsTest {
         assertTrue("biopsy" in violations)
     }
 
+    @Test
+    fun rejectsRiskUrgencyAndReassuranceLanguage() {
+        assertFalse(Guardrails.isClean(cleanAnalysis().copy(summary = "This looks low risk.")))
+        assertFalse(Guardrails.isClean(cleanAnalysis().copy(summary = "No concerning features.")))
+        assertFalse(Guardrails.isClean(cleanAnalysis().copy(summary = "Urgent review recommended.")))
+    }
+
     private fun cleanAnalysis() = Analysis(
         lesionType = "pigmented macule",
         colour = "light brown",

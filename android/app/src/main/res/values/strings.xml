@@ -1,12 +1,3 @@
 <resources>
     <string name="app_name">Sunny</string>
-    <string name="tagline">Track your skin health</string>
-
-    <!-- The persistent, non-negotiable disclaimer (S-02). Shown on every
-         result and timeline screen; never softened. -->
-    <string name="disclaimer_short">Not a diagnostic tool — always consult a healthcare professional.</string>
-    <string name="disclaimer_long">Sunny is a skin tracking tool only. It does not provide medical diagnoses or advice. Always consult a qualified healthcare professional for any skin concerns.</string>
-    <string name="disclaimer_overview">Sunny is for tracking purposes only and does not provide medical advice or diagnosis. Consult a healthcare professional for medical concerns.</string>
-
-    <string name="ai_model_name">Sunny-Gemma4-E4B</string>
 </resources>

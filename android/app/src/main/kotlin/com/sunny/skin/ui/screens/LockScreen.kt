@@ -73,7 +73,7 @@ fun LockScreen(onUnlock: () -> Unit) {
                 Modifier.align(Alignment.BottomCenter).navigationBarsPadding()
                     .fillMaxWidth().height(56.dp)
                     .clip(RoundedCornerShape(28.dp)).clickable(onClick = onUnlock),
-                shape = RoundedCornerShape(28.dp), color = SunnyColors.Orange,
+                shape = RoundedCornerShape(28.dp), color = SunnyColors.OrangeText,
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -98,7 +98,7 @@ fun LockScreen(onUnlock: () -> Unit) {
 private fun LockedBackdrop(modifier: Modifier) {
     val card = SunnyColors.Surface
     val muted = SunnyColors.SurfaceMuted
-    val grey = androidx.compose.ui.graphics.Color(0xFFC9CBD3)
+    val grey = SunnyColors.SwitchOffTrack
     Column(modifier.statusBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp)) {
         // Header: mascot chip + title bars
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -123,8 +123,8 @@ private fun LockedBackdrop(modifier: Modifier) {
         // blooms into a colourful blob once blurred.
         val accents = listOf(
             SunnyColors.Orange,
-            androidx.compose.ui.graphics.Color(0xFF34C759),
-            androidx.compose.ui.graphics.Color(0xFFF5A623),
+            SunnyColors.Success,
+            SunnyColors.Review,
         )
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             accents.forEach { accent ->

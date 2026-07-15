@@ -30,21 +30,103 @@ check(modelBaseUrl.isEmpty() || (modelBaseUrl.startsWith("https://") && modelBas
     "modelBaseUrl/SUNNY_MODEL_BASE_URL must be an HTTPS base URL ending in /."
 }
 val escapedModelBaseUrl = modelBaseUrl.replace("\\", "\\\\").replace("\"", "\\\"")
-
-// INTERIM server method: a remote inference API the app calls instead of running
-// the model on-device. Empty = on-device (privacy-preserving) path.
-val inferenceApiUrl = providers.gradleProperty("inferenceApiUrl")
-    .orElse(providers.environmentVariable("SUNNY_INFERENCE_API_URL"))
+val modelLanguageSha256 = providers.gradleProperty("modelLanguageSha256")
+    .orElse(providers.environmentVariable("SUNNY_MODEL_LANGUAGE_SHA256"))
+    .getOrElse("e41e8bf3d8184980023bb2af2d0b565463f359a9b6c46a8e95b77da61af472ce")
+    .trim()
+    .lowercase()
+val modelProjectorSha256 = providers.gradleProperty("modelProjectorSha256")
+    .orElse(providers.environmentVariable("SUNNY_MODEL_PROJECTOR_SHA256"))
+    .getOrElse("23474645acf3e10f7789cfb5dddacbf00a0d693b4f958b37ecc9b217071d7f46")
+    .trim()
+    .lowercase()
+fun requireHexDigest(name: String, value: String) {
+    check(value.matches(Regex("[0-9a-f]{16}|[0-9a-f]{64}"))) {
+        "$name must be a 16-character debug prefix or a full 64-character SHA-256 digest."
+    }
+}
+requireHexDigest("modelLanguageSha256", modelLanguageSha256)
+requireHexDigest("modelProjectorSha256", modelProjectorSha256)
+val escapedModelLanguageSha256 = modelLanguageSha256.replace("\"", "\\\"")
+val escapedModelProjectorSha256 = modelProjectorSha256.replace("\"", "\\\"")
+val privacyContact = providers.gradleProperty("privacyContact")
+    .orElse(providers.environmentVariable("SUNNY_PRIVACY_CONTACT"))
     .getOrElse("")
     .trim()
+check(
+    privacyContact.isBlank() || privacyContact.startsWith("https://") ||
+        privacyContact.matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")),
+) { "privacyContact/SUNNY_PRIVACY_CONTACT must be an email address or HTTPS URL." }
+val escapedPrivacyContact = privacyContact.replace("\\", "\\\\").replace("\"", "\\\"")
+
+// Device releases are not functional without the native bridge. Keeping this
+// flag at the project level also lets the release gate validate the artifact.
+val withLlama = project.hasProperty("withLlama") &&
+    file("src/main/cpp/llama.cpp/CMakeLists.txt").exists()
+
+// INTERIM beta server method. Environment values deliberately win over the
+// checked-in development fallback, so CI can select device mode without editing
+// repository files.
+val inferenceMode = providers.environmentVariable("SUNNY_INFERENCE_MODE")
+    .orElse(providers.gradleProperty("inferenceMode"))
+    .getOrElse("auto")
+    .trim()
+    .lowercase()
+check(inferenceMode in setOf("auto", "server", "device")) {
+    "SUNNY_INFERENCE_MODE/inferenceMode must be auto, server, or device."
+}
+val configuredInferenceApiUrl = providers.environmentVariable("SUNNY_INFERENCE_API_URL")
+    .orElse(providers.gradleProperty("inferenceApiUrl"))
+    .getOrElse("")
+    .trim()
+val inferenceApiUrl = if (inferenceMode == "device") "" else configuredInferenceApiUrl
+check(inferenceMode != "server" || inferenceApiUrl.isNotBlank()) {
+    "Server mode requires SUNNY_INFERENCE_API_URL or inferenceApiUrl."
+}
 val escapedInferenceApiUrl = inferenceApiUrl.replace("\\", "\\\\").replace("\"", "\\\"")
-
-// INTERIM beta "improve Sunny" data-collection endpoint. Empty = collection off.
-val contributeUrl = providers.gradleProperty("contributeUrl")
-    .orElse(providers.environmentVariable("SUNNY_CONTRIBUTE_URL"))
+val inferenceApiToken = providers.environmentVariable("SUNNY_INFERENCE_API_TOKEN")
     .getOrElse("")
     .trim()
+val escapedInferenceApiToken = inferenceApiToken.replace("\\", "\\\\").replace("\"", "\\\"")
+
+// INTERIM beta "improve Sunny" endpoint. It can be disabled independently of
+// inference for production builds and local testing.
+val contributionMode = providers.environmentVariable("SUNNY_CONTRIBUTION_MODE")
+    .orElse(providers.gradleProperty("contributionMode"))
+    .getOrElse("auto")
+    .trim()
+    .lowercase()
+check(contributionMode in setOf("auto", "enabled", "disabled")) {
+    "SUNNY_CONTRIBUTION_MODE/contributionMode must be auto, enabled, or disabled."
+}
+val configuredContributeUrl = providers.environmentVariable("SUNNY_CONTRIBUTE_URL")
+    .orElse(providers.gradleProperty("contributeUrl"))
+    .getOrElse("")
+    .trim()
+val contributeUrl = if (contributionMode == "disabled") "" else configuredContributeUrl
+check(contributionMode != "enabled" || contributeUrl.isNotBlank()) {
+    "Enabled contribution mode requires SUNNY_CONTRIBUTE_URL or contributeUrl."
+}
 val escapedContributeUrl = contributeUrl.replace("\\", "\\\\").replace("\"", "\\\"")
+val contributeApiToken = providers.environmentVariable("SUNNY_CONTRIBUTE_API_TOKEN")
+    .getOrElse("")
+    .trim()
+val escapedContributeApiToken = contributeApiToken.replace("\\", "\\\\").replace("\"", "\\\"")
+val allowInsecureBetaEndpoints = providers.gradleProperty("allowInsecureBetaEndpoints")
+    .map { it.toBoolean() }
+    .getOrElse(false)
+
+fun checkHttpEndpoint(name: String, value: String) {
+    check(value.isBlank() || value.startsWith("https://") || value.startsWith("http://")) {
+        "$name must be an HTTP(S) URL."
+    }
+    check(!value.startsWith("http://") || allowInsecureBetaEndpoints) {
+        "$name uses cleartext HTTP. Use HTTPS or explicitly set " +
+            "allowInsecureBetaEndpoints=true for a debug-only beta build."
+    }
+}
+checkHttpEndpoint("inferenceApiUrl", inferenceApiUrl)
+checkHttpEndpoint("contributeUrl", contributeUrl)
 
 tasks.configureEach {
     if (name == "preReleaseBuild") {
@@ -58,6 +140,21 @@ tasks.configureEach {
                     "and real-device validation, then pass -PclinicalValidationComplete=true. " +
                     "See RELEASE_READINESS.md."
             }
+            check(withLlama) {
+                "Release blocked: build the on-device runtime with -PwithLlama."
+            }
+            check(modelBaseUrl.isNotBlank()) {
+                "Release blocked: configure the rights-cleared HTTPS model CDN with " +
+                    "-PmodelBaseUrl=https://.../."
+            }
+            check(modelLanguageSha256.length == 64 && modelProjectorSha256.length == 64) {
+                "Release blocked: provide full model digests with -PmodelLanguageSha256 and " +
+                    "-PmodelProjectorSha256 (or the matching SUNNY_MODEL_* environment values)."
+            }
+            check(privacyContact.isNotBlank()) {
+                "Release blocked: configure a monitored privacy email or HTTPS URL with " +
+                    "-PprivacyContact (or SUNNY_PRIVACY_CONTACT)."
+            }
         }
     }
 }
@@ -69,9 +166,6 @@ android {
     // Build the native llama.cpp/mtmd model bridge only when explicitly requested
     // (./gradlew assembleDebug -PwithLlama) AND llama.cpp has been vendored
     // (scripts/vendor_llama.sh). Default builds contain no inference fallback.
-    val withLlama = project.hasProperty("withLlama") &&
-        file("src/main/cpp/llama.cpp/CMakeLists.txt").exists()
-
     defaultConfig {
         applicationId = "com.sunny.skin"
         minSdk = 26
@@ -81,8 +175,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
         buildConfigField("String", "SUNNY_MODEL_BASE_URL", "\"$escapedModelBaseUrl\"")
+        buildConfigField("String", "SUNNY_MODEL_LANGUAGE_SHA256", "\"$escapedModelLanguageSha256\"")
+        buildConfigField("String", "SUNNY_MODEL_PROJECTOR_SHA256", "\"$escapedModelProjectorSha256\"")
+        buildConfigField("String", "SUNNY_PRIVACY_CONTACT", "\"$escapedPrivacyContact\"")
         buildConfigField("String", "SUNNY_INFERENCE_API_URL", "\"$escapedInferenceApiUrl\"")
+        buildConfigField("String", "SUNNY_INFERENCE_API_TOKEN", "\"$escapedInferenceApiToken\"")
         buildConfigField("String", "SUNNY_CONTRIBUTE_URL", "\"$escapedContributeUrl\"")
+        buildConfigField("String", "SUNNY_CONTRIBUTE_API_TOKEN", "\"$escapedContributeApiToken\"")
+        buildConfigField("Boolean", "SUNNY_ALLOW_INSECURE_BETA_ENDPOINTS", allowInsecureBetaEndpoints.toString())
+        buildConfigField("Boolean", "SUNNY_PUBLIC_RELEASE", "false")
 
         if (withLlama) {
             // A 6 GB model needs a 64-bit address space — arm64 only.
@@ -119,7 +220,17 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Public distribution is a distinct, fail-closed mode. These values
+            // override every beta environment/property so a release artifact can
+            // never contain or select the temporary server/contribution paths.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            buildConfigField("Boolean", "SUNNY_PUBLIC_RELEASE", "true")
+            buildConfigField("String", "SUNNY_INFERENCE_API_URL", "\"\"")
+            buildConfigField("String", "SUNNY_CONTRIBUTE_URL", "\"\"")
+            buildConfigField("Boolean", "SUNNY_ALLOW_INSECURE_BETA_ENDPOINTS", "false")
+            buildConfigField("String", "SUNNY_INFERENCE_API_TOKEN", "\"\"")
+            buildConfigField("String", "SUNNY_CONTRIBUTE_API_TOKEN", "\"\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

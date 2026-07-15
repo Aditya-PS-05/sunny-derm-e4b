@@ -26,12 +26,45 @@ cd android
 
 Verified: `./gradlew assembleDebug` produces a ~20 MB debug APK.
 
+### Private GPU-server beta
+
+The debug beta can send a scan to the existing OpenAI-compatible GPU inference
+endpoint while the phone-photo model is being evaluated. It uses the same parser
+and guardrails as the on-device path and does not package a mock model. Select
+the mode without editing source:
+
+```bash
+SUNNY_INFERENCE_MODE=server \
+SUNNY_INFERENCE_API_URL=https://beta.example/ \
+SUNNY_INFERENCE_API_TOKEN=... \
+./gradlew assembleDebug
+
+SUNNY_INFERENCE_MODE=device SUNNY_CONTRIBUTION_MODE=disabled ./gradlew assembleDebug
+```
+
+The checked-in HTTP host remains a compatibility fallback for the current
+private debug beta only. It requires `allowInsecureBetaEndpoints=true`, is
+disclosed in-app, and is excluded by the release gate and release network
+security policy. Move beta traffic to HTTPS before using sensitive photos.
+
+`SUNNY_CONTRIBUTE_URL` and `SUNNY_CONTRIBUTE_API_TOKEN` configure the separate,
+explicitly opted-in model-improvement endpoint. Environment values override the
+development values in `gradle.properties`.
+
+When a beta endpoint is compiled in, Settings exposes an **Analysis source**
+toggle. Switching it resets the cached inference session so the next scan uses
+the selected server or on-device engine. Release builds omit the server capability.
+
+For an external beta, deploy the TLS/auth/rate-limit gateway in
+`../ops/beta-gateway/`, use its HTTPS domain and separate inference/contribution
+tokens, and disable the cleartext compatibility flag.
+
 ## The model: real or unavailable
 
-The app talks to `LlamaCppSunnyModel` through `inference/SunnyModel`. Scanning is
-disabled unless both exact GGUF files and `libsunny_llama.so` are available. No
-mock implementation is packaged in the app, preventing plausible fake health
-output.
+The app talks through `inference/SunnyModel`. Server beta mode uses
+`RemoteSunnyModel`; device mode uses `LlamaCppSunnyModel` and disables scanning
+unless both exact GGUF files and `libsunny_llama.so` are available. No mock
+implementation is packaged, preventing plausible fake health output.
 
 The prompt (`inference/Prompt`), greedy decoding, six-field parse
 (`SchemaParser`), banned-word post-filter (`Guardrails`) and single re-run
@@ -68,8 +101,7 @@ files: `filesDir/models/`, the app's external files dir, or `/data/local/tmp/sun
   (Wi-Fi-gated, progress UI). After rights clearance, set an HTTPS base URL
   ending in `/` with `-PmodelBaseUrl=https://example.invalid/models/` or the
   `SUNNY_MODEL_BASE_URL` CI environment variable. The empty default disables
-  downloads. INTERNET is used for **only** this optional download; the core
-  describe/track loop stays offline.
+  downloads. The production device-mode describe/track loop stays offline.
 
 Either way `ModelProvider.reset()` closes any prior native session and the active
 ViewModel dynamically resolves the newly installed model. To shrink the ~6 GB
@@ -94,10 +126,13 @@ ui/screens   Overview · Saved · ScanDetail · Settings · Capture · Camera ·
 
 ## Privacy & safety enforced in-app (not just the model)
 
-- No `INTERNET` permission for the core loop; photos/scans stay in app-private
-  storage; backup/transfer excluded (P-01…P-03).
+- Production inference stays on-device. The temporary server beta requires
+  explicit onboarding acknowledgement, and contribution requires a separate
+  timestamped opt-in; backup/transfer remain excluded (P-01…P-03).
 - Persistent disclaimer on every analysis, timeline and report (S-02).
 - Banned-word filter suppresses + re-runs on any disease/verdict term (S-03).
+- Conservative exposure, contrast, and size checks recommend a retake before
+  inference without interpreting skin or preventing an explicit override (F-08).
 - Timeline comparison shows literal description-field differences only. It never
   scores pixels, declares stability, or recommends a care interval (F-14, S-05).
 - Optional Face ID / device-credential lock gates the app locally.
@@ -107,4 +142,17 @@ ui/screens   Overview · Saved · ScanDetail · Settings · Capture · Camera ·
 Trained on **dermatoscopic** images; phone-photo and skin-tone performance is not
 clinically established. The limitation is acknowledged during onboarding and
 repeated beside results. See `../docs/performance.md`.
-```
+
+## Verification
+
+`.github/workflows/android.yml` runs JVM tests, lint, APK assembly, and the API 34
+instrumentation suite on pushes and pull requests.
+
+`debug` is the private beta mode and can use the configured server endpoints.
+`release` is the public mode: server inference and contribution endpoints are
+forcibly empty regardless of environment variables, beta controls/copy disappear,
+and R8 removes unreachable beta networking code from the artifact.
+
+Release builds require `-PwithLlama`, a configured HTTPS model base URL, and the
+two full SHA-256 values (`modelLanguageSha256` and `modelProjectorSha256`) in
+addition to the legal and validation attestations in `RELEASE_READINESS.md`.

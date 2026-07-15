@@ -14,7 +14,7 @@ import kotlin.coroutines.coroutineContext
  * Downloads a single [ModelAsset] with HTTP Range **resume** support: a partial
  * `.part` file survives interruptions and the next attempt continues from the
  * last byte instead of restarting a multi-GB transfer. Verifies the sha256
- * prefix on completion, then atomically renames into place.
+ * digest (or the debug-only prefix) on completion, then atomically renames it.
  *
  * Uses only java.net (no extra deps). Cancellable via the coroutine scope.
  */
@@ -72,7 +72,7 @@ class WeightDownloader(private val modelsDir: File) {
                     RuntimeException("size mismatch: ${part.length()} != ${asset.sizeBytes}"),
                 )
             }
-            if (!verifyPrefix(part, asset.sha256Prefix)) {
+            if (!verifyDigest(part, asset.sha256)) {
                 part.delete()
                 return@withContext Result.failure(RuntimeException("checksum mismatch for ${asset.fileName}"))
             }
@@ -85,7 +85,7 @@ class WeightDownloader(private val modelsDir: File) {
         }
     }
 
-    private suspend fun verifyPrefix(file: File, expectedPrefix: String): Boolean =
+    private suspend fun verifyDigest(file: File, expected: String): Boolean =
         withContext(Dispatchers.IO) {
             val digest = MessageDigest.getInstance("SHA-256")
             file.inputStream().use { input ->
@@ -98,6 +98,6 @@ class WeightDownloader(private val modelsDir: File) {
                 }
             }
             val hex = digest.digest().joinToString("") { "%02x".format(it) }
-            hex.startsWith(expectedPrefix.lowercase())
+            hex.startsWith(expected.lowercase())
         }
 }
