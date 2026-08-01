@@ -10,6 +10,17 @@ python3 -m http.server 4173 --directory website
 
 Open `http://localhost:4173`.
 
+## Waitlist
+
+The landing page renders a custom Sunny waitlist form and submits it directly to
+the configured Brevo subscription endpoint. Brevo's form script provides field
+validation, asynchronous submission, and success/error responses; no Brevo
+visual styles are loaded.
+
+If the Brevo form is replaced, update its absolute action URL in `index.html`
+and the matching host allowances in `_headers`. Keep the form names `EMAIL`,
+`email_address_check`, and `locale`, because Brevo expects them.
+
 ## Deploy
 
 Deploy the `website/` directory as the site root on Cloudflare Pages, GitHub
@@ -29,7 +40,7 @@ site with independent uptime and security controls.
 
 ## Before publishing
 
-Confirm that `hello@adityaps.work` and `privacy@adityaps.work` are monitored
+Confirm that `aditya@adityaps.work` is monitored
 mailboxes or aliases. Replace them throughout the three HTML files if different
 addresses should be used. The Play Console privacy-policy URL is:
 

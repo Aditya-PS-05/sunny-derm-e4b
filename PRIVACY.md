@@ -1,17 +1,20 @@
 # Sunny — Privacy Policy
 
-_Last updated: 17 July 2026_
+_Last updated: 2 August 2026_
 
 Sunny is a skin‑tracking app built to be private by construction. This policy
-explains exactly what the app does and does not do with your data.
+explains exactly what the app and Sunny's public website do and do not do with
+your data.
 
 ## The short version
 - Saved photos and descriptions stay encrypted on your device. When Sunny AI
   Cloud is selected, each photo chosen for analysis is sent to Sunny's configured
-  inference server. Pro users can instead install Sunny MoE for local inference.
+  inference server. Pro users can instead install Sunny Offline for local inference.
 - Health data is **encrypted at rest** by Sunny in addition to Android's device protections.
 - Sunny **describes** what a spot looks like and helps you track changes over
   time. It is **not a medical device** and does not diagnose.
+- The website waitlist asks only for an email address and never asks for health
+  information.
 
 ## What Sunny stores, and where
 - **Photos** you capture or choose, the model’s six‑field description,
@@ -62,10 +65,39 @@ explains exactly what the app does and does not do with your data.
 Sunny contains no analytics, advertising, or third‑party tracking SDKs. The
 random installation identifier is used only for abuse-resistant quota accounting.
 
+The public website uses no advertising pixels or third-party analytics.
+Infrastructure providers may temporarily process standard request logs for
+security and reliability.
+
+## Website waitlist
+If you join the waitlist at <https://sunny.adityaps.work>, the email address you
+provide and its subscription status are sent to
+[Brevo](https://www.brevo.com/legal/privacypolicy/), Sunny's email-list provider,
+so Sunny can send product updates, testing openings, and launch news. The
+waitlist does not request health information. Your email is retained while you
+remain subscribed. Every marketing message provides an unsubscribe option, and
+you can request access or deletion by contacting Sunny.
+
 ## Medical disclaimer
 Sunny is a tracking tool only. It provides visual descriptions, not medical
 diagnoses or advice. Always consult a qualified healthcare professional for any
 skin concern.
+
+## Model and dataset notices
+Sunny AI Cloud and Sunny Offline use a modified `google/gemma-4-E2B-it` model.
+Gemma 4 is provided by Google under the Apache License 2.0. Sunny fine-tuned the
+language tower, merged the adapter, converted the result to GGUF, and quantized
+the text model and vision projector. Google does not endorse Sunny. A complete
+Apache 2.0 license copy and modification notice ship in the app and accompany
+the downloadable model pack.
+
+The fine-tune used 2,292 accepted smartphone images from **PAD-UFES-20**:
+Pacheco et al., <https://doi.org/10.17632/zr7vgbcyr2.1>. PAD-UFES-20 is licensed
+under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Images were
+resized and normalized, non-diagnostic appearance descriptions were generated,
+records were split by lesion, and the model was fine-tuned and quantized. The
+dataset creators and institutions do not endorse Sunny. Full attribution is in
+`licenses/THIRD_PARTY_NOTICES.txt`.
 
 ## Your control
 Deleting a scan removes its photos, measurements and reminders from the device.
@@ -77,6 +109,8 @@ contribution already sent to the beta server; a server-side deletion and
 retention process must be documented before external beta testing.
 
 ## Contact
+For website or waitlist privacy requests, email `aditya@adityaps.work`.
+
 Release builds are blocked unless a monitored email address or HTTPS contact is
 configured through `SUNNY_PRIVACY_CONTACT`; the same value appears in-app and
 must match the developer contact published on Sunny's app-store page.
