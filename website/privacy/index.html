@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f4f0">
+  <meta name="description" content="Sunny Privacy Policy: how the Sunny Android app stores, processes, protects, and deletes your data.">
+  <meta property="og:title" content="Sunny Privacy Policy">
+  <meta property="og:description" content="Clear information about local storage, optional cloud processing, permissions, and your choices.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sunny.adityaps.work/privacy/">
+  <link rel="canonical" href="https://sunny.adityaps.work/privacy/">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script>document.documentElement.classList.replace('no-js', 'js');</script>
+  <script src="/site.js" defer></script>
+  <title>Privacy Policy — Sunny</title>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header" data-header>
+    <nav class="nav shell" aria-label="Main navigation">
+      <a class="brand" href="/" aria-label="Sunny home"><span class="brand-mark" aria-hidden="true"><span></span></span><span>Sunny</span></a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" data-menu-toggle><span class="sr-only">Open navigation</span><span></span><span></span></button>
+      <div class="nav-links" id="nav-links" data-menu><a href="/#features">Product</a><a href="/about/">About</a><a href="/privacy/" aria-current="page">Privacy</a><a class="nav-cta" href="/#beta">Closed beta</a></div>
+    </nav>
+  </header>
+
+  <main id="main" class="privacy-main">
+    <section class="privacy-hero shell" data-reveal>
+      <div><p class="overline">Sunny Privacy Policy</p><h1>Privacy should feel<br><span>understandable.</span></h1></div>
+      <div class="privacy-summary"><p>This policy explains what Sunny stores, what may leave your device, and the choices available to you.</p><span>Last updated 17 July 2026</span></div>
+    </section>
+
+    <div class="shell policy-layout">
+      <aside class="policy-nav" aria-label="Privacy policy sections">
+        <strong>On this page</strong>
+        <a href="#short-version">The short version</a>
+        <a href="#stored-data">What Sunny stores</a>
+        <a href="#leaves-device">What leaves your device</a>
+        <a href="#permissions">Permissions</a>
+        <a href="#tracking">Tracking and the website</a>
+        <a href="#medical">Medical disclaimer</a>
+        <a href="#control">Your control</a>
+        <a href="#contact">Contact</a>
+      </aside>
+
+      <article class="policy" data-reveal>
+        <section class="policy-callout" id="short-version">
+          <span class="policy-lock" aria-hidden="true"></span>
+          <div><h2>The short version</h2><ul><li>Saved photos and descriptions stay encrypted on your device.</li><li>When Sunny AI Cloud is selected, the photo you choose is sent for analysis with your explicit consent.</li><li>Pro users can install Sunny MoE for local processing after download.</li><li>Sunny is not a medical device and does not diagnose.</li></ul></div>
+        </section>
+
+        <section id="stored-data"><p class="policy-index">01</p><h2>What Sunny stores, and where</h2><p>Photos you capture or choose, the model’s six-field description, reference-based size estimates, active photo-check progress, and PDF reports are stored in the app’s private storage on your device.</p><p>This data, ABCDE responses, and reminder metadata are encrypted at rest using a key protected by Android Keystore—hardware-backed where the device supports it. Sunny uses AES-GCM for files and preferences and SQLCipher for its database.</p><p>An optional app-lock PIN is stored only as a strong salted verifier, never in plain text, and additionally wraps the data-encryption key. Repeated incorrect attempts are rate-limited using boot-aware monotonic time.</p></section>
+
+        <section id="leaves-device"><p class="policy-index">02</p><h2>What leaves your device</h2><h3>Device mode</h3><p>When the on-device Sunny MoE model is installed and selected, scan photos and descriptions do not leave your phone for inference.</p><h3>Sunny AI Cloud</h3><p>When you select cloud analysis and consent to processing, the chosen photo is sent to Sunny’s configured inference server. The generated visual description is returned to the app. Sunny does not claim that its Android client can independently enforce server-side retention or logging; those controls are operated and documented separately.</p><h3>Optional model-improvement contribution</h3><p>Contribution is off by default and requires a separate, versioned opt-in. When enabled, Sunny may send the photo, body area, model output, corrected output, device model, and app version to the configured contribution endpoint. Turning it off prevents future submissions.</p><h3>Anonymous quota accounting</h3><p>Sunny creates a random installation identifier that contains no hardware, advertising, account, or user identifier. The access service stores an opaque one-way derivative plus daily and monthly request counts. Inactive counters are deleted after 62 days. Reinstalling creates a different identifier.</p><h3>Model download</h3><p>Verified Pro users can initiate a model download through expiring, signed HTTPS URLs over Wi-Fi or mobile data.</p><h3>Sharing and backup</h3><p>When you choose Share, Sunny decrypts a report into an operating-system pipe for the destination you select and does not leave a plaintext sharing copy in its cache. Full backups are streamed into a password-derived AES-256-GCM archive and leave the app only when you choose a destination.</p></section>
+
+        <section id="permissions"><p class="policy-index">03</p><h2>Permissions</h2><div class="permission-list"><div><strong>Camera</strong><span>Take photos of a visible skin area. Captures go to private app storage.</span></div><div><strong>Internet and network state</strong><span>Anonymous quota authorization, optional cloud analysis, and model download.</span></div><div><strong>Notifications</strong><span>Deliver the skin-check reminders you choose to set.</span></div><div><strong>Boot completed</strong><span>Re-arm scheduled reminders after the phone restarts.</span></div><div><strong>Foreground service</strong><span>Keep the one-time model download alive when the app is backgrounded.</span></div></div></section>
+
+        <section id="tracking"><p class="policy-index">04</p><h2>No advertising tracking</h2><p>Sunny contains no advertising SDKs and no third-party analytics SDKs. The random installation identifier is used only for abuse-resistant quota accounting.</p><h3>This website</h3><p>This website uses no advertising pixels, analytics trackers, accounts, or cookies. Standard infrastructure logs may temporarily record technical request information such as IP address, browser type, requested path, and timestamp for security and reliability.</p></section>
+
+        <section id="medical"><p class="policy-index">05</p><h2>Medical disclaimer</h2><p>Sunny is a tracking tool only. It provides visual descriptions, not medical diagnoses or advice. Sunny is not a medical device and does not diagnose, treat, cure, or prevent any medical condition. Always consult a qualified healthcare professional for medical advice, diagnosis, or treatment.</p></section>
+
+        <section id="control"><p class="policy-index">06</p><h2>Your control</h2><p>Deleting a scan removes its photos, measurements, and reminders from the device. <strong>Delete all local data</strong> removes scans, photos, measurements, private notes, ABCDE answers, reminders, active photo-check progress, reports, and encrypted backup archives while leaving the installed model and app preferences.</p><p>Uninstalling removes app data unless you explicitly choose an Android option that retains fragile user data. Deleting app data does not automatically delete a contribution that was previously submitted; contribution retention and deletion procedures must be documented before that optional beta capability is offered externally.</p></section>
+
+        <section id="contact" class="policy-contact"><p class="policy-index">07</p><h2>Contact</h2><p>For privacy questions, deletion requests concerning submitted beta contributions, or concerns about this policy, contact:</p><a href="mailto:privacy@adityaps.work">privacy@adityaps.work</a><p class="contact-note">Sunny · <a href="https://sunny.adityaps.work">sunny.adityaps.work</a></p></section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-grid"><div><a class="brand footer-brand" href="/"><span class="brand-mark" aria-hidden="true"><span></span></span><span>Sunny</span></a><p>A private visual journal for tracking visible skin changes over time.</p></div><div class="footer-links"><strong>Explore</strong><a href="/#features">Product</a><a href="/about/">About</a><a href="/privacy/">Privacy</a></div><div class="footer-links"><strong>Contact</strong><a href="mailto:hello@adityaps.work">hello@adityaps.work</a><a href="mailto:privacy@adityaps.work">Privacy questions</a></div></div>
+    <div class="shell footer-bottom"><span>© 2026 Sunny</span><span>Describe and track—not diagnose.</span></div>
+  </footer>
+</body>
+</html>
