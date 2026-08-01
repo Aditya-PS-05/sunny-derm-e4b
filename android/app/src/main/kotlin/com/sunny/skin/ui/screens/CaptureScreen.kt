@@ -4,13 +4,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,18 +21,24 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import com.sunny.skin.ui.i18n.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import com.sunny.skin.ui.SunnyViewModel
+import com.sunny.skin.R
 import com.sunny.skin.ui.components.ScreenScaffold
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.theme.SunnyColors
@@ -53,34 +58,61 @@ fun CaptureScreen(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
+    val libraryError = stringResource(R.string.capture_library_error)
+    var pickerError by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) { vm.beginNewCapture() }
     val picker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         if (uri != null) {
             val bitmap = BitmapLoader.fromUri(context, uri)
-            vm.startCapture(bitmap)
-            onImageChosen()
+            if (bitmap == null) {
+                pickerError = libraryError
+            } else {
+                pickerError = null
+                vm.startCapture(bitmap)
+                onImageChosen()
+            }
         }
     }
 
-    ScreenScaffold(title = "Capture", onBack = onBack) { inner ->
+    ScreenScaffold(title = stringResource(R.string.capture_title), onBack = onBack) { inner ->
         Column(Modifier.fillMaxWidth().padding(inner).padding(16.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                ChooserCard(
-                    Modifier.weight(1f), Icons.Filled.CameraAlt, "Take Photo",
-                    onClick = onOpenCamera,
-                )
-                ChooserCard(
-                    Modifier.weight(1f), Icons.Filled.PhotoLibrary, "Choose from Library",
-                    onClick = {
-                        picker.launch(
-                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
-                        )
-                    },
-                )
+            Text(
+                stringResource(R.string.capture_intro),
+                style = MaterialTheme.typography.bodyMedium,
+                color = SunnyColors.TextSecondary,
+            )
+            pickerError?.let { message ->
+                Spacer(Modifier.size(12.dp))
+                SunnyCard {
+                    Text(
+                        message,
+                        color = SunnyColors.Danger,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(14.dp),
+                    )
+                }
             }
             Spacer(Modifier.size(16.dp))
+            CaptureActionCard(
+                icon = Icons.Filled.CameraAlt,
+                title = stringResource(R.string.capture_take_photo),
+                subtitle = stringResource(R.string.capture_take_photo_support),
+                onClick = onOpenCamera,
+            )
+            Spacer(Modifier.size(12.dp))
+            CaptureActionCard(
+                icon = Icons.Filled.PhotoLibrary,
+                title = stringResource(R.string.capture_choose_library),
+                subtitle = stringResource(R.string.capture_choose_library_support),
+                onClick = {
+                    picker.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                    )
+                },
+            )
+            Spacer(Modifier.size(12.dp))
             GuidedCard(onClick = onGuided)
         }
     }
@@ -91,13 +123,23 @@ fun CaptureScreen(
 private fun GuidedCard(onClick: () -> Unit) {
     SunnyCard(onClick = onClick) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.Accessibility, null, tint = SunnyColors.Orange,
-                modifier = Modifier.size(28.dp))
+            Box(
+                Modifier.size(48.dp).clip(RoundedCornerShape(16.dp))
+                    .background(SunnyColors.OrangeSoft),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Filled.Accessibility,
+                    contentDescription = null,
+                    tint = SunnyColors.OrangeText,
+                    modifier = Modifier.size(30.dp),
+                )
+            }
             Spacer(Modifier.size(12.dp))
             Column(Modifier.weight(1f)) {
-                Text("Guided full-body scan", style = MaterialTheme.typography.titleMedium,
+                Text(stringResource(R.string.capture_full_body), style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold)
-                Text("Capture head to toe with framing tips for each zone",
+                Text(stringResource(R.string.capture_full_body_support),
                     style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
             }
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SunnyColors.TextTertiary)
@@ -106,19 +148,30 @@ private fun GuidedCard(onClick: () -> Unit) {
 }
 
 @Composable
-private fun ChooserCard(modifier: Modifier, icon: ImageVector, label: String, onClick: () -> Unit) {
-    Box(
-        modifier
-            .aspectRatio(1f)
-            .clip(RoundedCornerShape(20.dp))
-            .background(SunnyColors.Surface)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, null, tint = SunnyColors.TextPrimary, modifier = Modifier.size(32.dp))
+private fun CaptureActionCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    SunnyCard(onClick = onClick) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = null, tint = SunnyColors.OrangeText,
+                    modifier = Modifier.size(32.dp))
+            }
             Spacer(Modifier.size(12.dp))
-            Text(label, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold)
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium,
+                    color = SunnyColors.TextSecondary)
+            }
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
+                tint = SunnyColors.TextTertiary)
         }
     }
 }

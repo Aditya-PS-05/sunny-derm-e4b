@@ -33,4 +33,16 @@ class ReminderIntervalTest {
         assertEquals("Every 36 hours", reminderIntervalLabel(36))
         assertEquals("Every 2 weeks", reminderIntervalLabel(24 * 14))
     }
+
+    @Test
+    fun editedLabelPreservesTheSelectedUnit() {
+        assertEquals(
+            "Every 720 hours",
+            selectedReminderIntervalLabel(720, ReminderIntervalUnit.HOURS),
+        )
+        assertEquals(
+            "Every month",
+            selectedReminderIntervalLabel(1, ReminderIntervalUnit.MONTHS),
+        )
+    }
 }

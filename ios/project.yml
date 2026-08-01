@@ -1,0 +1,87 @@
+name: Sunny
+options:
+  bundleIdPrefix: com.sunny
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+configs:
+  Debug: debug
+  Beta: release
+  Release: release
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.0.0
+    TARGETED_DEVICE_FAMILY: "1,2"
+    SUPPORTS_MACCATALYST: false
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: true
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: true
+targets:
+  Sunny:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sunny
+        excludes:
+          - Resources/Preview Content
+    resources:
+      - path: Sunny/Resources
+    info:
+      path: Sunny/Info.plist
+      properties:
+        CFBundleDisplayName: Sunny
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        NSCameraUsageDescription: Sunny uses the camera when you choose to photograph and track a visible skin area.
+        NSPhotoLibraryUsageDescription: Sunny accesses only the photo you choose for skin tracking.
+        NSFaceIDUsageDescription: Use Face ID to unlock your private Sunny vault.
+        UIBackgroundModes:
+          - processing
+        BGTaskSchedulerPermittedIdentifiers:
+          - com.sunny.skin.model-download
+        SUNNY_INFERENCE_API_URL: $(SUNNY_INFERENCE_API_URL)
+        SUNNY_MODEL_BASE_URL: $(SUNNY_MODEL_BASE_URL)
+        SUNNY_ENTITLEMENT_API_URL: $(SUNNY_ENTITLEMENT_API_URL)
+        SUNNY_PRO_MONTHLY_PRODUCT_ID: $(SUNNY_PRO_MONTHLY_PRODUCT_ID)
+        SUNNY_PRO_ANNUAL_PRODUCT_ID: $(SUNNY_PRO_ANNUAL_PRODUCT_ID)
+    entitlements:
+      path: Sunny/Sunny.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sunny.skin
+        SWIFT_OBJC_BRIDGING_HEADER: Sunny/Support/Sunny-Bridging-Header.h
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: true
+      configs:
+        Debug:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          SUNNY_INFERENCE_API_URL: https://34-238-98-220.sslip.io
+          SUNNY_MODEL_BASE_URL: https://34-238-98-220.sslip.io/models/
+          SUNNY_ENTITLEMENT_API_URL: ""
+          SUNNY_PRO_MONTHLY_PRODUCT_ID: sunny.pro.monthly
+          SUNNY_PRO_ANNUAL_PRODUCT_ID: sunny.pro.annual
+        Beta:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: BETA
+          SUNNY_INFERENCE_API_URL: https://34-238-98-220.sslip.io
+          SUNNY_MODEL_BASE_URL: https://34-238-98-220.sslip.io/models/
+          SUNNY_ENTITLEMENT_API_URL: ""
+          SUNNY_PRO_MONTHLY_PRODUCT_ID: sunny.pro.monthly
+          SUNNY_PRO_ANNUAL_PRODUCT_ID: sunny.pro.annual
+        Release:
+          SUNNY_INFERENCE_API_URL: ""
+          SUNNY_MODEL_BASE_URL: ""
+          SUNNY_ENTITLEMENT_API_URL: ""
+          SUNNY_PRO_MONTHLY_PRODUCT_ID: sunny.pro.monthly
+          SUNNY_PRO_ANNUAL_PRODUCT_ID: sunny.pro.annual
+  SunnyTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: SunnyTests
+    dependencies:
+      - target: Sunny
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sunny.skin.tests

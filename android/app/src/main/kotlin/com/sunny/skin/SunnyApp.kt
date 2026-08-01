@@ -10,10 +10,13 @@ import com.sunny.skin.data.crypto.EncryptedImageKeyer
 import com.sunny.skin.data.repo.ScanRepository
 import com.sunny.skin.inference.download.ModelDownloadManager
 import com.sunny.skin.reminder.ReminderScheduler
+import com.sunny.skin.subscription.PlayBillingManager
+import com.sunny.skin.ui.i18n.SunnyLanguageController
 
 /** Holds process-wide singletons (repository). Kept deliberately dependency-free. */
 class SunnyApp : Application(), ImageLoaderFactory {
     val repository: ScanRepository by lazy { ScanRepository(this) }
+    val billing: PlayBillingManager by lazy { PlayBillingManager(this) }
 
     /**
      * Coil loader that decrypts [com.sunny.skin.data.crypto.EncryptedImage] photos
@@ -37,9 +40,11 @@ class SunnyApp : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        SunnyLanguageController.initialize(this)
         // Clean-slate any pre-encryption data before the encrypted DB is opened.
         DataReset.runIfNeeded(this)
         ModelDownloadManager.init(this)
+        billing.start()
         ReminderScheduler.ensureChannel(this)
     }
 }

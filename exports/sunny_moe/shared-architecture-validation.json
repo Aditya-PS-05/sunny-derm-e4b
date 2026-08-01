@@ -1,0 +1,11 @@
+{
+  "model": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+  "architecture": "SmolVLMForConditionalGeneration",
+  "decoder_layers_found": 24,
+  "dense_seed_parameters": 2246784880,
+  "replaced_layers": 12,
+  "first_replaced": "model.text_model.layers.12.mlp",
+  "last_replaced": "model.text_model.layers.23.mlp",
+  "upcycled_parameters_including_training_adapters": 4097591152,
+  "trainable_router_adapter_parameters": 38866944
+}

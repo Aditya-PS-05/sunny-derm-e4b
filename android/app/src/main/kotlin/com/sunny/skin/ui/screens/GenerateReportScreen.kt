@@ -6,11 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,7 +33,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
@@ -47,6 +49,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,13 +70,17 @@ import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.components.SunnyToggle
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
 import com.sunny.skin.util.Format
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 private const val DAY_MS = 24L * 60 * 60 * 1000
+
+private enum class ReportSaveState { Idle, Generating, Saved, Failed }
 
 @Composable
 fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport: (String) -> Unit) {
@@ -85,6 +95,7 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
     var showDatePicker by remember { mutableStateOf(false) }
     var showConfirm by remember { mutableStateOf(false) }
     var visitNote by remember { mutableStateOf("") }
+    var saveState by remember { mutableStateOf(ReportSaveState.Idle) }
 
     // Scans the user has explicitly unchecked (everything else is included).
     val deselected = remember { mutableStateListOf<String>() }
@@ -112,10 +123,14 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                 item {
                     SectionHeader("Body Area")
                     SunnyCard {
-                        Row(Modifier.padding(6.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            SunnyChip("All", region == null, { region = null }, Modifier.weight(1f))
+                        FlowRow(
+                            Modifier.padding(10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            SunnyChip("All", region == null, { region = null })
                             BodyRegion.entries.forEach { r ->
-                                SunnyChip(r.label, region == r, { region = r }, Modifier.weight(1f))
+                                SunnyChip(r.label, region == r, { region = r })
                             }
                         }
                     }
@@ -158,13 +173,20 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                         SectionHeader("Scans · ${included.size} of ${candidates.size} selected")
                         Spacer(Modifier.weight(1f))
                         if (candidates.isNotEmpty()) {
-                            Text(if (allSelected) "Clear all" else "Select all",
-                                style = MaterialTheme.typography.bodyMedium, color = SunnyColors.OrangeText,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.clip(RoundedCornerShape(50)).clickable {
+                            TextButton(
+                                onClick = {
                                     if (allSelected) deselected.addAll(candidates.map { it.scan.id })
                                     else deselected.clear()
-                                }.padding(horizontal = 8.dp, vertical = 4.dp))
+                                },
+                                modifier = Modifier.heightIn(min = 48.dp),
+                            ) {
+                                Text(
+                                    if (allSelected) "Clear all" else "Select all",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = SunnyColors.OrangeText,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
                         }
                     }
                     Spacer(Modifier.height(4.dp))
@@ -172,7 +194,7 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
 
                 if (candidates.isEmpty()) {
                     item {
-                        Text("No scans match these filters.",
+                        Text("No tracked areas match these filters.",
                             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextTertiary,
                             modifier = Modifier.padding(vertical = 12.dp))
                     }
@@ -205,25 +227,82 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                     Spacer(Modifier.height(18.dp))
                     SectionHeader("Report Preview")
                     SunnyCard {
-                        Column(Modifier.padding(horizontal = 16.dp)) {
-                            PreviewRow("Scans included", included.size.toString())
-                            HorizontalDivider(color = SunnyColors.Divider)
-                            PreviewRow("Total photos", totalPhotos.toString())
-                        }
+                        ReportCoverPreview(included.size, totalPhotos)
                     }
                 }
             }
 
-            Button(
-                onClick = { showConfirm = true },
-                enabled = included.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth().padding(16.dp).height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Orange),
-            ) {
-                Icon(Icons.Filled.PictureAsPdf, null, modifier = Modifier.height(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("Save Report (${included.size})", fontWeight = FontWeight.SemiBold)
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                Button(
+                    onClick = {
+                        if (saveState != ReportSaveState.Generating &&
+                            saveState != ReportSaveState.Saved
+                        ) {
+                            showConfirm = true
+                        }
+                    },
+                    enabled = included.isNotEmpty() &&
+                        saveState != ReportSaveState.Generating &&
+                        saveState != ReportSaveState.Saved,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(26.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (saveState == ReportSaveState.Saved) {
+                            SunnyColors.Success
+                        } else {
+                            SunnyColors.Action
+                        },
+                        disabledContainerColor = when (saveState) {
+                            ReportSaveState.Generating -> SunnyColors.Orange.copy(alpha = 0.68f)
+                            ReportSaveState.Saved -> SunnyColors.Success
+                            else -> SunnyColors.SurfaceMuted
+                        },
+                        disabledContentColor = when (saveState) {
+                            ReportSaveState.Generating, ReportSaveState.Saved -> Color.White
+                            else -> SunnyColors.TextTertiary
+                        },
+                    ),
+                ) {
+                    Icon(
+                        if (saveState == ReportSaveState.Saved) Icons.Filled.Check
+                        else Icons.Filled.PictureAsPdf,
+                        contentDescription = null,
+                        modifier = Modifier.height(20.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        when (saveState) {
+                            ReportSaveState.Idle -> "Save Report (${included.size})"
+                            ReportSaveState.Generating -> "Generating report…"
+                            ReportSaveState.Saved -> "Report saved"
+                            ReportSaveState.Failed -> "Try saving again"
+                        },
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                Box(
+                    Modifier.fillMaxWidth().heightIn(min = 24.dp).padding(top = 4.dp)
+                        .semantics { liveRegion = LiveRegionMode.Polite },
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    val status = when (saveState) {
+                        ReportSaveState.Generating -> "Encrypting and saving on this device"
+                        ReportSaveState.Saved -> "Saved securely on this device"
+                        ReportSaveState.Failed -> "Couldn't save the report. Please try again."
+                        ReportSaveState.Idle -> null
+                    }
+                    if (status != null) {
+                        Text(
+                            status,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (saveState == ReportSaveState.Failed) {
+                                SunnyColors.Danger
+                            } else {
+                                SunnyColors.TextSecondary
+                            },
+                        )
+                    }
+                }
             }
         }
     }
@@ -233,7 +312,18 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
             initialSelectedStartDateMillis = startMs,
             initialSelectedEndDateMillis = endMs,
         )
-        LiquidGlassDialog(onDismiss = { showDatePicker = false }) {
+        var pendingDateRange by remember { mutableStateOf<Pair<Long, Long>?>(null) }
+        LiquidGlassDialog(
+            onDismiss = {
+                pendingDateRange?.let { (start, end) ->
+                    startMs = start
+                    endMs = end
+                    dateRangeOn = true
+                }
+                pendingDateRange = null
+                showDatePicker = false
+            },
+        ) { requestDismiss ->
             DateRangePicker(
                 state = state,
                 showModeToggle = false,
@@ -259,7 +349,7 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = { showDatePicker = false }) {
+                TextButton(onClick = requestDismiss) {
                     Text("Cancel", color = SunnyColors.TextSecondary)
                 }
                 Spacer(Modifier.width(4.dp))
@@ -267,9 +357,9 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                     val s = state.selectedStartDateMillis
                     val e = state.selectedEndDateMillis
                     if (s != null && e != null) {
-                        startMs = s; endMs = e; dateRangeOn = true
+                        pendingDateRange = s to e
                     }
-                    showDatePicker = false
+                    requestDismiss()
                 }) { Text("Apply", color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold) }
             }
         }
@@ -286,17 +376,32 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
             },
             confirmButton = {
                 TextButton(onClick = {
+                    if (saveState == ReportSaveState.Generating ||
+                        saveState == ReportSaveState.Saved
+                    ) {
+                        return@TextButton
+                    }
                     showConfirm = false
+                    saveState = ReportSaveState.Generating
                     val toReport = included
+                    val note = visitNote
                     scope.launch {
-                        val file = withContext(Dispatchers.IO) {
-                            ReportGenerator(context).generate(
-                                toReport,
-                                System.currentTimeMillis(),
-                                ReportOptions(visitNote = visitNote),
-                            )
+                        try {
+                            val file = withContext(Dispatchers.IO) {
+                                ReportGenerator(context).generate(
+                                    toReport,
+                                    System.currentTimeMillis(),
+                                    ReportOptions(visitNote = note),
+                                )
+                            }
+                            saveState = ReportSaveState.Saved
+                            delay(SunnyMotion.ScreenEnterMillis.toLong())
+                            onOpenReport(file.nameWithoutExtension)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (_: Exception) {
+                            saveState = ReportSaveState.Failed
                         }
-                        onOpenReport(file.nameWithoutExtension)
                     }
                 }) { Text("Save", color = SunnyColors.OrangeText) }
             },
@@ -307,12 +412,88 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
 }
 
 @Composable
+private fun ReportCoverPreview(scanCount: Int, photoCount: Int) {
+    Row(
+        Modifier.fillMaxWidth().padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            Modifier.width(88.dp).height(116.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(SunnyColors.Surface)
+                .border(1.dp, SunnyColors.Divider, RoundedCornerShape(10.dp))
+                .padding(11.dp)
+                .semantics {
+                    contentDescription = "Report preview with $scanCount scans and $photoCount photos"
+                },
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(18.dp).clip(RoundedCornerShape(6.dp))
+                        .background(SunnyColors.OrangeSoft),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(Modifier.size(7.dp).clip(CircleShape).background(SunnyColors.Orange))
+                }
+                Spacer(Modifier.width(7.dp))
+                Box(
+                    Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(50))
+                        .background(SunnyColors.TextPrimary),
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            PreviewLine(1f)
+            Spacer(Modifier.height(7.dp))
+            PreviewLine(0.68f)
+            Spacer(Modifier.height(14.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Box(
+                    Modifier.weight(1f).height(24.dp).clip(RoundedCornerShape(6.dp))
+                        .background(SunnyColors.OrangeSoft),
+                )
+                Box(
+                    Modifier.weight(1f).height(24.dp).clip(RoundedCornerShape(6.dp))
+                        .background(SunnyColors.SurfaceMuted),
+                )
+            }
+        }
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                "Sunny visual report",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = SunnyColors.TextPrimary,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "A private, on-device PDF preview",
+                style = MaterialTheme.typography.bodyMedium,
+                color = SunnyColors.TextSecondary,
+            )
+            Spacer(Modifier.height(10.dp))
+            PreviewRow("Scans", scanCount.toString())
+            PreviewRow("Photos", photoCount.toString())
+        }
+    }
+}
+
+@Composable
+private fun PreviewLine(fraction: Float) {
+    Box(
+        Modifier.fillMaxWidth(fraction).height(4.dp)
+            .clip(RoundedCornerShape(50))
+            .background(SunnyColors.SurfaceMuted),
+    )
+}
+
+@Composable
 private fun ScanSelectRow(scan: ScanWithObservations, selected: Boolean, onToggle: () -> Unit) {
     val latest = scan.latest
     SunnyCard(onClick = onToggle) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             if (selected) {
-                Box(Modifier.size(24.dp).clip(CircleShape).background(SunnyColors.Orange),
+                Box(Modifier.size(24.dp).clip(CircleShape).background(SunnyColors.Action),
                     contentAlignment = Alignment.Center) {
                     Icon(Icons.Filled.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
                 }
@@ -344,8 +525,13 @@ private fun ScanSelectRow(scan: ScanWithObservations, selected: Boolean, onToggl
 
 @Composable
 private fun PreviewRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 16.dp)) {
-        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+        Text(
+            label,
+            Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+            color = SunnyColors.TextSecondary,
+        )
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
     }
 }

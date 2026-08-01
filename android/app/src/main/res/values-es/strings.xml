@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Sunny</string>
+    <string name="nav_overview">Resumen</string>
+    <string name="nav_areas">Zonas</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="action_add_photo">Añadir foto</string>
+
+    <string name="capture_title">Añadir foto</string>
+    <string name="capture_intro">Usa una foto clara y cercana de una zona. Sunny comprobará la iluminación y el detalle antes del análisis.</string>
+    <string name="capture_take_photo">Tomar una foto</string>
+    <string name="capture_take_photo_support">Usa la guía de encuadre e iluminación en directo</string>
+    <string name="capture_choose_library">Elegir de la galería</string>
+    <string name="capture_choose_library_support">Usa una foto que ya esté en este teléfono</string>
+    <string name="capture_library_error">No se pudo abrir esa foto. Elige otra imagen.</string>
+    <string name="capture_full_body">Revisión fotográfica de cuerpo completo</string>
+    <string name="capture_full_body_support">Captura de cabeza a pies con consejos de encuadre para cada zona</string>
+
+    <string name="review_photo_title">Revisar foto</string>
+    <string name="review_follow_up_title">Revisar seguimiento</string>
+    <string name="save_photo">Guardar foto</string>
+    <string name="save_follow_up">Guardar seguimiento</string>
+    <string name="analysing_photo">Analizando foto…</string>
+    <string name="resolve_analysis_to_save">Completa el análisis para guardar</string>
+</resources>

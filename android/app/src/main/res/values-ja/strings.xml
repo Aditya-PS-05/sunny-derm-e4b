@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Sunny</string>
+    <string name="nav_overview">概要</string>
+    <string name="nav_areas">エリア</string>
+    <string name="nav_settings">設定</string>
+    <string name="action_add_photo">写真を追加</string>
+    <string name="capture_title">写真を追加</string>
+    <string name="capture_intro">1 つの領域の鮮明なクローズアップ写真を使用してください。 Sunny は分析前に照明と詳細をチェックします。</string>
+    <string name="capture_take_photo">写真を撮ってください</string>
+    <string name="capture_take_photo_support">ライブ フレーミングと照明ガイダンスを使用する</string>
+    <string name="capture_choose_library">ライブラリから選ぶ</string>
+    <string name="capture_choose_library_support">この携帯電話にすでにある写真を使用する</string>
+    <string name="capture_library_error">その写真は開けませんでした。別の画像を選択してください。</string>
+    <string name="capture_full_body">全身写真チェック</string>
+    <string name="capture_full_body_support">各ゾーンのフレーミングヒントで頭からつま先まで撮影</string>
+    <string name="review_photo_title">写真をレビューする</string>
+    <string name="review_follow_up_title">フォローアップをレビューする</string>
+    <string name="save_photo">写真を保存</string>
+    <string name="save_follow_up">フォローアップを保存する</string>
+    <string name="analysing_photo">写真を分析中…</string>
+    <string name="resolve_analysis_to_save">保存する分析を解決する</string>
+</resources>

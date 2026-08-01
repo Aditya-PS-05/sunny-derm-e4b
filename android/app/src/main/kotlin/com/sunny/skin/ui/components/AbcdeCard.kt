@@ -18,13 +18,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,18 +52,36 @@ fun AbcdeCard(
     modifier: Modifier = Modifier,
 ) {
     var showInfo by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
     val anyYes = answers.values.any { it == AbcdeAnswer.YES }
+    val answered = answers.values.count { it != AbcdeAnswer.UNSET }
 
     SunnyCard(modifier = modifier) {
         Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                    .clickable { expanded = !expanded }
+                    .padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Column(Modifier.weight(1f)) {
                     Text("ABCDE self-check", style = MaterialTheme.typography.titleMedium)
-                    Text("Learn what to look for on a spot",
+                    Text(
+                        if (expanded) "Educational checklist · $answered of 5 answered"
+                        else "$answered of 5 answered · tap to open",
                         style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                 }
+                Icon(
+                    if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = if (expanded) "Collapse ABCDE self-check" else "Expand ABCDE self-check",
+                    tint = SunnyColors.TextTertiary,
+                )
+            }
+
+            if (expanded) {
+                Spacer(Modifier.height(10.dp))
                 Row(
-                    Modifier.clip(RoundedCornerShape(50)).background(SunnyColors.Surface)
+                    Modifier.align(Alignment.End).clip(RoundedCornerShape(50)).background(SunnyColors.Surface)
                         .border(1.dp, SunnyColors.Divider, RoundedCornerShape(50))
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -75,25 +96,24 @@ fun AbcdeCard(
                     Text("What's this?", style = MaterialTheme.typography.bodyMedium,
                         color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold)
                 }
-            }
+                Spacer(Modifier.height(14.dp))
+                AbcdeItem.entries.forEachIndexed { i, item ->
+                    AbcdeRow(item, answers[item] ?: AbcdeAnswer.UNSET) { onAnswer(item, it) }
+                    if (i < AbcdeItem.entries.lastIndex) Spacer(Modifier.height(14.dp))
+                }
 
-            Spacer(Modifier.height(14.dp))
-            AbcdeItem.entries.forEachIndexed { i, item ->
-                AbcdeRow(item, answers[item] ?: AbcdeAnswer.UNSET) { onAnswer(item, it) }
-                if (i < AbcdeItem.entries.lastIndex) Spacer(Modifier.height(14.dp))
-            }
-
-            if (anyYes) {
-                Spacer(Modifier.height(16.dp))
-                Row(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
-                        .background(SunnyColors.OrangeSoft).padding(12.dp),
-                ) {
-                    Text(
-                        "You flagged something worth mentioning to a clinician. This is a " +
-                            "learning aid — Sunny doesn't diagnose or assess risk.",
-                        style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
-                    )
+                if (anyYes) {
+                    Spacer(Modifier.height(16.dp))
+                    Row(
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+                            .background(SunnyColors.OrangeSoft).padding(12.dp),
+                    ) {
+                        Text(
+                            "You flagged something worth mentioning to a clinician. This is a " +
+                                "learning aid — Sunny doesn't diagnose or assess risk.",
+                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
+                        )
+                    }
                 }
             }
         }
@@ -159,7 +179,7 @@ private fun TriSelector(answer: AbcdeAnswer, onAnswer: (AbcdeAnswer) -> Unit) {
 /** Educational "what dermatologists look for" modal (glass), purely informational. */
 @Composable
 private fun AbcdeInfoDialog(onDismiss: () -> Unit) {
-    LiquidGlassDialog(onDismiss = onDismiss) {
+    LiquidGlassDialog(onDismiss = onDismiss) { requestDismiss ->
         Text("The ABCDE guide", style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold, color = SunnyColors.TextPrimary)
         Spacer(Modifier.height(4.dp))
@@ -202,8 +222,8 @@ private fun AbcdeInfoDialog(onDismiss: () -> Unit) {
         Spacer(Modifier.height(16.dp))
         Box(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(50.dp)
-                .clip(RoundedCornerShape(25.dp)).background(SunnyColors.Orange)
-                .clickable(onClick = onDismiss),
+                .clip(RoundedCornerShape(25.dp)).background(SunnyColors.Action)
+                .clickable(onClick = requestDismiss),
             contentAlignment = Alignment.Center,
         ) {
             Text("Got it", style = MaterialTheme.typography.titleMedium,

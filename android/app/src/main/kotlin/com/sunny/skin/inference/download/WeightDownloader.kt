@@ -5,6 +5,7 @@ import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import com.sunny.skin.inference.tier.SunnyModelTier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
@@ -18,21 +19,31 @@ import kotlin.coroutines.coroutineContext
  *
  * Uses only java.net (no extra deps). Cancellable via the coroutine scope.
  */
-class WeightDownloader(private val modelsDir: File) {
+class WeightDownloader(
+    private val modelsDir: File,
+    private val privateBetaBearerToken: String = "",
+) {
 
     /** @param onProgress called with (bytesForThisAsset, totalBytesForThisAsset). */
     suspend fun download(
+        tier: SunnyModelTier,
         asset: ModelAsset,
         onProgress: (Long, Long) -> Unit,
     ): Result<File> = withContext(Dispatchers.IO) {
         val target = File(modelsDir, asset.fileName)
-        if (target.exists() && target.length() == asset.sizeBytes) return@withContext Result.success(target)
+        if (target.exists() && target.length() == asset.sizeBytes) {
+            if (verifyDigest(target, asset.sha256)) return@withContext Result.success(target)
+            target.delete()
+        } else if (target.exists()) {
+            target.delete()
+        }
 
         val part = File(modelsDir, "${asset.fileName}.part")
         var existing = if (part.exists()) part.length() else 0L
         if (existing > asset.sizeBytes) { part.delete(); existing = 0L }
 
-        val url = ModelSource.urlFor(asset)
+        val request = ModelSource.requestFor(tier, asset, privateBetaBearerToken)
+        val url = request.url
         if (!url.startsWith("https://")) {
             return@withContext Result.failure(SecurityException("model weights must be served over HTTPS"))
         }
@@ -41,6 +52,9 @@ class WeightDownloader(private val modelsDir: File) {
             val conn = (URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 30_000
                 readTimeout = 60_000
+                if (request.bearerToken.isNotBlank()) {
+                    setRequestProperty("Authorization", "Bearer ${request.bearerToken}")
+                }
                 if (existing > 0) setRequestProperty("Range", "bytes=$existing-")
             }
             conn.connect()

@@ -1,8 +1,14 @@
-# Android integration — on-device Gemma 4 E4B dermatology describer
+# Archived Android experiment — Gemma 4 E4B
 
-How the fine-tuned model runs on a phone, mirroring the Sunny app's
-photo → structured-description flow. All inference is **on-device** (offline,
-private, no per-call cost).
+> **Superseded (July 2026).** This is retained only to reproduce the legacy
+> export experiment. The Sunny Android app must not bundle or download this
+> approximately 5.86–6 GB Pro model, LiteRT conversion, ONNX tiers, or the old
+> llama.cpp JNI bridge. Android now downloads only Sunny-MoE; Sunny Pro runs only
+> behind the verified server-inference route. The current contract is
+> `docs/model_tier_delivery.md`.
+
+Historical notes for the former on-device Pro prototype follow. They are not
+instructions for the current app.
 
 ---
 
@@ -14,8 +20,8 @@ private, no per-call cost).
 | MediaPipe LLM Inference API | Maintenance-only; Google recommends migrating off it. | Only if you already have a MediaPipe integration. |
 | llama.cpp (GGUF) | Community. | You want a single cross-platform C++ engine and control the build. |
 
-We target **LiteRT-LM**. The MediaPipe LLM Inference API is in maintenance-only
-mode and its docs point migrations to LiteRT-LM.
+This comparison was made for the archived prototype; none of these runtimes is
+selected by the current Android application.
 
 ## 2. Why we ship a MERGED model, not a runtime LoRA
 

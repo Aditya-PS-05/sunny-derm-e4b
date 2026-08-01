@@ -12,14 +12,12 @@ sealed interface Preflight {
 }
 
 /**
- * Guards the ~6 GB model install: refuses to start unless there is enough free
- * internal storage (with headroom) and enough RAM to actually load a 5 GB model.
+ * Refuses a pack unless there is enough internal storage (including download
+ * headroom) and enough RAM to run that pack's runtime reliably.
  */
 object DownloadPreflight {
-    private const val MIN_RAM_BYTES = 5_500_000_000L
-
-    fun check(context: Context): Preflight {
-        val need = (ModelAsset.totalBytes * 1.1).toLong()
+    fun check(context: Context, pack: ModelPack): Preflight {
+        val need = (pack.totalBytes * 1.1).toLong()
         val storage = context.getSystemService(StorageManager::class.java)
         val free = runCatching {
             storage?.getAllocatableBytes(StorageManager.UUID_DEFAULT)
@@ -33,9 +31,10 @@ object DownloadPreflight {
         }
         val am = context.getSystemService(ActivityManager::class.java)
         val mi = ActivityManager.MemoryInfo().also { am?.getMemoryInfo(it) }
-        if (mi.totalMem in 1 until MIN_RAM_BYTES) {
+        if (mi.totalMem in 1 until pack.minimumRamBytes) {
             return Preflight.Blocked(
-                "This device has about ${gb(mi.totalMem)} of RAM. The model needs ~6 GB " +
+                "This device has about ${gb(mi.totalMem)} of RAM. ${pack.tier.displayName} needs " +
+                    "about ${gb(pack.minimumRamBytes)} " +
                     "and would not run reliably here.",
             )
         }

@@ -1,0 +1,21 @@
+{
+  "seed_model": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+  "seed_parameters": 2246784880,
+  "hidden_size": 2048,
+  "intermediate_size": 8192,
+  "num_layers": 24,
+  "sparse_start_layer": 12,
+  "num_experts": 4,
+  "top_k": 1,
+  "deployment_bpw": 5.5,
+  "expert_parameters_per_layer": 50331648,
+  "sparse_layers": 12,
+  "added_parameters": 1811939328,
+  "total_parameters": 4058724208,
+  "active_parameters": 2246784880,
+  "estimated_download_bytes": 2790372893,
+  "active_weight_bytes": 1544664605,
+  "expert_bytes": 34603008,
+  "cold_expert_bytes_per_token": 415236096,
+  "passes_download_gate": true
+}

@@ -61,3 +61,14 @@ fun reminderIntervalLabel(hours: Int): String = when (hours) {
         "Every ${interval.value} $unit"
     }
 }
+
+/** A label for the value currently being edited, without silently changing its unit. */
+fun selectedReminderIntervalLabel(value: Int, unit: ReminderIntervalUnit): String {
+    val unitLabel = when (unit) {
+        ReminderIntervalUnit.HOURS -> if (value == 1) "hour" else "hours"
+        ReminderIntervalUnit.DAYS -> if (value == 1) "day" else "days"
+        ReminderIntervalUnit.WEEKS -> if (value == 1) "week" else "weeks"
+        ReminderIntervalUnit.MONTHS -> if (value == 1) "month" else "months"
+    }
+    return if (value == 1) "Every $unitLabel" else "Every $value $unitLabel"
+}

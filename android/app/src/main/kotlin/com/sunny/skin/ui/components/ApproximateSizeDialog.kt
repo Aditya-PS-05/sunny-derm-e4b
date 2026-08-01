@@ -28,7 +28,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -91,7 +91,14 @@ fun ApproximateSizeDialog(
     } else null
     val valid = measurement?.isValid == true && referenceAdjusted && targetAdjusted
 
-    LiquidGlassDialog(onDismiss = onDismiss) {
+    var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    LiquidGlassDialog(
+        onDismiss = {
+            val action = pendingAction
+            pendingAction = null
+            if (action != null) action() else onDismiss()
+        },
+    ) { requestDismiss ->
         Column(
             Modifier.fillMaxWidth().heightIn(max = 720.dp)
                 .verticalScroll(rememberScrollState())
@@ -183,11 +190,16 @@ fun ApproximateSizeDialog(
 
             Spacer(Modifier.size(14.dp))
             Button(
-                onClick = { measurement?.takeIf { it.isValid }?.let(onSave) },
+                onClick = {
+                    measurement?.takeIf { it.isValid }?.let { savedMeasurement ->
+                        pendingAction = { onSave(savedMeasurement) }
+                        requestDismiss()
+                    }
+                },
                 enabled = valid,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Orange),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Action),
             ) {
                 Text("Save measurement", fontWeight = FontWeight.SemiBold)
             }
@@ -196,13 +208,16 @@ fun ApproximateSizeDialog(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 if (initial != null) {
-                    TextButton(onClick = onRemove) {
+                    TextButton(onClick = {
+                        pendingAction = onRemove
+                        requestDismiss()
+                    }) {
                         Text("Remove", color = SunnyColors.Danger)
                     }
                 } else {
                     Spacer(Modifier.size(48.dp))
                 }
-                TextButton(onClick = onDismiss) {
+                TextButton(onClick = requestDismiss) {
                     Text("Cancel", color = SunnyColors.TextSecondary)
                 }
             }

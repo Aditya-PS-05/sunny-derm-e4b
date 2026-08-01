@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.sunny.skin.SunnyApp
 import com.sunny.skin.data.SettingsStore
+import com.sunny.skin.data.BetaCredentialStore
 import com.sunny.skin.data.CheckSessionStatus
 import com.sunny.skin.data.db.ScanType
 import com.sunny.skin.data.db.ScanWithObservations
@@ -94,6 +95,7 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
         get() = getApplication<Application>().applicationContext
     private val repo = (app as SunnyApp).repository
     val settings = SettingsStore(app)
+    private val betaCredentials = BetaCredentialStore(app)
 
     val modelAvailable: StateFlow<Boolean> = ModelDownloadManager.status
         .map { it is ModelStatus.Ready || ModelProvider.realModelAvailable(appCtx) }
@@ -173,10 +175,63 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     val contributionStatus: StateFlow<ContributionStatus> = _contributionStatus.asStateFlow()
 
     // ---- Beta "analysis source" switch (server vs on-device) ----
-    /** True only in a beta build that has a server URL baked in; hides the row otherwise. */
-    val serverModeAvailable: Boolean = ModelProvider.serverApiUrl.isNotBlank()
-    private val _useServerInference = MutableStateFlow(settings.useServerInference)
+    /**
+     * Cloud is the safe fallback when an older install selected on-device mode
+     * without ever completing the model download. Keeping that stale preference
+     * made the app open a dead "Not configured" route with no visible way back.
+     */
+    private fun initialCloudSelection(): Boolean {
+        val selected = settings.useServerInference || !ModelProvider.packPresent(
+            appCtx,
+            com.sunny.skin.inference.tier.SunnyModelTier.SUNNY_MOE,
+        )
+        if (selected != settings.useServerInference) settings.useServerInference = selected
+        return selected
+    }
+
+    private val _useServerInference = MutableStateFlow(initialCloudSelection())
     val useServerInference: StateFlow<Boolean> = _useServerInference.asStateFlow()
+    private val _hasInferenceCredential = MutableStateFlow(betaCredentials.inferenceToken.isNotBlank())
+    val hasInferenceCredential: StateFlow<Boolean> = _hasInferenceCredential.asStateFlow()
+    private val _hasContributionCredential = MutableStateFlow(betaCredentials.contributionToken.isNotBlank())
+    val hasContributionCredential: StateFlow<Boolean> = _hasContributionCredential.asStateFlow()
+
+    init {
+        restorePrivateBetaAccess()
+    }
+
+    private fun restorePrivateBetaAccess() {
+        val token = betaCredentials.inferenceToken
+        if (
+            !com.sunny.skin.BuildConfig.SUNNY_PUBLIC_RELEASE &&
+            com.sunny.skin.BuildConfig.SUNNY_ENTITLEMENT_API_URL.isBlank() &&
+            ModelProvider.serverApiUrl.isNotBlank() && token.isNotBlank()
+        ) {
+            com.sunny.skin.subscription.SubscriptionEntitlements.publishPrivateBetaAccess(token)
+            ModelDownloadManager.refresh()
+        }
+    }
+
+    /** Store out-of-band beta credentials under the app's Keystore-rooted data key. */
+    fun updateBetaCredentials(inferenceToken: String?, contributionToken: String?) {
+        betaCredentials.update(inferenceToken, contributionToken)
+        _hasInferenceCredential.value = betaCredentials.inferenceToken.isNotBlank()
+        _hasContributionCredential.value = betaCredentials.contributionToken.isNotBlank()
+        restorePrivateBetaAccess()
+        ModelProvider.reset()
+        ModelDownloadManager.refresh()
+    }
+
+    fun clearBetaCredentials() {
+        betaCredentials.clear()
+        _hasInferenceCredential.value = false
+        _hasContributionCredential.value = false
+        if (com.sunny.skin.BuildConfig.SUNNY_ENTITLEMENT_API_URL.isBlank()) {
+            com.sunny.skin.subscription.SubscriptionEntitlements.clear()
+        }
+        ModelProvider.reset()
+        ModelDownloadManager.refresh()
+    }
 
     /** Switch analysis engine at runtime; the next scan resolves the new source. */
     fun setUseServerInference(v: Boolean) {
@@ -201,6 +256,7 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
                 modelOutput,
                 corrected,
                 bodyZone,
+                betaCredentials.contributionToken,
             )
             _contributionStatus.value = if (sent) ContributionStatus.SENT else ContributionStatus.FAILED
         }
@@ -410,9 +466,14 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { repo.updateNotes(scanId, notes, System.currentTimeMillis()) }
     }
 
-    /** Display name for Settings › About › AI Model. */
-    fun modelName(): String =
-        if (modelAvailable.value) "Sunny-Gemma4-E4B" else "Not installed"
+    /** Display name for Settings › About › AI Model & Plan. */
+    fun modelName(): String = when {
+        settings.useServerInference && ModelProvider.serverAvailable(appCtx) -> "Sunny AI · Cloud"
+        settings.useServerInference -> "Sunny AI Cloud · Connecting"
+        ModelProvider.packPresent(appCtx, com.sunny.skin.inference.tier.SunnyModelTier.SUNNY_MOE) ->
+            "Sunny MoE · Offline"
+        else -> "Sunny MoE · Setup required"
+    }
 
     // ---- Capture flow ----
 
@@ -618,6 +679,10 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
             checkSessionStore.clear()
             com.sunny.skin.report.ReportStore(appCtx).deleteAll()
             com.sunny.skin.data.BackupStore(appCtx).deleteAll()
+            betaCredentials.clear()
+            _hasInferenceCredential.value = false
+            _hasContributionCredential.value = false
+            ModelProvider.reset()
             _capture.value = CaptureState()
             _capturePreset.value = null
             clearPendingCapture()
@@ -657,10 +722,24 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun markModelUnavailable() {
-        val server = ModelProvider.useServer(appCtx)
+        // Use the explicit preference rather than current authorization. If a
+        // Cloud token expires, useServer() becomes false, but the failure is
+        // still a Cloud connection failure—not a broken local-model failure.
+        val server = settings.useServerInference
         ModelProvider.reset()
+        val quota = com.sunny.skin.subscription.SubscriptionEntitlements
+            .cloudInference.value?.quota
         ModelDownloadManager.publishFailed(
-            com.sunny.skin.AppMode.unavailableMessage(server),
+            if (server && quota?.exhausted == true) {
+                if (quota.monthlyRemaining <= 0) {
+                    "Your monthly cloud analysis allowance is used. Upgrade to Pro or use " +
+                        "Sunny MoE on-device."
+                } else {
+                    "Today's cloud analysis allowance is used. Try again after the daily reset."
+                }
+            } else {
+                com.sunny.skin.AppMode.unavailableMessage(server)
+            },
         )
     }
 

@@ -1,0 +1,150 @@
+{
+  "text": "Lesion Type: keratotic plaque, Colour: dark brown, Symmetry: roughly equal sides, Borders: slightly irregular edges, Texture: rough surface, Summary: dark brown keratotic plaque roughly equal sides with slightly irregular edge, dark brown rough surface.",
+  "seed_model": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+  "replaced_layers": [
+    "model.text_model.layers.12.mlp",
+    "model.text_model.layers.13.mlp",
+    "model.text_model.layers.14.mlp",
+    "model.text_model.layers.15.mlp",
+    "model.text_model.layers.16.mlp",
+    "model.text_model.layers.17.mlp",
+    "model.text_model.layers.18.mlp",
+    "model.text_model.layers.19.mlp",
+    "model.text_model.layers.20.mlp",
+    "model.text_model.layers.21.mlp",
+    "model.text_model.layers.22.mlp",
+    "model.text_model.layers.23.mlp"
+  ],
+  "parameters": {
+    "total_parameters": 4097591152,
+    "trainable_parameters": 38866944,
+    "trainable_percent": 0.9485315288478542
+  },
+  "prompt_tokens": 123,
+  "new_tokens": 55,
+  "elapsed_seconds": 3.363912019005511,
+  "tokens_per_second": 16.350011441815266,
+  "peak_gpu_bytes": 8340788736,
+  "routes": [
+    {
+      "layer": 12,
+      "selected_expert": 0,
+      "router_counts": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "layer": 13,
+      "selected_expert": 3,
+      "router_counts": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "layer": 14,
+      "selected_expert": 2,
+      "router_counts": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "layer": 15,
+      "selected_expert": 1,
+      "router_counts": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "layer": 16,
+      "selected_expert": 1,
+      "router_counts": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "layer": 17,
+      "selected_expert": 2,
+      "router_counts": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "layer": 18,
+      "selected_expert": 0,
+      "router_counts": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "layer": 19,
+      "selected_expert": 2,
+      "router_counts": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "layer": 20,
+      "selected_expert": 1,
+      "router_counts": [
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "layer": 21,
+      "selected_expert": 2,
+      "router_counts": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "layer": 22,
+      "selected_expert": 0,
+      "router_counts": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "layer": 23,
+      "selected_expert": 0,
+      "router_counts": [
+        1,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

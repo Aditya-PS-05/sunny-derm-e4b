@@ -2,19 +2,22 @@ package com.sunny.skin.report
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.ParcelFileDescriptor
+import android.os.ProxyFileDescriptorCallback
+import android.os.storage.StorageManager
 import com.sunny.skin.data.crypto.CryptoManager
 import java.io.File
 
-/** Encrypted-at-rest report storage with ephemeral internal rendering files. */
+/** Encrypted-at-rest report storage with memory-backed rendering descriptors. */
 class ReportStore(private val context: Context) {
     private val dir = File(context.filesDir, "reports").apply { mkdirs() }
-    private val renderDir = File(context.cacheDir, "rendered_reports")
 
     init {
-        // Remove plaintext cache files left by older builds or interrupted renders.
+        // Remove plaintext cache files left by older builds.
         runCatching { File(context.cacheDir, "shared_reports").deleteRecursively() }
-        runCatching { renderDir.deleteRecursively() }
-        renderDir.mkdirs()
+        runCatching { File(context.cacheDir, "rendered_reports").deleteRecursively() }
     }
 
     fun list(): List<File> =
@@ -29,17 +32,40 @@ class ReportStore(private val context: Context) {
         return File(dir, "$reportId.pdf")
     }
 
-    /** Decrypt for a synchronous renderer and delete the plaintext in all outcomes. */
-    fun <T> withDecryptedReport(reportId: String, block: (File) -> T): T? {
+    /**
+     * Provide a seekable, memory-backed descriptor for PdfRenderer. No plaintext
+     * report is ever written to disk; the backing byte array is zeroed on close.
+     */
+    fun openDecryptedReport(reportId: String): ParcelFileDescriptor? {
         val enc = file(reportId).takeIf { it.exists() } ?: return null
-        val plain = File.createTempFile("report-", ".pdf", renderDir)
-        return try {
-            plain.writeBytes(CryptoManager.decrypt(context, enc.readBytes()))
-            block(plain)
-        } catch (_: Exception) {
+        val plain = runCatching { CryptoManager.decrypt(context, enc.readBytes()) }.getOrNull()
+            ?: return null
+        val thread = HandlerThread("sunny-report-render").apply { start() }
+        val callback = object : ProxyFileDescriptorCallback() {
+            override fun onGetSize(): Long = plain.size.toLong()
+
+            override fun onRead(offset: Long, size: Int, data: ByteArray): Int {
+                if (offset < 0 || offset >= plain.size) return 0
+                val count = minOf(size, plain.size - offset.toInt())
+                plain.copyInto(data, destinationOffset = 0, startIndex = offset.toInt(), endIndex = offset.toInt() + count)
+                return count
+            }
+
+            override fun onRelease() {
+                plain.fill(0)
+                thread.quitSafely()
+            }
+        }
+        return runCatching {
+            context.getSystemService(StorageManager::class.java).openProxyFileDescriptor(
+                ParcelFileDescriptor.MODE_READ_ONLY,
+                callback,
+                Handler(thread.looper),
+            )
+        }.getOrElse {
+            plain.fill(0)
+            thread.quitSafely()
             null
-        } finally {
-            plain.delete()
         }
     }
 
@@ -50,8 +76,6 @@ class ReportStore(private val context: Context) {
     fun deleteAll() {
         runCatching { dir.deleteRecursively() }
         dir.mkdirs()
-        runCatching { renderDir.deleteRecursively() }
-        renderDir.mkdirs()
     }
 
     /** URI served by [EncryptedReportProvider]; no decrypted share file is written. */

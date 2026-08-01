@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.sp
  * family so it reads native on-device without shipping font files.
  */
 val SunnyTypography = Typography(
-    // Large screen titles: "Saved Scans", "Settings"
+    // Large screen titles: "Tracked Areas", "Settings"
     headlineLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,

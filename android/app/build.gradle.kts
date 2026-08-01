@@ -1,4 +1,6 @@
 import java.util.Properties
+import java.nio.file.Files
+import java.nio.file.attribute.PosixFilePermission
 
 plugins {
     id("com.android.application")
@@ -7,12 +9,39 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-// Release signing is read from android/keystore.properties, which is NOT in git.
-// When it's absent (e.g. CI), release builds are simply left unsigned.
+// Prefer an OS/CI secret store. The ignored properties file remains a local-only
+// fallback, and should be mode 0600 when used.
 val keystorePropsFile = rootProject.file("keystore.properties")
 val keystoreProps = Properties().apply {
     if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
 }
+fun signingValue(environmentName: String, propertyName: String): String =
+    providers.environmentVariable(environmentName).orNull?.trim().orEmpty()
+        .ifBlank { keystoreProps.getProperty(propertyName, "").trim() }
+val signingStoreFile = signingValue("SUNNY_SIGNING_STORE_FILE", "storeFile")
+val signingStorePassword = signingValue("SUNNY_SIGNING_STORE_PASSWORD", "storePassword")
+val signingKeyAlias = signingValue("SUNNY_SIGNING_KEY_ALIAS", "keyAlias")
+val signingKeyPassword = signingValue("SUNNY_SIGNING_KEY_PASSWORD", "keyPassword")
+val signingValues = listOf(signingStoreFile, signingStorePassword, signingKeyAlias, signingKeyPassword)
+check(signingValues.all { it.isBlank() } || signingValues.all { it.isNotBlank() }) {
+    "Signing configuration is incomplete. Provide all four SUNNY_SIGNING_* values."
+}
+val signingConfigured = signingValues.all { it.isNotBlank() }
+fun requirePrivatePermissions(file: File) {
+    if (!file.exists()) return
+    val permissions = runCatching { Files.getPosixFilePermissions(file.toPath()) }.getOrNull() ?: return
+    val unsafe = setOf(
+        PosixFilePermission.GROUP_READ,
+        PosixFilePermission.GROUP_WRITE,
+        PosixFilePermission.GROUP_EXECUTE,
+        PosixFilePermission.OTHERS_READ,
+        PosixFilePermission.OTHERS_WRITE,
+        PosixFilePermission.OTHERS_EXECUTE,
+    )
+    check(permissions.none { it in unsafe }) { "Signing file must be owner-only (chmod 600): $file" }
+}
+requirePrivatePermissions(keystorePropsFile)
+if (signingConfigured) requirePrivatePermissions(project.file(signingStoreFile))
 
 // Public release is deliberately blocked until these external obligations have
 // written evidence. Debug builds remain available for engineering and research.
@@ -30,25 +59,6 @@ check(modelBaseUrl.isEmpty() || (modelBaseUrl.startsWith("https://") && modelBas
     "modelBaseUrl/SUNNY_MODEL_BASE_URL must be an HTTPS base URL ending in /."
 }
 val escapedModelBaseUrl = modelBaseUrl.replace("\\", "\\\\").replace("\"", "\\\"")
-val modelLanguageSha256 = providers.gradleProperty("modelLanguageSha256")
-    .orElse(providers.environmentVariable("SUNNY_MODEL_LANGUAGE_SHA256"))
-    .getOrElse("e41e8bf3d8184980023bb2af2d0b565463f359a9b6c46a8e95b77da61af472ce")
-    .trim()
-    .lowercase()
-val modelProjectorSha256 = providers.gradleProperty("modelProjectorSha256")
-    .orElse(providers.environmentVariable("SUNNY_MODEL_PROJECTOR_SHA256"))
-    .getOrElse("23474645acf3e10f7789cfb5dddacbf00a0d693b4f958b37ecc9b217071d7f46")
-    .trim()
-    .lowercase()
-fun requireHexDigest(name: String, value: String) {
-    check(value.matches(Regex("[0-9a-f]{16}|[0-9a-f]{64}"))) {
-        "$name must be a 16-character debug prefix or a full 64-character SHA-256 digest."
-    }
-}
-requireHexDigest("modelLanguageSha256", modelLanguageSha256)
-requireHexDigest("modelProjectorSha256", modelProjectorSha256)
-val escapedModelLanguageSha256 = modelLanguageSha256.replace("\"", "\\\"")
-val escapedModelProjectorSha256 = modelProjectorSha256.replace("\"", "\\\"")
 val privacyContact = providers.gradleProperty("privacyContact")
     .orElse(providers.environmentVariable("SUNNY_PRIVACY_CONTACT"))
     .getOrElse("")
@@ -58,11 +68,39 @@ check(
         privacyContact.matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")),
 ) { "privacyContact/SUNNY_PRIVACY_CONTACT must be an email address or HTTPS URL." }
 val escapedPrivacyContact = privacyContact.replace("\\", "\\\\").replace("\"", "\\\"")
+val entitlementApiUrl = providers.gradleProperty("entitlementApiUrl")
+    .orElse(providers.environmentVariable("SUNNY_ENTITLEMENT_API_URL"))
+    .getOrElse("")
+    .trim()
+check(entitlementApiUrl.isBlank() || entitlementApiUrl.startsWith("https://")) {
+    "entitlementApiUrl/SUNNY_ENTITLEMENT_API_URL must use HTTPS."
+}
+val escapedEntitlementApiUrl = entitlementApiUrl.replace("\\", "\\\\").replace("\"", "\\\"")
+val betaEntitlementApiUrl = providers.gradleProperty("betaEntitlementApiUrl")
+    .orElse(providers.environmentVariable("SUNNY_BETA_ENTITLEMENT_API_URL"))
+    .getOrElse("")
+    .trim()
+check(betaEntitlementApiUrl.isBlank() || betaEntitlementApiUrl.startsWith("https://")) {
+    "betaEntitlementApiUrl/SUNNY_BETA_ENTITLEMENT_API_URL must use HTTPS."
+}
+val escapedBetaEntitlementApiUrl = betaEntitlementApiUrl
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+val proProductId = providers.gradleProperty("proProductId").getOrElse("sunny_pro").trim()
+val proIntroOfferTag = providers.gradleProperty("proIntroOfferTag").getOrElse("sunny-pro-intro").trim()
+check(proProductId.matches(Regex("[a-z0-9._-]{1,128}"))) {
+    "Play subscription product IDs contain invalid characters."
+}
+check(proIntroOfferTag.matches(Regex("[A-Za-z0-9._-]{1,128}"))) {
+    "The Pro introductory offer tag contains invalid characters."
+}
 
-// Device releases are not functional without the native bridge. Keeping this
-// flag at the project level also lets the release gate validate the artifact.
-val withLlama = project.hasProperty("withLlama") &&
-    file("src/main/cpp/llama.cpp/CMakeLists.txt").exists()
+// The runtime is built from a pinned, patched llama.cpp source tree. Vendoring
+// is explicit so a release cannot silently fall back to the retired Pro bridge.
+val sunnyMoeRuntimeSourceReady =
+    file("src/main/cpp/CMakeLists.txt").isFile &&
+        file("src/main/cpp/sunny_moe.cpp").isFile &&
+        file("src/main/cpp/llama.cpp/CMakeLists.txt").isFile
 
 // INTERIM beta server method. Environment values deliberately win over the
 // checked-in development fallback, so CI can select device mode without editing
@@ -84,11 +122,6 @@ check(inferenceMode != "server" || inferenceApiUrl.isNotBlank()) {
     "Server mode requires SUNNY_INFERENCE_API_URL or inferenceApiUrl."
 }
 val escapedInferenceApiUrl = inferenceApiUrl.replace("\\", "\\\\").replace("\"", "\\\"")
-val inferenceApiToken = providers.environmentVariable("SUNNY_INFERENCE_API_TOKEN")
-    .getOrElse("")
-    .trim()
-val escapedInferenceApiToken = inferenceApiToken.replace("\\", "\\\\").replace("\"", "\\\"")
-
 // INTERIM beta "improve Sunny" endpoint. It can be disabled independently of
 // inference for production builds and local testing.
 val contributionMode = providers.environmentVariable("SUNNY_CONTRIBUTION_MODE")
@@ -108,25 +141,13 @@ check(contributionMode != "enabled" || contributeUrl.isNotBlank()) {
     "Enabled contribution mode requires SUNNY_CONTRIBUTE_URL or contributeUrl."
 }
 val escapedContributeUrl = contributeUrl.replace("\\", "\\\\").replace("\"", "\\\"")
-val contributeApiToken = providers.environmentVariable("SUNNY_CONTRIBUTE_API_TOKEN")
-    .getOrElse("")
-    .trim()
-val escapedContributeApiToken = contributeApiToken.replace("\\", "\\\\").replace("\"", "\\\"")
-val allowInsecureBetaEndpoints = providers.gradleProperty("allowInsecureBetaEndpoints")
-    .map { it.toBoolean() }
-    .getOrElse(false)
-
-fun checkHttpEndpoint(name: String, value: String) {
-    check(value.isBlank() || value.startsWith("https://") || value.startsWith("http://")) {
-        "$name must be an HTTP(S) URL."
-    }
-    check(!value.startsWith("http://") || allowInsecureBetaEndpoints) {
-        "$name uses cleartext HTTP. Use HTTPS or explicitly set " +
-            "allowInsecureBetaEndpoints=true for a debug-only beta build."
+fun checkHttpsEndpoint(name: String, value: String) {
+    check(value.isBlank() || value.startsWith("https://")) {
+        "$name must be an HTTPS URL. Cleartext endpoints are never permitted."
     }
 }
-checkHttpEndpoint("inferenceApiUrl", inferenceApiUrl)
-checkHttpEndpoint("contributeUrl", contributeUrl)
+checkHttpsEndpoint("inferenceApiUrl", inferenceApiUrl)
+checkHttpsEndpoint("contributeUrl", contributeUrl)
 
 tasks.configureEach {
     if (name == "preReleaseBuild") {
@@ -140,20 +161,16 @@ tasks.configureEach {
                     "and real-device validation, then pass -PclinicalValidationComplete=true. " +
                     "See RELEASE_READINESS.md."
             }
-            check(withLlama) {
-                "Release blocked: build the on-device runtime with -PwithLlama."
-            }
-            check(modelBaseUrl.isNotBlank()) {
-                "Release blocked: configure the rights-cleared HTTPS model CDN with " +
-                    "-PmodelBaseUrl=https://.../."
-            }
-            check(modelLanguageSha256.length == 64 && modelProjectorSha256.length == 64) {
-                "Release blocked: provide full model digests with -PmodelLanguageSha256 and " +
-                    "-PmodelProjectorSha256 (or the matching SUNNY_MODEL_* environment values)."
+            check(sunnyMoeRuntimeSourceReady) {
+                "Release blocked: run android/scripts/vendor_sunny_moe_runtime.sh first."
             }
             check(privacyContact.isNotBlank()) {
                 "Release blocked: configure a monitored privacy email or HTTPS URL with " +
                     "-PprivacyContact (or SUNNY_PRIVACY_CONTACT)."
+            }
+            check(entitlementApiUrl.isNotBlank()) {
+                "Release blocked: configure the server-side Play entitlement verifier with " +
+                    "-PentitlementApiUrl=https://.../."
             }
         }
     }
@@ -161,64 +178,89 @@ tasks.configureEach {
 
 android {
     namespace = "com.sunny.skin"
-    compileSdk = 35
+    compileSdk = 36
 
-    // Build the native llama.cpp/mtmd model bridge only when explicitly requested
-    // (./gradlew assembleDebug -PwithLlama) AND llama.cpp has been vendored
-    // (scripts/vendor_llama.sh). Default builds contain no inference fallback.
     defaultConfig {
         applicationId = "com.sunny.skin"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
         buildConfigField("String", "SUNNY_MODEL_BASE_URL", "\"$escapedModelBaseUrl\"")
-        buildConfigField("String", "SUNNY_MODEL_LANGUAGE_SHA256", "\"$escapedModelLanguageSha256\"")
-        buildConfigField("String", "SUNNY_MODEL_PROJECTOR_SHA256", "\"$escapedModelProjectorSha256\"")
         buildConfigField("String", "SUNNY_PRIVACY_CONTACT", "\"$escapedPrivacyContact\"")
-        buildConfigField("String", "SUNNY_INFERENCE_API_URL", "\"$escapedInferenceApiUrl\"")
-        buildConfigField("String", "SUNNY_INFERENCE_API_TOKEN", "\"$escapedInferenceApiToken\"")
-        buildConfigField("String", "SUNNY_CONTRIBUTE_URL", "\"$escapedContributeUrl\"")
-        buildConfigField("String", "SUNNY_CONTRIBUTE_API_TOKEN", "\"$escapedContributeApiToken\"")
-        buildConfigField("Boolean", "SUNNY_ALLOW_INSECURE_BETA_ENDPOINTS", allowInsecureBetaEndpoints.toString())
+        buildConfigField("String", "SUNNY_ENTITLEMENT_API_URL", "\"$escapedEntitlementApiUrl\"")
+        buildConfigField("String", "SUNNY_PRO_PRODUCT_ID", "\"$proProductId\"")
+        buildConfigField("String", "SUNNY_PRO_INTRO_OFFER_TAG", "\"$proIntroOfferTag\"")
+        buildConfigField("String", "SUNNY_INFERENCE_API_URL", "\"\"")
+        buildConfigField("String", "SUNNY_CONTRIBUTE_URL", "\"\"")
         buildConfigField("Boolean", "SUNNY_PUBLIC_RELEASE", "false")
 
-        if (withLlama) {
-            // A 6 GB model needs a 64-bit address space — arm64 only.
-            ndk { abiFilters += "arm64-v8a" }
-            externalNativeBuild {
-                cmake {
-                    arguments += listOf("-DANDROID_STL=c++_shared")
-                    cppFlags += "-O3"
-                }
-            }
-        }
-    }
-
-    if (withLlama) {
+        ndk { abiFilters += "arm64-v8a" }
         externalNativeBuild {
             cmake {
-                path = file("src/main/cpp/CMakeLists.txt")
-                version = "3.22.1"
+                arguments += "-DANDROID_STL=c++_shared"
+                cppFlags += listOf("-O3", "-fexceptions", "-frtti")
             }
         }
-        ndkVersion = "28.2.13676358"
+
     }
 
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+    ndkVersion = "28.2.13676358"
+
     signingConfigs {
-        if (keystoreProps.isNotEmpty()) {
+        if (signingConfigured) {
             create("release") {
-                storeFile = file(keystoreProps.getProperty("storeFile"))
-                storePassword = keystoreProps.getProperty("storePassword")
-                keyAlias = keystoreProps.getProperty("keyAlias")
-                keyPassword = keystoreProps.getProperty("keyPassword")
+                storeFile = file(signingStoreFile)
+                storePassword = signingStorePassword
+                keyAlias = signingKeyAlias
+                keyPassword = signingKeyPassword
             }
         }
     }
 
     buildTypes {
+        debug {
+            // The private-beta broker returns short-lived authorization and signed
+            // model URLs. No reusable download credential is compiled into the APK.
+            buildConfigField(
+                "String",
+                "SUNNY_ENTITLEMENT_API_URL",
+                "\"$escapedBetaEntitlementApiUrl\"",
+            )
+            buildConfigField("String", "SUNNY_INFERENCE_API_URL", "\"$escapedInferenceApiUrl\"")
+            buildConfigField("String", "SUNNY_CONTRIBUTE_URL", "\"\"")
+        }
+        create("beta") {
+            // Tester builds get release-grade process protections while retaining
+            // explicitly configured HTTPS beta endpoints. Credentials are entered
+            // at runtime and encrypted locally; they are never compiled into the APK.
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            buildConfigField(
+                "String",
+                "SUNNY_ENTITLEMENT_API_URL",
+                "\"$escapedBetaEntitlementApiUrl\"",
+            )
+            buildConfigField("String", "SUNNY_INFERENCE_API_URL", "\"$escapedInferenceApiUrl\"")
+            buildConfigField("String", "SUNNY_CONTRIBUTE_URL", "\"$escapedContributeUrl\"")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.findByName("release")
+            // Tester phones are arm64; excluding emulator/legacy ABIs avoids a
+            // universal APK carrying unused emulator/legacy native ABIs.
+            ndk { abiFilters += "arm64-v8a" }
+        }
         release {
             // Public distribution is a distinct, fail-closed mode. These values
             // override every beta environment/property so a release artifact can
@@ -228,15 +270,13 @@ android {
             buildConfigField("Boolean", "SUNNY_PUBLIC_RELEASE", "true")
             buildConfigField("String", "SUNNY_INFERENCE_API_URL", "\"\"")
             buildConfigField("String", "SUNNY_CONTRIBUTE_URL", "\"\"")
-            buildConfigField("Boolean", "SUNNY_ALLOW_INSECURE_BETA_ENDPOINTS", "false")
-            buildConfigField("String", "SUNNY_INFERENCE_API_TOKEN", "\"\"")
-            buildConfigField("String", "SUNNY_CONTRIBUTE_API_TOKEN", "\"\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Signed only when keystore.properties is present (see top of file).
+            // Signed only when a complete environment or local fallback is present.
             signingConfig = signingConfigs.findByName("release")
+            ndk { abiFilters += "arm64-v8a" }
         }
     }
 
@@ -257,13 +297,12 @@ android {
     }
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        // The GGUF model files are shipped as uncompressed assets so llama.cpp
-        // can mmap them directly from the APK / OBB without a copy-out step.
+        // Downloaded model files live in app-private storage, outside the APK.
         jniLibs.useLegacyPackaging = false
     }
     androidResources {
         // Do NOT compress the on-device model weights.
-        noCompress += listOf("gguf", "litertlm", "bin")
+        noCompress += listOf("safetensors")
     }
 }
 
@@ -299,17 +338,18 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.1")
     implementation("androidx.camera:camera-view:1.4.1")
 
-    // Biometric (Face ID / device credential lock)
-    implementation("androidx.biometric:biometric:1.2.0-alpha05")
-
     // Coil for on-device image thumbnails
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    // Store purchases are never trusted locally; tokens are verified by Sunny's backend.
+    implementation("com.android.billingclient:billing:9.1.0")
+
     // On-device encryption at rest: SQLCipher for the Room DB.
-    implementation("net.zetetic:sqlcipher-android:4.6.1")
+    implementation("net.zetetic:sqlcipher-android:4.17.0")
     implementation("androidx.sqlite:sqlite:2.4.0")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20260522")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:core-ktx:1.6.1")
     androidTestImplementation("androidx.test:runner:1.6.2")

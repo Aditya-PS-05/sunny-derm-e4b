@@ -1,0 +1,33 @@
+{
+  "format": "sunny-moe-mobile-gguf-v1",
+  "version": "sunny-moe-2.2b-v4-gguf",
+  "architecture": "smolvlm2-sunny-moe",
+  "seed_model": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+  "runtime": {
+    "engine": "llama.cpp+mtmd",
+    "llama_cpp_commit": "72874f559c598b8f89fbb24864868337cf5afb4c",
+    "abi": "arm64-v8a",
+    "routing": "sequence-level top-1, four experts in layers 12-23",
+    "minimum_ram_bytes": 6000000000
+  },
+  "artifacts": [
+    {
+      "file": "sunny-moe-text-Q4_K_M.gguf",
+      "bytes": 2210067936,
+      "sha256": "7e7aa651986473c94988ac99978cd5c51a7bb7b8a1e4092cd41ed835c38fd28b",
+      "role": "mixed dense and sparse text decoder"
+    },
+    {
+      "file": "sunny-moe-mmproj-F16.gguf",
+      "bytes": 872300704,
+      "sha256": "c4149a795d2c4af070d94e2130e2e1026d96bb912bbac1595b6fd12d376b91f4",
+      "role": "corrected SmolVLM2 vision encoder and projector"
+    }
+  ],
+  "total_model_bytes": 3082368640,
+  "decoding": {
+    "temperature": 0,
+    "maximum_new_tokens": 180,
+    "schema_aware_stop": true
+  }
+}

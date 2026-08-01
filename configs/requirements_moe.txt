@@ -1,0 +1,10 @@
+# Sunny-MoE upcycling/training/export stack. Install in the GPU `derm` env.
+torch>=2.4
+transformers>=4.50
+accelerate>=1.0
+safetensors>=0.4
+numpy>=1.26
+pillow>=10
+sentencepiece
+protobuf
+num2words>=0.5.14

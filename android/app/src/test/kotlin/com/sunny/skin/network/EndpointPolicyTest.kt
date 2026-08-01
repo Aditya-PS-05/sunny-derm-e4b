@@ -8,21 +8,14 @@ import org.junit.Test
 class EndpointPolicyTest {
     @Test
     fun httpsEndpoint_isAccepted() {
-        val url = EndpointPolicy.resolve("https://beta.example", "/v1/test", false)
+        val url = EndpointPolicy.resolve("https://beta.example", "/v1/test")
 
         assertEquals("https://beta.example/v1/test", url.toString())
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun cleartextEndpoint_isRejectedByDefault() {
-        EndpointPolicy.resolve("http://beta.example", "/v1/test", false)
-    }
-
-    @Test
-    fun explicitDebugCleartext_keepsBetaCompatibility() {
-        val url = EndpointPolicy.resolve("http://127.0.0.1:8080/", "/v1/test", true)
-
-        assertEquals("http://127.0.0.1:8080/v1/test", url.toString())
+        EndpointPolicy.resolve("http://beta.example", "/v1/test")
     }
 
     @Test(expected = IOException::class)

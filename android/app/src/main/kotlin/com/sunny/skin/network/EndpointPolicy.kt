@@ -5,11 +5,9 @@ import java.io.InputStream
 import java.net.URL
 
 object EndpointPolicy {
-    fun resolve(baseUrl: String, path: String, allowCleartext: Boolean): URL {
+    fun resolve(baseUrl: String, path: String): URL {
         val base = URL(baseUrl)
-        require(base.protocol == "https" || (base.protocol == "http" && allowCleartext)) {
-            "Endpoint must use HTTPS. Cleartext HTTP is allowed only in an explicit debug beta."
-        }
+        require(base.protocol == "https") { "Endpoint must use HTTPS." }
         require(base.host.isNotBlank() && base.userInfo == null) { "Invalid endpoint host." }
         return URL(base.toString().trimEnd('/') + path)
     }

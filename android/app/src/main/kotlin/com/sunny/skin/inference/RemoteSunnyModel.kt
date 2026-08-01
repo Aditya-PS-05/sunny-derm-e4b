@@ -2,12 +2,12 @@ package com.sunny.skin.inference
 
 import android.graphics.Bitmap
 import android.util.Base64
-import com.sunny.skin.BuildConfig
 import com.sunny.skin.network.EndpointPolicy
 import com.sunny.skin.network.JsonHttpRequest
 import com.sunny.skin.network.JsonHttpTransport
 import com.sunny.skin.network.UrlConnectionJsonTransport
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -54,11 +54,12 @@ object RemoteInferenceContract {
  */
 class RemoteSunnyModel(
     baseUrl: String,
-    private val apiToken: String = BuildConfig.SUNNY_INFERENCE_API_TOKEN,
-    allowCleartext: Boolean = BuildConfig.DEBUG && BuildConfig.SUNNY_ALLOW_INSECURE_BETA_ENDPOINTS,
+    private val apiToken: String,
     private val transport: JsonHttpTransport = UrlConnectionJsonTransport(),
+    private val onAnalysisConsumed: () -> Unit = {},
 ) : SunnyModel {
-    private val endpoint = EndpointPolicy.resolve(baseUrl, "/v1/chat/completions", allowCleartext)
+    private val endpoint = EndpointPolicy.resolve(baseUrl, "/v1/chat/completions")
+    private val mirroredAnalysisIds = ConcurrentHashMap.newKeySet<String>()
 
     override val version: String = "Sunny-Gemma4-E4B (server)"
 
@@ -67,7 +68,7 @@ class RemoteSunnyModel(
 
     override suspend fun warmUp() { ready = true }
 
-    override suspend fun describeRaw(bitmap: Bitmap): String = withContext(Dispatchers.IO) {
+    override suspend fun describeRaw(bitmap: Bitmap, analysisId: String): String = withContext(Dispatchers.IO) {
         val jpeg = encodeForServer(bitmap)
         val dataUri = "data:image/jpeg;base64," + Base64.encodeToString(jpeg, Base64.NO_WRAP)
 
@@ -82,18 +83,38 @@ class RemoteSunnyModel(
                     bearerToken = apiToken,
                     connectTimeoutMs = 20_000,
                     readTimeoutMs = 180_000,
+                    analysisId = analysisId,
                 ),
             )
             if (response.code !in 200..299) {
+                if (response.code == 429) updateQuotaFromError(response.body)
                 throw RuntimeException(
                     "inference API HTTP ${response.code}: ${response.body.take(200)}",
                 )
             }
             ready = true
-            RemoteInferenceContract.parseResponse(response.body)
+            RemoteInferenceContract.parseResponse(response.body).also {
+                if (mirroredAnalysisIds.add(analysisId)) onAnalysisConsumed()
+            }
         } catch (error: Exception) {
             ready = false
             throw error
+        }
+    }
+
+    private fun updateQuotaFromError(body: String) {
+        runCatching {
+            val quota = JSONObject(body).getJSONObject("quota")
+            com.sunny.skin.subscription.SubscriptionEntitlements.updateCloudQuota(
+                com.sunny.skin.subscription.CloudQuota(
+                    monthlyLimit = quota.getInt("monthlyLimit"),
+                    monthlyRemaining = quota.getInt("monthlyRemaining"),
+                    dailyLimit = quota.getInt("dailyLimit"),
+                    dailyRemaining = quota.getInt("dailyRemaining"),
+                    monthResetsAtMillis = quota.getLong("monthResetsAtMillis"),
+                    dayResetsAtMillis = quota.getLong("dayResetsAtMillis"),
+                ),
+            )
         }
     }
 

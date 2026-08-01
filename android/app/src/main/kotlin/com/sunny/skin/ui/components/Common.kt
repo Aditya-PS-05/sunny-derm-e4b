@@ -1,19 +1,22 @@
 package com.sunny.skin.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,24 +25,31 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.IntOffset
+import com.sunny.skin.ui.theme.SunnyMotion
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.sunnyPressScale
 
 /** White rounded card used across every screen. */
 @Composable
@@ -49,11 +59,29 @@ fun SunnyCard(
     content: @Composable () -> Unit,
 ) {
     val shape = RoundedCornerShape(20.dp)
+    val interactionSource = remember { MutableInteractionSource() }
     Surface(
         modifier = modifier
             .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier.sunnyPressScale(interactionSource)
+                } else {
+                    Modifier
+                },
+            )
             .clip(shape)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = LocalIndication.current,
+                        onClick = onClick,
+                    )
+                } else {
+                    Modifier
+                },
+            ),
         shape = shape,
         color = SunnyColors.Surface,
         shadowElevation = 0.dp,
@@ -89,6 +117,40 @@ fun InlineDisclaimer(
         textAlign = textAlign,
         modifier = modifier,
     )
+}
+
+/** Keeps a decorative icon and its label together as one optically centred group. */
+@Composable
+fun CenteredIconLabel(
+    icon: ImageVector,
+    text: String,
+    iconTint: Color,
+    textColor: Color,
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 20.dp,
+    spacing: Dp = 8.dp,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    maxLines: Int = Int.MAX_VALUE,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(iconSize),
+        )
+        Spacer(Modifier.width(spacing))
+        Text(
+            text = text,
+            style = textStyle,
+            color = textColor,
+            maxLines = maxLines,
+        )
+    }
 }
 
 @Composable
@@ -130,13 +192,20 @@ fun SunnyChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val bg = if (selected) SunnyColors.Orange else SunnyColors.Surface
+    val interactionSource = remember { MutableInteractionSource() }
+    val bg = if (selected) SunnyColors.Action else SunnyColors.Surface
     val fg = if (selected) Color.White else SunnyColors.TextSecondary
     Box(
         modifier = modifier
+            .sunnyPressScale(interactionSource)
             .clip(RoundedCornerShape(50))
             .background(bg)
-            .clickable(onClick = onClick)
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClick = onClick,
+            )
             .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -153,7 +222,7 @@ fun SunnyChip(
 @Composable
 fun MetaChip(label: String, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.defaultMinSize(minHeight = 48.dp),
         shape = RoundedCornerShape(50),
         color = SunnyColors.Surface,
         border = BorderStroke(1.dp, SunnyColors.Divider),
@@ -199,16 +268,35 @@ fun SunnyToggle(
     val trackH = 32.dp
     val thumb = 26.dp
     val pad = 3.dp
-    val thumbX by animateDpAsState(if (checked) trackW - thumb - pad else pad, label = "thumbX")
+    val animationSpec = tween<androidx.compose.ui.unit.Dp>(
+        durationMillis = SunnyMotion.StateMillis,
+        easing = SunnyMotion.EaseInOut,
+    )
+    val colorAnimationSpec = tween<Color>(
+        durationMillis = SunnyMotion.StateMillis,
+        easing = SunnyMotion.EaseInOut,
+    )
+    val thumbX by animateDpAsState(
+        targetValue = if (checked) trackW - thumb - pad else pad,
+        animationSpec = animationSpec,
+        label = "thumbX",
+    )
     val track by animateColorAsState(
-        if (checked) onColor else SunnyColors.SwitchOffTrack, label = "track",
+        targetValue = if (checked) onColor else SunnyColors.SwitchOffTrack,
+        animationSpec = colorAnimationSpec,
+        label = "track",
+    )
+    val border by animateColorAsState(
+        targetValue = if (checked) Color.Transparent else SunnyColors.SwitchOffBorder,
+        animationSpec = colorAnimationSpec,
+        label = "toggle border",
     )
     Box(
         modifier
             .size(trackW, trackH)
             .clip(RoundedCornerShape(50))
             .background(track)
-            .border(1.dp, if (checked) Color.Transparent else SunnyColors.SwitchOffBorder, RoundedCornerShape(50))
+            .border(1.dp, border, RoundedCornerShape(50))
             .then(
                 if (accessibilityLabel != null) {
                     Modifier.semantics { contentDescription = accessibilityLabel }
@@ -225,7 +313,7 @@ fun SunnyToggle(
     ) {
         Box(
             Modifier
-                .offset { IntOffset(thumbX.roundToPx(), 0) }
+                .graphicsLayer { translationX = thumbX.toPx() }
                 .size(thumb)
                 .shadow(2.dp, CircleShape)
                 .clip(CircleShape)

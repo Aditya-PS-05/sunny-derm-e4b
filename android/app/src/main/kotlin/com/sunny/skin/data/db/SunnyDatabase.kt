@@ -35,6 +35,19 @@ abstract class SunnyDatabase : RoomDatabase() {
                 }
             }
 
+        /** Enable overwrite-on-delete before a bulk wipe. */
+        fun enableSecureDelete(context: Context) {
+            get(context).openHelper.writableDatabase.execSQL("PRAGMA secure_delete = ON")
+        }
+
+        /** Remove free pages and truncate the WAL after the rows have been deleted. */
+        fun purgeDeletedPages(context: Context) {
+            val db = get(context).openHelper.writableDatabase
+            db.query("PRAGMA wal_checkpoint(FULL)").use { while (it.moveToNext()) Unit }
+            db.execSQL("VACUUM")
+            db.query("PRAGMA wal_checkpoint(TRUNCATE)").use { while (it.moveToNext()) Unit }
+        }
+
         val MIGRATION_1_2 = object : Migration(1, 2) {
             override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE scans ADD COLUMN notes TEXT NOT NULL DEFAULT ''")

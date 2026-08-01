@@ -1,6 +1,7 @@
 package com.sunny.skin.report
 
 import android.content.Context
+import android.os.ParcelFileDescriptor
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.sunny.skin.data.crypto.CryptoManager
@@ -21,11 +22,13 @@ class ReportStoreTest {
         val store = ReportStore(ctx)
         store.file(id).writeBytes(CryptoManager.encrypt(ctx, plain))
         try {
-            val rendered = store.withDecryptedReport(id) { it.readBytes() }
+            val rendered = store.openDecryptedReport(id)?.let {
+                ParcelFileDescriptor.AutoCloseInputStream(it).use { stream -> stream.readBytes() }
+            }
             assertNotNull(rendered)
             assertArrayEquals(plain, rendered)
-            val cached = ctx.cacheDir.resolve("rendered_reports").listFiles().orEmpty()
-            assertFalse("render plaintext must be deleted", cached.any { it.isFile })
+            val cached = ctx.cacheDir.resolve("rendered_reports")
+            assertFalse("render plaintext cache must not exist", cached.exists())
 
             val uri = store.shareUri(id)
             assertNotNull(uri)

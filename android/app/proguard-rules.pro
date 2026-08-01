@@ -1,3 +1,3 @@
-# Keep JNI entry points for the llama.cpp / mtmd native bridge.
--keep class com.sunny.skin.inference.LlamaBridge { *; }
+# Keep JNI entry points for the Sunny-MoE native bridge.
+-keep class com.sunny.skin.inference.SunnyMoeBridge { *; }
 -keepclasseswithmembernames class * { native <methods>; }

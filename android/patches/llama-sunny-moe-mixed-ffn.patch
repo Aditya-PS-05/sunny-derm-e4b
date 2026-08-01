@@ -1,0 +1,153 @@
+diff --git a/gguf-py/gguf/constants.py b/gguf-py/gguf/constants.py
+index cd4cdef..a85f318 100644
+--- a/gguf-py/gguf/constants.py
++++ b/gguf-py/gguf/constants.py
+@@ -1775,6 +1775,7 @@ MODEL_TENSORS: dict[MODEL_ARCH, list[MODEL_TENSOR]] = {
+         MODEL_TENSOR.FFN_GATE_EXP,
+         MODEL_TENSOR.FFN_DOWN_EXP,
+         MODEL_TENSOR.FFN_UP_EXP,
++        MODEL_TENSOR.FFN_EXP_PROBS_B,
+     ],
+     MODEL_ARCH.LLAMA4: [
+         MODEL_TENSOR.TOKEN_EMBD,
+diff --git a/src/models/llama.cpp b/src/models/llama.cpp
+index 4bfebc8..a33be5d 100644
+--- a/src/models/llama.cpp
++++ b/src/models/llama.cpp
+@@ -66,7 +66,17 @@ void llama_model_llama::load_arch_tensors(llama_model_loader &) {
+             layer.rope_freqs = create_tensor(tn(LLM_TENSOR_ROPE_FREQS, "weight", i), {n_rot/2}, TENSOR_NOT_REQUIRED | (i != 0 ? TENSOR_DUPLICATED : 0));
+         }
+ 
+-        if (n_expert == 0) {
++        // Sunny-MoE keeps the first half dense and sparsifies only the final
++        // twelve FFNs. A global expert count therefore does not imply that
++        // every block has a router. Existing all-MoE Llama/Mixtral files still
++        // take the expert branch in every block.
++        if (n_expert > 0) {
++            layer.ffn_gate_inp = create_tensor(
++                    tn(LLM_TENSOR_FFN_GATE_INP, "weight", i),
++                    {n_embd, n_expert}, TENSOR_NOT_REQUIRED);
++        }
++
++        if (layer.ffn_gate_inp == nullptr) {
+             layer.ffn_gate = create_tensor(tn(LLM_TENSOR_FFN_GATE, "weight", i), {n_embd,   n_ff}, 0);
+             layer.ffn_down = create_tensor(tn(LLM_TENSOR_FFN_DOWN, "weight", i), {  n_ff, n_embd}, 0);
+             layer.ffn_up   = create_tensor(tn(LLM_TENSOR_FFN_UP,   "weight", i), {n_embd,   n_ff}, 0);
+@@ -76,7 +86,9 @@ void llama_model_llama::load_arch_tensors(llama_model_loader &) {
+             layer.ffn_down_b = create_tensor(tn(LLM_TENSOR_FFN_DOWN, "bias", i), {n_embd}, TENSOR_NOT_REQUIRED);
+             layer.ffn_up_b   = create_tensor(tn(LLM_TENSOR_FFN_UP,   "bias", i), {n_ff}, TENSOR_NOT_REQUIRED);
+-        } else {
+-            layer.ffn_gate_inp  = create_tensor(tn(LLM_TENSOR_FFN_GATE_INP,  "weight", i), {n_embd, n_expert}, 0);
++        } else {
++            layer.ffn_exp_probs_b = create_tensor(
++                    tn(LLM_TENSOR_FFN_EXP_PROBS_B, i),
++                    {n_expert}, TENSOR_NOT_REQUIRED);
+             layer.ffn_gate_exps = create_tensor(tn(LLM_TENSOR_FFN_GATE_EXPS, "weight", i), {n_embd,   n_ff, n_expert}, TENSOR_NOT_REQUIRED);
+             layer.ffn_down_exps = create_tensor(tn(LLM_TENSOR_FFN_DOWN_EXPS, "weight", i), {  n_ff, n_embd, n_expert}, 0);
+             layer.ffn_up_exps   = create_tensor(tn(LLM_TENSOR_FFN_UP_EXPS,   "weight", i), {n_embd,   n_ff, n_expert}, 0);
+@@ -171,7 +183,9 @@ llama_model_llama::graph<embed>::graph(const llama_model & model, const llm_grap
+                     Qcur, Kcur, Vcur, nullptr, nullptr, nullptr, kq_scale, il);
+             cb(cur, "attn_out", il);
+         }
+-        if (il == n_layer - 1 && inp_out_ids) {
++        const bool sunny_sequence_layer =
++                model.layers[il].ffn_exp_probs_b != nullptr;
++        if (il == n_layer - 1 && inp_out_ids && !sunny_sequence_layer) {
+             cur   = ggml_get_rows(ctx0,   cur, inp_out_ids);
+             inpSA = ggml_get_rows(ctx0, inpSA, inp_out_ids);
+         }
+@@ -200,18 +214,41 @@ llama_model_llama::graph<embed>::graph(const llama_model & model, const llm_grap
+                     LLM_NORM_RMS, il);
+             cb(cur, "ffn_norm", il);
+ 
++            // Sunny uses the optional route-bias tensor as its format marker.
++            // When layer-input extraction is requested, expose the exact
++            // normalized FFN/router input rather than the pre-attention state.
++            if (model.layers[il].ffn_exp_probs_b != nullptr) {
++                cur = ggml_cont(ctx0, cur);
++                res->t_layer_inp[il] = cur;
++            }
++
++            ggml_tensor * sequence_logits = nullptr;
++            if (model.layers[il].ffn_exp_probs_b != nullptr && cur->ne[1] > 1) {
++                // Sunny was trained with one expert per complete image/prompt
++                // sequence. Pool tokens before the router, then repeat the
++                // four logits so every token selects the same expert. Later
++                // single-token decode steps are pinned with exp_probs_b.
++                ggml_tensor * tokens_first = ggml_cont(ctx0, ggml_transpose(ctx0, cur));
++                ggml_tensor * pooled = ggml_mean(ctx0, tokens_first);
++                pooled = ggml_cont(ctx0, ggml_transpose(ctx0, pooled));
++                sequence_logits = build_lora_mm(model.layers[il].ffn_gate_inp, pooled);
++                sequence_logits = ggml_repeat_4d(
++                        ctx0, sequence_logits, n_expert, cur->ne[1], 1, 1);
++                cb(sequence_logits, "ffn_moe_sequence_logits", il);
++            }
++
+             cur = build_moe_ffn(cur,
+                     model.layers[il].ffn_gate_inp,
+                     model.layers[il].ffn_up_exps,
+                     model.layers[il].ffn_gate_exps,
+                     model.layers[il].ffn_down_exps,
+-                    nullptr,
++                    model.layers[il].ffn_exp_probs_b,
+                     n_expert, n_expert_used,
+                     LLM_FFN_SILU, true,
+                     hparams.expert_weights_scale,
+                     LLAMA_EXPERT_GATING_FUNC_TYPE_SOFTMAX,
+                     il,
+-                    nullptr, nullptr,
++                    sequence_logits, nullptr,
+                     model.layers[il].ffn_up_exps_s,
+                     model.layers[il].ffn_gate_exps_s,
+                     model.layers[il].ffn_down_exps_s);
+@@ -220,6 +257,13 @@ llama_model_llama::graph<embed>::graph(const llama_model & model, const llm_grap
+         cur = ggml_add(ctx0, cur, ffn_inp);
+         cb(cur, "ffn_out", il);
+ 
++        // Standard llama.cpp reduces the final layer to requested output rows
++        // before its FFN. Sunny's final router must see the complete sequence,
++        // so defer that optimization until after the routed residual.
++        if (il == n_layer - 1 && inp_out_ids && sunny_sequence_layer) {
++            cur = ggml_get_rows(ctx0, cur, inp_out_ids);
++        }
++
+         cur = build_cvec(cur, il);
+         cb(cur, "l_out", il);
+ 
+diff --git a/tools/mtmd/mtmd.cpp b/tools/mtmd/mtmd.cpp
+index 724538b..f686339 100644
+--- a/tools/mtmd/mtmd.cpp
++++ b/tools/mtmd/mtmd.cpp
+@@ -495,7 +495,9 @@ struct mtmd_context {
+                 {
+                     // https://github.com/huggingface/transformers/blob/a42ba80fa520c784c8f11a973ca9034e5f859b79/src/transformers/models/idefics3/processing_idefics3.py#L192-L215
+                     slice_tmpl         = MTMD_SLICE_TMPL_IDEFICS3;
+-                    tok_ov_img_start   = {lookup_token("\n\n"), lookup_token("<fake_token_around_image>"), lookup_token("<global-img>")};
++                    // Current SmolVLMProcessor inserts the global-image
++                    // markers directly after "User:" with no newline token.
++                    tok_ov_img_start   = {lookup_token("<fake_token_around_image>"), lookup_token("<global-img>")};
+                     tok_ov_img_end     = {lookup_token("<fake_token_around_image>")};
+                     tok_row_end        = {lookup_token("\n")};
+                     sli_img_start_tmpl = "<fake_token_around_image><row_%d_col_%d>";
+diff --git a/tools/mtmd/mtmd-image.cpp b/tools/mtmd/mtmd-image.cpp
+index 01d9b45..6023397 100644
+--- a/tools/mtmd/mtmd-image.cpp
++++ b/tools/mtmd/mtmd-image.cpp
+@@ -1078,9 +1078,14 @@ mtmd_image_preproc_out mtmd_image_preprocessor_idefics3::preprocess(const clip_i
+ 
+     mtmd_image_preproc_out output;
+     output.append_overview(hparams, sliced.overview, true);
+-    output.append(hparams, sliced.slices, true);
+-    output.grid_x = instructions.grid_size.width;
+-    output.grid_y = instructions.grid_size.height;
++    // Transformers emits only the global image when resizing produces a
++    // single 1x1 tile. Keeping that tile as a second image duplicates 81
++    // visual tokens and changes every sequence-level Sunny router decision.
++    if (instructions.grid_size.width > 1 || instructions.grid_size.height > 1) {
++        output.append(hparams, sliced.slices, true);
++        output.grid_x = instructions.grid_size.width;
++        output.grid_y = instructions.grid_size.height;
++    }
+     return output;
+ }
+ 

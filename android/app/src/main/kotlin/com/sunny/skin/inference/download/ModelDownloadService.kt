@@ -14,6 +14,9 @@ import androidx.core.app.NotificationCompat
 import com.sunny.skin.MainActivity
 import com.sunny.skin.R
 import com.sunny.skin.inference.ModelProvider
+import com.sunny.skin.inference.tier.SunnyAccessPolicy
+import com.sunny.skin.inference.tier.SunnyModelTier
+import com.sunny.skin.subscription.SubscriptionEntitlements
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,7 +24,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
- * Runs the ~6 GB model download as a foreground service so it survives the app
+ * Runs the ~3.08 GB Sunny-MoE download as a foreground service so it survives the app
  * being backgrounded or killed. Progress is mirrored into
  * [ModelDownloadManager.status] (the UI's source of truth) and an ongoing
  * notification. The underlying [WeightDownloader] resumes partial transfers, so
@@ -40,24 +43,51 @@ class ModelDownloadService : Service() {
             stopSelfSafe()
             return START_NOT_STICKY
         }
-        startDownload()
-        return START_STICKY
+        val tier = intent?.getStringExtra(EXTRA_TIER)?.let {
+            runCatching { SunnyModelTier.valueOf(it) }.getOrNull()
+        }
+        if (tier == null) {
+            ModelDownloadManager.publishFailed("The requested model pack was not identified.")
+            stopSelfSafe()
+            return START_NOT_STICKY
+        }
+        startDownload(tier)
+        return START_REDELIVER_INTENT
     }
 
-    private fun startDownload() {
+    private fun startDownload(tier: SunnyModelTier) {
         if (job?.isActive == true) return
+        if (!SunnyAccessPolicy.canDownloadLocal(
+                tier,
+                SubscriptionEntitlements.accessEntitlement(),
+                System.currentTimeMillis(),
+            )
+        ) {
+            ModelDownloadManager.publishFailed("Verified Pro access is required to download Sunny MoE.")
+            stopSelfSafe()
+            return
+        }
+        val pack = ModelPackCatalog.publishedPack(tier)
+        if (pack == null) {
+            ModelDownloadManager.publishFailed("${tier.displayName} has not been published yet.")
+            stopSelfSafe()
+            return
+        }
         ensureChannel()
-        startForegroundCompat(buildNotification(0, ModelAsset.totalBytes))
+        startForegroundCompat(buildNotification(tier, 0, pack.totalBytes))
         job = scope.launch {
-            val downloader = WeightDownloader(ModelProvider.modelsDir(applicationContext))
-            val total = ModelAsset.totalBytes
+            val downloader = WeightDownloader(
+                ModelProvider.modelsDir(applicationContext),
+                com.sunny.skin.data.BetaCredentialStore(applicationContext).inferenceToken,
+            )
+            val total = pack.totalBytes
             var completed = 0L
-            for (asset in ModelAsset.entries) {
+            for (asset in pack.assets) {
                 val base = completed
-                val result = downloader.download(asset) { done, _ ->
+                val result = downloader.download(tier, asset) { done, _ ->
                     val d = base + done
-                    ModelDownloadManager.publishDownloading(d, total)
-                    notify(buildNotification(d, total))
+                    ModelDownloadManager.publishDownloading(tier, d, total)
+                    notify(buildNotification(tier, d, total))
                 }
                 if (result.isFailure) {
                     ModelDownloadManager.publishFailed(
@@ -68,8 +98,8 @@ class ModelDownloadService : Service() {
                 completed = base + asset.sizeBytes
             }
             ModelDownloadManager.publishVerifying()
-            if (ModelProvider.weightsPresent(applicationContext)) {
-                ModelDownloadManager.activateInstalledModel()
+            if (ModelProvider.packPresent(applicationContext, tier)) {
+                ModelDownloadManager.activateInstalledModel(tier)
             } else {
                 ModelDownloadManager.publishFailed("files missing after download")
             }
@@ -104,7 +134,7 @@ class ModelDownloadService : Service() {
         }
     }
 
-    private fun buildNotification(done: Long, total: Long): Notification {
+    private fun buildNotification(tier: SunnyModelTier, done: Long, total: Long): Notification {
         val pct = if (total == 0L) 0 else (done * 100 / total).toInt()
         val tap = PendingIntent.getActivity(
             this, 0, Intent(this, MainActivity::class.java),
@@ -112,7 +142,7 @@ class ModelDownloadService : Service() {
         )
         return NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Downloading AI model")
+            .setContentTitle("Downloading ${tier.displayName}")
             .setContentText("${gib(done)} / ${gib(total)}  ·  $pct%")
             .setProgress(100, pct, false)
             .setOngoing(true)
@@ -124,11 +154,13 @@ class ModelDownloadService : Service() {
 
     companion object {
         const val ACTION_CANCEL = "com.sunny.skin.DOWNLOAD_CANCEL"
+        private const val EXTRA_TIER = "sunny_model_tier"
         private const val CHANNEL = "sunny_model_download"
         private const val NOTIF_ID = 4242
 
-        fun start(context: Context) {
+        fun start(context: Context, tier: SunnyModelTier) {
             val i = Intent(context, ModelDownloadService::class.java)
+                .putExtra(EXTRA_TIER, tier.name)
             context.startForegroundService(i)
         }
 

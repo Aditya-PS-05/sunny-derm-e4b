@@ -1,5 +1,9 @@
 package com.sunny.skin.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -17,16 +21,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
 
 /**
  * Retention hero on Overview: the current weekly check-in streak plus a small
@@ -35,6 +46,16 @@ import com.sunny.skin.ui.theme.SunnyColors
  */
 @Composable
 fun StreakCard(habit: com.sunny.skin.ui.HabitStats, modifier: Modifier = Modifier) {
+    val motionEnabled = rememberSunnyMotionEnabled()
+    val displayedStreak by animateIntAsState(
+        targetValue = habit.currentStreakWeeks,
+        animationSpec = if (motionEnabled) {
+            tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)
+        } else {
+            snap()
+        },
+        label = "Weekly streak",
+    )
     SunnyCard(modifier = modifier) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -82,10 +103,11 @@ fun StreakCard(habit: com.sunny.skin.ui.HabitStats, modifier: Modifier = Modifie
                 Spacer(Modifier.size(12.dp))
                 Column(Modifier.weight(1f)) {
                     val streak = habit.currentStreakWeeks
+                    val animatedStreak = displayedStreak.coerceAtLeast(1)
                     Text(
                         when {
                             streak <= 0 -> "Start your streak"
-                            else -> "$streak week${if (streak == 1) "" else "s"} in a row"
+                            else -> "$animatedStreak week${if (animatedStreak == 1) "" else "s"} in a row"
                         },
                         style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
                     )
@@ -119,6 +141,7 @@ fun StreakCard(habit: com.sunny.skin.ui.HabitStats, modifier: Modifier = Modifie
 /** A tiny bar chart of photos-per-week; the last bar (this week) is highlighted. */
 @Composable
 private fun WeeklyBars(counts: List<Int>) {
+    val motionEnabled = rememberSunnyMotionEnabled()
     val max = (counts.maxOrNull() ?: 0).coerceAtLeast(1)
     Row(
         Modifier.fillMaxWidth().height(46.dp),
@@ -126,6 +149,21 @@ private fun WeeklyBars(counts: List<Int>) {
         verticalAlignment = Alignment.Bottom,
     ) {
         counts.forEachIndexed { i, c ->
+            val reveal = remember { Animatable(if (motionEnabled) 0.85f else 1f) }
+            LaunchedEffect(c, motionEnabled) {
+                if (motionEnabled) {
+                    reveal.snapTo(0.85f)
+                    reveal.animateTo(
+                        1f,
+                        animationSpec = tween(
+                            SunnyMotion.StateMillis,
+                            easing = SunnyMotion.EaseOut,
+                        ),
+                    )
+                } else {
+                    reveal.snapTo(1f)
+                }
+            }
             val isThisWeek = i == counts.lastIndex
             val frac = c.toFloat() / max
             val h = (6f + frac * 34f).dp // 6dp stub for empty weeks, up to 40dp
@@ -135,7 +173,15 @@ private fun WeeklyBars(counts: List<Int>) {
                 else -> SunnyColors.OrangeLight
             }
             Box(
-                Modifier.weight(1f).height(h).clip(RoundedCornerShape(50)).background(color),
+                Modifier
+                    .weight(1f)
+                    .height(h)
+                    .graphicsLayer {
+                        scaleY = reveal.value
+                        transformOrigin = TransformOrigin(0.5f, 1f)
+                    }
+                    .clip(RoundedCornerShape(50))
+                    .background(color),
             )
         }
     }

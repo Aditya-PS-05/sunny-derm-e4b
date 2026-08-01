@@ -7,7 +7,7 @@ import com.sunny.skin.inference.ModelProvider
  * Centralises copy and behaviour that differ between the on-device model and the
  * interim beta inference server. There are two distinct notions here:
  *
- *  - [serverMode] / [insecureBetaTransport] are COMPILE-TIME capability flags:
+ *  - [serverMode] is a COMPILE-TIME capability flag:
  *    is a server URL baked into this (beta) build at all? They decide whether the
  *    runtime "analysis source" toggle and the beta disclosures are shown. Release
  *    builds have a blank URL, so both are false and none of this surfaces.
@@ -25,12 +25,9 @@ object AppMode {
     /** True only for the store-facing release build type. */
     val publicRelease: Boolean = BuildConfig.SUNNY_PUBLIC_RELEASE
 
-    /** True when a remote inference API is baked into this build (beta capability). */
-    val serverMode: Boolean = !publicRelease && BuildConfig.SUNNY_INFERENCE_API_URL.isNotBlank()
-
-    /** True only for the explicitly allowed cleartext development beta. */
-    val insecureBetaTransport: Boolean = serverMode &&
-        BuildConfig.SUNNY_INFERENCE_API_URL.startsWith("http://")
+    /** True when this build can obtain or directly reach Sunny's server AI. */
+    val serverMode: Boolean = BuildConfig.SUNNY_INFERENCE_API_URL.isNotBlank() ||
+        BuildConfig.SUNNY_ENTITLEMENT_API_URL.isNotBlank()
 
     /** The engine actually selected right now: server toggle on AND configured. */
     fun serverActive(context: Context): Boolean = ModelProvider.useServer(context)
@@ -41,7 +38,7 @@ object AppMode {
 
     /** The privacy promise line on the onboarding screen (icon rendered separately). */
     val photoPrivacyLine: String = if (serverMode) {
-        "Scan photos are sent to Sunny's beta server for visual description."
+        "Scan photos are sent to Sunny AI Cloud for visual description."
     } else {
         "Scan photos are processed and stored on this phone."
     }
@@ -49,7 +46,7 @@ object AppMode {
     /** Explicit first-run acknowledgement, adjusted to the build capability. */
     val onboardingAcknowledgement: String = if (serverMode) {
         "I understand Sunny does not diagnose, assess risk, or tell me when it is safe to wait. " +
-            "My scan photos will be sent to Sunny's beta inference server for processing."
+            "My scan photos will be sent to Sunny AI Cloud for processing."
     } else {
         "I understand Sunny does not diagnose, assess risk, or tell me when it is safe to wait. " +
             "I will seek professional care for concerns."
@@ -59,14 +56,14 @@ object AppMode {
 
     /** Shown while a scan is being described. */
     fun analysingNote(server: Boolean): String = if (server) {
-        "Analysing on Sunny's beta inference server."
+        "Analysing with Sunny AI Cloud."
     } else {
         "Running on-device. Your photo never leaves this phone."
     }
 
     /** Settings › Privacy & Security subtitle. */
     fun dataPrivacySubtitle(server: Boolean): String = if (server) {
-        "Saved data is encrypted on this device. Scan photos are sent to Sunny's beta server."
+        "Saved data is encrypted on this device. Scan photos are sent to Sunny AI Cloud."
     } else {
         "Scans stay on this device unless you explicitly share an export."
     }
@@ -91,16 +88,15 @@ object AppMode {
 
     /** Short model/service summary on the setup screen. */
     fun modelSummary(server: Boolean): String = if (server) {
-        "Temporary beta inference service. Scan photos are sent to the configured server and " +
+        "Sunny AI Cloud inference. Scan photos are sent to the configured server and " +
             "the structured visual description is returned."
     } else {
-        "On-device dermatology describer. ~6.0 GB (5.0 GB language model + 990 MB vision). " +
-            "Runs fully offline once installed."
+        "Sunny MoE on-device describer. The verified 3.08 GB pack runs fully offline once installed."
     }
 
     /** Shown when the selected engine cannot produce a result. */
     fun unavailableMessage(server: Boolean): String = if (server) {
-        "Sunny's beta inference server is unavailable. Check your connection and try again."
+        "Sunny AI Cloud is unavailable. Check your connection and try again."
     } else {
         "The installed AI model could not start. Install it from Settings before scanning."
     }

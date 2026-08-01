@@ -61,8 +61,10 @@ object ContributionUploader {
         modelOutput: Analysis,
         corrected: Analysis?,
         bodyZone: String,
+        apiToken: String,
     ): Boolean = withContext(Dispatchers.IO) {
         if (BuildConfig.SUNNY_PUBLIC_RELEASE) return@withContext false
+        if (apiToken.isBlank()) return@withContext false
         val base = BuildConfig.SUNNY_CONTRIBUTE_URL
         if (base.isBlank()) return@withContext false
         repeat(MAX_ATTEMPTS) { attempt ->
@@ -71,7 +73,6 @@ object ContributionUploader {
                 val endpoint = EndpointPolicy.resolve(
                     base,
                     "/contribute",
-                    BuildConfig.DEBUG && BuildConfig.SUNNY_ALLOW_INSECURE_BETA_ENDPOINTS,
                 )
                 val payload = ContributionContract.payload(
                     imageBase64 = Base64.encodeToString(jpeg, Base64.NO_WRAP),
@@ -85,7 +86,7 @@ object ContributionUploader {
                     JsonHttpRequest(
                         url = endpoint,
                         payload = payload,
-                        bearerToken = BuildConfig.SUNNY_CONTRIBUTE_API_TOKEN,
+                        bearerToken = apiToken,
                         connectTimeoutMs = 15_000,
                         readTimeoutMs = 30_000,
                     ),

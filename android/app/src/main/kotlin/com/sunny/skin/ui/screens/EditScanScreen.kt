@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,10 +28,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
+import com.sunny.skin.ui.i18n.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,10 +59,13 @@ import com.sunny.skin.inference.DescribeResult
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.AnalysisCard
 import com.sunny.skin.ui.components.ScreenScaffold
+import com.sunny.skin.ui.components.ScreenLoadingState
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
 import com.sunny.skin.util.BitmapLoader
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -82,6 +91,8 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
     var seeded by remember { mutableStateOf(false) }
     var redoing by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var analysisRefreshed by remember { mutableStateOf(false) }
+    var showDiscardConfirmation by remember { mutableStateOf(false) }
     // True once the current analysis reflects the newly-picked photo. When a new
     // photo has been chosen but not re-analysed, Save re-runs the model first so
     // the saved description can never belong to the old photo.
@@ -97,14 +108,25 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
             seeded = true
         }
     }
+    LaunchedEffect(analysisRefreshed) {
+        if (analysisRefreshed) {
+            delay(900)
+            analysisRefreshed = false
+        }
+    }
 
     val picker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         if (uri != null) {
-            newBitmap = BitmapLoader.fromUri(context, uri)
-            error = null
-            analysisMatchesNewPhoto = false // description now belongs to the old photo
+            val selected = BitmapLoader.fromUri(context, uri)
+            if (selected == null) {
+                error = "That image is too large or could not be read."
+            } else {
+                newBitmap = selected
+                error = null
+                analysisMatchesNewPhoto = false // description now belongs to the old photo
+            }
         }
     }
 
@@ -119,6 +141,7 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
                 is DescribeResult.Success -> {
                     analysis = r.analysis; modelVersion = r.modelVersion; rawOutput = r.rawOutput
                     if (newBitmap != null) analysisMatchesNewPhoto = true
+                    analysisRefreshed = true
                 }
                 DescribeResult.Unreadable -> error = "Couldn't read this image. Try a clearer photo."
                 DescribeResult.ModelUnavailable -> error =
@@ -158,24 +181,37 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
         }
     }
 
+    val hasUnsavedChanges = seeded && (
+        name != data?.scan?.name.orEmpty() ||
+            newBitmap != null ||
+            (latest != null && analysis != latest.analysis.toAnalysis())
+        )
+
     ScreenScaffold(
-        title = "Edit Scan",
-        onBack = onDone,
+        title = "Edit tracked area",
+        onBack = {
+            if (hasUnsavedChanges && !redoing) showDiscardConfirmation = true else onDone()
+        },
         trailing = {
             val canSave = data != null && latest != null && analysis != null && name.isNotBlank()
-            Text(
-                "Save",
-                color = if (canSave) SunnyColors.Orange else SunnyColors.TextTertiary,
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .clickable(enabled = canSave && !redoing) { save() }
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-            )
+            TextButton(
+                onClick = { save() },
+                enabled = canSave && !redoing,
+                modifier = Modifier.height(48.dp),
+            ) {
+                Text(
+                    "Save",
+                    color = if (canSave && !redoing) SunnyColors.Action else SunnyColors.TextTertiary,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
         },
     ) { inner ->
-        if (data == null || latest == null) return@ScreenScaffold
+        if (data == null || latest == null) {
+            ScreenLoadingState("Loading tracked area…", Modifier.padding(inner))
+            return@ScreenScaffold
+        }
 
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState())
@@ -201,13 +237,55 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
                 Modifier.fillMaxWidth().aspectRatio(1.3f).clip(RoundedCornerShape(20.dp))
                     .background(SunnyColors.SurfaceMuted),
             ) {
-                val bmp = newBitmap
-                if (bmp != null) {
-                    Image(bmp.asImageBitmap(), null, contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize())
-                } else {
-                    AsyncImage(model = EncryptedImage(latest.imagePath), contentDescription = null,
-                        contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                Crossfade(
+                    targetState = newBitmap,
+                    animationSpec = tween(
+                        SunnyMotion.StateMillis,
+                        easing = SunnyMotion.EaseOut,
+                    ),
+                    label = "Edited scan photo",
+                ) { bmp ->
+                    if (bmp != null) {
+                        Image(
+                            bmp.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    } else {
+                        AsyncImage(
+                            model = EncryptedImage(latest.imagePath),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            }
+            if (newBitmap != null && !analysisMatchesNewPhoto) {
+                Spacer(Modifier.height(10.dp))
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = SunnyColors.OrangeSoft,
+                ) {
+                    Row(
+                        Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Filled.Replay,
+                            contentDescription = null,
+                            tint = SunnyColors.OrangeText,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Spacer(Modifier.size(6.dp))
+                        Text(
+                            "Description needs refresh",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = SunnyColors.OrangeText,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(12.dp))
@@ -238,8 +316,48 @@ fun EditScanScreen(vm: SunnyViewModel, scanId: String, onDone: () -> Unit) {
 
             // Current visual-description preview
             SectionLabel("Description")
-            analysis?.let { AnalysisCard(it) }
+            val analysisHighlight by animateColorAsState(
+                targetValue = if (analysisRefreshed) SunnyColors.OrangeSoft else androidx.compose.ui.graphics.Color.Transparent,
+                animationSpec = tween(
+                    SunnyMotion.StateMillis,
+                    easing = SunnyMotion.EaseOut,
+                ),
+                label = "Refreshed analysis highlight",
+            )
+            analysis?.let {
+                Box(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp))
+                        .background(analysisHighlight).padding(4.dp),
+                ) {
+                    AnalysisCard(it)
+                }
+            }
         }
+    }
+
+    if (showDiscardConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDiscardConfirmation = false },
+            containerColor = SunnyColors.Surface,
+            title = { Text("Discard unsaved changes?") },
+            text = {
+                Text(
+                    "Your edited name, photo or refreshed description will not be saved.",
+                    color = SunnyColors.TextSecondary,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDiscardConfirmation = false
+                    onDone()
+                }) { Text("Discard", color = SunnyColors.Danger, fontWeight = FontWeight.SemiBold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardConfirmation = false }) {
+                    Text("Keep editing", color = SunnyColors.TextSecondary)
+                }
+            },
+        )
     }
 }
 

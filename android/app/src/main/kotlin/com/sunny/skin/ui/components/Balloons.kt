@@ -2,16 +2,28 @@ package com.sunny.skin.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import com.sunny.skin.R
+import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
+import kotlinx.coroutines.delay
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -27,30 +39,85 @@ private data class Piece(
     val spin: Float,
 )
 
+// Warm "sunshine" spread — tints of the brand orange, from deep flame through
+// amber and gold to soft peach and cream. Cohesive with Sunny's calm orange/grey
+// palette; celebratory without the off-brand rainbow of cool hues.
 private val PALETTE = listOf(
-    Color(0xFFFF7A00), // orange
-    Color(0xFFFFC94D), // yellow
-    Color(0xFFEC6F9C), // pink
-    Color(0xFF9B7EDE), // purple
-    Color(0xFF4CC3C9), // teal
-    Color(0xFF6FCF97), // green
-    Color(0xFF5B8DEF), // blue
+    SunnyColors.FlameCore,   // warm red-orange
+    SunnyColors.OrangeDark,  // deep orange
+    SunnyColors.Orange,      // brand orange
+    Color(0xFFFFB84D),       // amber
+    Color(0xFFFFCF7A),       // gold
+    Color(0xFFFF9E78),       // soft coral / peach
+    Color(0xFFF26D4E),       // warm terracotta (keeps contrast on the light canvas)
 )
 
+/** Compact, one-time welcome treatment; the normal header mascot remains in its place. */
+@Composable
+fun SunnyGreeting(
+    modifier: Modifier = Modifier,
+    durationMs: Int = 1_200,
+    onFinished: () -> Unit = {},
+) {
+    val motionEnabled = rememberSunnyMotionEnabled()
+    val alpha = remember { Animatable(if (motionEnabled) 0f else 1f) }
+
+    LaunchedEffect(motionEnabled) {
+        if (motionEnabled) {
+            alpha.animateTo(
+                1f,
+                animationSpec = tween(SunnyMotion.ScreenEnterMillis, easing = SunnyMotion.EaseOut),
+            )
+            delay((durationMs - SunnyMotion.ScreenEnterMillis * 2).coerceAtLeast(0).toLong())
+            alpha.animateTo(
+                0f,
+                animationSpec = tween(SunnyMotion.ScreenEnterMillis, easing = SunnyMotion.EaseOut),
+            )
+        } else {
+            delay(durationMs.toLong())
+        }
+        onFinished()
+    }
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(Modifier.size(52.dp).graphicsLayer { this.alpha = alpha.value }) {
+            drawCircle(
+                color = SunnyColors.OrangeSoft.copy(alpha = 0.9f),
+                radius = size.minDimension * 0.48f,
+            )
+            drawCircle(
+                color = SunnyColors.OrangeLight.copy(alpha = 0.45f),
+                radius = size.minDimension * 0.36f,
+            )
+        }
+        Image(
+            painter = painterResource(R.drawable.sunny_mascot),
+            contentDescription = "Sunny mascot",
+            modifier = Modifier.size(44.dp),
+        )
+    }
+}
+
 /**
- * A one-shot falling balloon + confetti greeting overlay. Plays for ~[durationMs]
- * then calls [onFinished]. Positions are stable across recompositions (seeded).
+ * A one-shot earned celebration. Keep its warm palette and host it in a compact
+ * container after a real milestone; it is no longer used as an Overview greeting.
  */
 @Composable
 fun BalloonDrop(
     modifier: Modifier = Modifier,
-    count: Int = 34,
-    durationMs: Int = 4200,
+    count: Int = 18,
+    durationMs: Int = 1_200,
+    motionEnabled: Boolean = rememberSunnyMotionEnabled(),
+    compact: Boolean = true,
     onFinished: () -> Unit = {},
 ) {
-    val pieces = remember {
+    val safeDurationMs = durationMs.coerceIn(0, 1_500)
+    val pieces = remember(count, compact) {
         val rnd = Random(42)
-        List(count) {
+        List(if (compact) count.coerceIn(0, 18) else count.coerceAtLeast(0)) {
             Piece(
                 xFrac = rnd.nextFloat(),
                 delay = rnd.nextFloat() * 0.4f,
@@ -64,13 +131,33 @@ fun BalloonDrop(
             )
         }
     }
-    val progress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        progress.animateTo(1f, animationSpec = tween(durationMs))
+    val progress = remember { Animatable(if (motionEnabled) 0f else 0.55f) }
+    val alpha = remember { Animatable(1f) }
+    LaunchedEffect(motionEnabled, safeDurationMs) {
+        if (motionEnabled) {
+            progress.animateTo(
+                1f,
+                animationSpec = tween(safeDurationMs, easing = SunnyMotion.EaseOut),
+            )
+        } else {
+            val fadeMillis = minOf(SunnyMotion.StateMillis, safeDurationMs)
+            delay((safeDurationMs - fadeMillis).toLong())
+            if (fadeMillis > 0) {
+                alpha.animateTo(
+                    0f,
+                    animationSpec = tween(fadeMillis, easing = SunnyMotion.EaseOut),
+                )
+            }
+        }
         onFinished()
     }
 
-    Canvas(modifier.fillMaxSize()) {
+    val canvasModifier = if (compact) {
+        modifier.size(width = 180.dp, height = 140.dp)
+    } else {
+        modifier.fillMaxSize()
+    }
+    Canvas(canvasModifier.graphicsLayer { this.alpha = alpha.value }) {
         val h = size.height
         val w = size.width
         pieces.forEach { p ->

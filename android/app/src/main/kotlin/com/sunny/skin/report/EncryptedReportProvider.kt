@@ -36,7 +36,7 @@ class EncryptedReportProvider : ContentProvider() {
         Thread({
             ParcelFileDescriptor.AutoCloseOutputStream(pipe[1]).use { output ->
                 runCatching {
-                    output.write(CryptoManager.decrypt(ctx, encrypted.readBytes()))
+                    encrypted.inputStream().use { input -> CryptoManager.decryptTo(ctx, input, output) }
                 }
             }
         }, "sunny-report-share").start()

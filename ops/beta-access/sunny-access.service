@@ -1,0 +1,25 @@
+[Unit]
+Description=Sunny short-lived beta access broker
+After=network-online.target sunny-inference.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/opt/sunny-access
+EnvironmentFile=/etc/sunny-access/env
+ExecStart=/usr/bin/python3 /opt/sunny-access/server.py
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/sunny-access
+
+[Install]
+WantedBy=multi-user.target

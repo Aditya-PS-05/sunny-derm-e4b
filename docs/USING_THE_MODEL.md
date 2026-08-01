@@ -1,5 +1,10 @@
 # Using the fine-tuned model — a guide for Claude Code
 
+> **Current mobile architecture (July 2026):** Android downloads only the
+> 3.08 GB `sunny-moe-2.2b-v4-gguf` pack. The Gemma GGUF pair described
+> below is the current **server-only Sunny Pro** model and must not be wired into
+> an app download. See `docs/model_tier_delivery.md` and `docs/sunny_moe.md`.
+
 This is the operating manual for the dermatology-describer model when building
 the mobile app. It tells you exactly how the model was trained to be called, so
 your app prompts it the way it saw during fine-tuning. **Matching the training
@@ -87,9 +92,9 @@ Special tokens (already in the GGUF/HF configs — you don't set these manually)
 
 | Runtime | Files needed | Notes |
 |---|---|---|
-| **llama.cpp / llama-mtmd** (Android via JNI) | `e4b-derm-Q4_K_M.gguf` (5.0 GB) + `mmproj-e4b-derm-f16.gguf` (990 MB) | Both required for image input. ~6 GB on device. |
-| **LiteRT-LM** (Google's on-device stack) | convert the merged checkpoint to `.litertlm` | Handles vision natively; see `docs/android_integration.md`. |
-| **transformers** (server / prototype) | merged checkpoint OR base + adapter | Full precision; for testing, not phones. |
+| **Sunny-MoE Android runtime** | `sunny-moe-text-Q4_K_M.gguf` + `sunny-moe-mmproj-F16.gguf` + manifest | The sole downloadable app model; 3.08 GB. |
+| **llama.cpp / llama-mtmd** | `e4b-derm-Q4_K_M.gguf` + `mmproj-e4b-derm-f16.gguf` | Sunny Pro server/reproducibility only; never downloaded by Android. |
+| **transformers** | merged checkpoint OR base + adapter | Server/prototype use; not phones. |
 
 The **adapter** (`adapter_model.safetensors`, 134 MB) is the reproducible core —
 merge it onto the ungated base to regenerate any of the above.
@@ -98,10 +103,10 @@ merge it onto the ungated base to regenerate any of the above.
 
 ## 5. Minimal integration snippets
 
-### 5a. llama.cpp (C/JNI on Android — the vision path)
+### 5a. llama.cpp (legacy Pro server/reproducibility path)
 Load model + mmproj together and run the multimodal chat:
 ```bash
-# desktop test of the exact Android path:
+# desktop/server test of the legacy Pro export:
 llama-mtmd-cli \
   -m e4b-derm-Q4_K_M.gguf \
   --mmproj mmproj-e4b-derm-f16.gguf \
@@ -109,9 +114,8 @@ llama-mtmd-cli \
   -p "You are a dermatology description assistant. ...(full prompt from §2)..." \
   --temp 0.0 -n 180
 ```
-On Android you call the same via the `mtmd` API in the llama.cpp JNI layer:
-create context with both files, add the image to the chat, then the §2 prompt.
-See `docs/android_integration.md` for the Kotlin session sketch.
+Do not embed this pair or its former JNI bridge in Android. Production Android
+uses the Sunny-MoE pack; production Pro calls the verified cloud endpoint.
 
 ### 5b. transformers (prototype / server)
 ```python

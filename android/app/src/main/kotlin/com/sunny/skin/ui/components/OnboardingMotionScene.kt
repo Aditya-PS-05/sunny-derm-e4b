@@ -1,13 +1,12 @@
 package com.sunny.skin.ui.components
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -34,7 +32,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +46,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -57,6 +54,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sunny.skin.R
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
 
 /**
  * Persistent onboarding visual inspired by shared-element and morph interactions:
@@ -73,12 +71,21 @@ fun OnboardingMotionScene(
     LaunchedEffect(motionEnabled) { appeared = true }
     val entrance by animateFloatAsState(
         targetValue = if (appeared) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow,
+        animationSpec = tween(
+            durationMillis = if (motionEnabled) SunnyMotion.ScreenEnterMillis else 0,
+            easing = SunnyMotion.EaseOut,
         ),
         label = "onboarding scene entrance",
     )
+    val captureFlash = remember { Animatable(if (motionEnabled) 1f else 0f) }
+    LaunchedEffect(motionEnabled) {
+        if (motionEnabled) {
+            captureFlash.snapTo(1f)
+            captureFlash.animateTo(0f, tween(durationMillis = 100, easing = LinearEasing))
+        } else {
+            captureFlash.snapTo(0f)
+        }
+    }
     val safeProgress = progress.coerceIn(0f, 2f)
     val timeline = segment(safeProgress, 0.2f, 1f)
     val privacy = segment(safeProgress, 1.15f, 2f)
@@ -111,48 +118,54 @@ fun OnboardingMotionScene(
         )
         TimelineTrack(
             spread = spread,
+            progress = timeline,
             alpha = timeline * (1f - privacy),
             modifier = Modifier.fillMaxSize(),
         )
         LocalVault(
             alpha = privacy,
-            modifier = Modifier.align(Alignment.Center).offset(y = 10.dp),
+            checkProgress = segment(safeProgress, 1.72f, 2f),
+            motionEnabled = motionEnabled,
+            modifier = Modifier.align(Alignment.Center).graphicsLayer {
+                translationY = 10.dp.toPx()
+            },
         )
 
         SnapshotTile(
             label = "FIRST",
             alpha = timeline * (1f - privacy),
             modifier = Modifier.align(Alignment.Center)
-                .offset(x = -spread * timeline, y = 12.dp)
                 .graphicsLayer {
+                    translationX = -spread.toPx() * timeline
+                    translationY = 12.dp.toPx()
                     scaleX = 0.66f
                     scaleY = 0.66f
-                    rotationZ = -7f * timeline
+                    rotationZ = if (motionEnabled) -7f * timeline else 0f
                 },
         )
         SnapshotTile(
             label = "LATEST",
             alpha = timeline * (1f - privacy),
             modifier = Modifier.align(Alignment.Center)
-                .offset(x = spread * timeline, y = 12.dp)
                 .graphicsLayer {
+                    translationX = spread.toPx() * timeline
+                    translationY = 12.dp.toPx()
                     scaleX = 0.66f
                     scaleY = 0.66f
-                    rotationZ = 7f * timeline
+                    rotationZ = if (motionEnabled) 7f * timeline else 0f
                 },
         )
 
         CaptureTile(
+            flashAlpha = captureFlash.value,
             modifier = Modifier.align(Alignment.Center)
-                .offset(
-                    x = (-42).dp * privacy,
-                    y = 8.dp * timeline + 10.dp * privacy,
-                )
                 .graphicsLayer {
+                    translationX = (-42).dp.toPx() * privacy
+                    translationY = 8.dp.toPx() * timeline + 10.dp.toPx() * privacy
                     val scale = 1f - 0.22f * timeline - 0.14f * privacy
                     scaleX = scale
                     scaleY = scale
-                    rotationZ = 2f * timeline * (1f - privacy)
+                    rotationZ = if (motionEnabled) 2f * timeline * (1f - privacy) else 0f
                 },
         )
 
@@ -164,7 +177,7 @@ fun OnboardingMotionScene(
                 .size(70.dp)
                 .graphicsLayer {
                     translationY = 8.dp.toPx() * timeline
-                    rotationZ = -4f * timeline + 4f * privacy
+                    rotationZ = if (motionEnabled) -4f * timeline + 4f * privacy else 0f
                     alpha = 0.92f
                 },
         )
@@ -187,6 +200,15 @@ private fun MotionGrid(modifier: Modifier, privacy: Float) {
 
 @Composable
 private fun CameraFrame(alpha: Float, motionEnabled: Boolean, modifier: Modifier = Modifier) {
+    if (motionEnabled) {
+        AnimatedCameraFrame(alpha = alpha, modifier = modifier)
+    } else {
+        CameraFrameCanvas(alpha = alpha, scan = 0.5f, modifier = modifier)
+    }
+}
+
+@Composable
+private fun AnimatedCameraFrame(alpha: Float, modifier: Modifier = Modifier) {
     val infinite = rememberInfiniteTransition(label = "camera scan")
     val animatedScan by infinite.animateFloat(
         initialValue = 0.12f,
@@ -194,7 +216,11 @@ private fun CameraFrame(alpha: Float, motionEnabled: Boolean, modifier: Modifier
         animationSpec = infiniteRepeatable(tween(1_350, easing = LinearEasing), RepeatMode.Reverse),
         label = "scan position",
     )
-    val scan = if (motionEnabled) animatedScan else 0.5f
+    CameraFrameCanvas(alpha = alpha, scan = animatedScan, modifier = modifier)
+}
+
+@Composable
+private fun CameraFrameCanvas(alpha: Float, scan: Float, modifier: Modifier = Modifier) {
     Canvas(modifier.size(218.dp).graphicsLayer { this.alpha = alpha }) {
         val orange = SunnyColors.Orange
         val corner = 30.dp.toPx()
@@ -222,26 +248,35 @@ private fun CameraFrame(alpha: Float, motionEnabled: Boolean, modifier: Modifier
 }
 
 @Composable
-private fun TimelineTrack(spread: Dp, alpha: Float, modifier: Modifier = Modifier) {
+private fun TimelineTrack(
+    spread: Dp,
+    progress: Float,
+    alpha: Float,
+    modifier: Modifier = Modifier,
+) {
     Canvas(modifier.graphicsLayer { this.alpha = alpha }) {
         val center = androidx.compose.ui.geometry.Offset(size.width / 2f, size.height / 2f + 12.dp.toPx())
         val radius = 5.dp.toPx()
+        val startX = center.x - spread.toPx()
+        val endX = center.x + spread.toPx()
         drawLine(
             SunnyColors.OrangeLight,
-            center.copy(x = center.x - spread.toPx()),
-            center.copy(x = center.x + spread.toPx()),
+            center.copy(x = startX),
+            center.copy(x = startX + (endX - startX) * progress),
             4.dp.toPx(),
             StrokeCap.Round,
         )
-        listOf(-spread.toPx(), 0f, spread.toPx()).forEach { x ->
-            drawCircle(SunnyColors.Surface, radius + 3.dp.toPx(), center.copy(x = center.x + x))
-            drawCircle(SunnyColors.Orange, radius, center.copy(x = center.x + x))
+        listOf(0f, 0.5f, 1f).forEach { milestone ->
+            val nodeAlpha = if (progress >= milestone) 1f else 0.28f
+            val nodeCenter = center.copy(x = startX + (endX - startX) * milestone)
+            drawCircle(SunnyColors.Surface.copy(alpha = nodeAlpha), radius + 3.dp.toPx(), nodeCenter)
+            drawCircle(SunnyColors.Orange.copy(alpha = nodeAlpha), radius, nodeCenter)
         }
     }
 }
 
 @Composable
-private fun CaptureTile(modifier: Modifier = Modifier) {
+private fun CaptureTile(flashAlpha: Float, modifier: Modifier = Modifier) {
     Surface(
         modifier.size(142.dp).shadow(14.dp, RoundedCornerShape(26.dp)),
         shape = RoundedCornerShape(26.dp),
@@ -254,6 +289,9 @@ private fun CaptureTile(modifier: Modifier = Modifier) {
                 painter = painterResource(R.drawable.sunny_mascot),
                 contentDescription = null,
                 modifier = Modifier.size(104.dp),
+            )
+            Box(
+                Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.42f * flashAlpha)),
             )
             Box(
                 Modifier.align(Alignment.BottomEnd).size(30.dp).clip(CircleShape)
@@ -293,7 +331,12 @@ private fun SnapshotTile(label: String, alpha: Float, modifier: Modifier = Modif
 }
 
 @Composable
-private fun LocalVault(alpha: Float, modifier: Modifier = Modifier) {
+private fun LocalVault(
+    alpha: Float,
+    checkProgress: Float,
+    motionEnabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
     Surface(
         modifier.size(258.dp, 174.dp).graphicsLayer {
             this.alpha = alpha
@@ -324,6 +367,18 @@ private fun LocalVault(alpha: Float, modifier: Modifier = Modifier) {
             ) {
                 Icon(Icons.Filled.Lock, null, tint = SunnyColors.OrangeText,
                     modifier = Modifier.size(26.dp))
+                Box(
+                    Modifier.align(Alignment.BottomEnd).size(21.dp)
+                        .graphicsLayer {
+                            this.alpha = checkProgress
+                            val checkScale = if (motionEnabled) 0.82f + 0.18f * checkProgress else 1f
+                            scaleX = checkScale
+                            scaleY = checkScale
+                        }.clip(CircleShape).background(SunnyColors.OrangeText),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.Check, null, tint = Color.White, modifier = Modifier.size(13.dp))
+                }
             }
         }
     }
@@ -331,5 +386,3 @@ private fun LocalVault(alpha: Float, modifier: Modifier = Modifier) {
 
 private fun segment(value: Float, start: Float, end: Float): Float =
     ((value - start) / (end - start)).coerceIn(0f, 1f)
-
-private operator fun Dp.times(value: Float): Dp = (this.value * value).dp

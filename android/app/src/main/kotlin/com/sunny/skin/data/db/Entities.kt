@@ -17,7 +17,7 @@ import com.sunny.skin.data.model.BodyPart
 @Entity(tableName = "scans")
 data class ScanEntity(
     @PrimaryKey val id: String,
-    val name: String,               // e.g. "Scan - Upper Back" / "Single Scan - Middle Toe"
+    val name: String,               // e.g. "Tracked area - Upper Back" / "Single photo - Middle Toe"
     val bodyPart: BodyPart,
     val scanType: ScanType,
     val createdAt: Long,
@@ -26,8 +26,8 @@ data class ScanEntity(
 )
 
 enum class ScanType(val prefix: String) {
-    SINGLE("Single Scan"),
-    TRACKED("Scan"),
+    SINGLE("Single photo"),
+    TRACKED("Tracked area"),
 }
 
 /**

@@ -1,5 +1,21 @@
 package com.sunny.skin.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,7 +48,6 @@ import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Search
@@ -45,7 +60,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,12 +74,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -82,8 +111,11 @@ import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.components.SunnyToggle
 import com.sunny.skin.ui.components.rememberNotificationRequester
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
 import com.sunny.skin.util.Format
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -100,12 +132,14 @@ fun SavedScreen(
     contentPadding: PaddingValues,
     onScanClick: (String) -> Unit,
     onGenerateReport: () -> Unit,
+    proReportsEnabled: Boolean,
     onOpenReports: () -> Unit,
     onOpenReport: (String) -> Unit,
     openReminderCenter: Boolean = false,
     onReminderCenterOpened: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val scans by vm.scans.collectAsStateWithLifecycle()
     val reminders by vm.reminders.collectAsStateWithLifecycle()
@@ -118,6 +152,7 @@ fun SavedScreen(
     var filter by remember { mutableStateOf<BodyRegion?>(null) }
     var query by remember { mutableStateOf("") }
     var sort by remember { mutableStateOf(ScanSort.RECENT) }
+    var animateItemPlacement by remember { mutableStateOf(false) }
     var sortExpanded by remember { mutableStateOf(false) }
     var showReminderCenter by remember { mutableStateOf(false) }
     var showIntervalEditor by remember { mutableStateOf(false) }
@@ -151,6 +186,15 @@ fun SavedScreen(
     val selectedIds = remember { mutableStateListOf<String>() }
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var generating by remember { mutableStateOf(false) }
+    val motionEnabled = rememberSunnyMotionEnabled()
+    val headerOffsetPx = with(LocalDensity.current) { 8.dp.roundToPx() }
+
+    LaunchedEffect(animateItemPlacement) {
+        if (animateItemPlacement) {
+            delay(SunnyMotion.StateMillis.toLong() + 16L)
+            animateItemPlacement = false
+        }
+    }
 
     val selectedScans = scans.filter { it.scan.id in selectedIds }
 
@@ -163,13 +207,44 @@ fun SavedScreen(
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             // Header — normal vs selection mode.
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            AnimatedContent(
+                targetState = selecting,
+                modifier = Modifier.fillMaxWidth(),
+                transitionSpec = {
+                    val enterFade = fadeIn(
+                        animationSpec = tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+                    )
+                    val exitFade = fadeOut(
+                        animationSpec = tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+                    )
+                    if (motionEnabled) {
+                        (enterFade + slideInHorizontally(
+                            animationSpec = tween(
+                                SunnyMotion.StateMillis,
+                                easing = SunnyMotion.EaseOut,
+                            ),
+                            initialOffsetX = { if (targetState) headerOffsetPx else -headerOffsetPx },
+                        )) togetherWith (exitFade + slideOutHorizontally(
+                            animationSpec = tween(
+                                SunnyMotion.StateMillis,
+                                easing = SunnyMotion.EaseOut,
+                            ),
+                            targetOffsetX = { if (targetState) -headerOffsetPx else headerOffsetPx },
+                        ))
+                    } else {
+                        enterFade togetherWith exitFade
+                    }
+                },
+                label = "Saved selection header",
             ) {
-                if (selecting) {
+                selectionMode ->
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (selectionMode) {
                     Surface(
-                        Modifier.size(40.dp).clip(CircleShape).clickable { exitSelection() },
+                        Modifier.size(48.dp).clip(CircleShape).clickable { exitSelection() },
                         shape = CircleShape, color = SunnyColors.Surface, shadowElevation = 2.dp,
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -178,22 +253,37 @@ fun SavedScreen(
                         }
                     }
                     Spacer(Modifier.size(12.dp))
+                    val selectionLabel = if (selectedIds.size == 1) {
+                        "1 area selected"
+                    } else {
+                        "${selectedIds.size} areas selected"
+                    }
                     Text("${selectedIds.size} selected",
                         style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f))
+                        modifier = Modifier.weight(1f).semantics {
+                            liveRegion = LiveRegionMode.Polite
+                            stateDescription = selectionLabel
+                        })
                     val allSelected = filtered.isNotEmpty() && filtered.all { it.scan.id in selectedIds }
-                    Text(if (allSelected) "Clear all" else "Select all",
-                        style = MaterialTheme.typography.bodyLarge, color = SunnyColors.OrangeText,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clip(RoundedCornerShape(50)).clickable {
+                    TextButton(
+                        onClick = {
                             // Scope both actions to the current filter so "Clear all"
                             // can't silently drop selections made under other filters.
                             if (allSelected) filtered.forEach { selectedIds.remove(it.scan.id) }
                             else filtered.forEach { if (it.scan.id !in selectedIds) selectedIds.add(it.scan.id) }
                             if (selectedIds.isEmpty()) selecting = false
-                        }.padding(horizontal = 8.dp, vertical = 4.dp))
-                } else {
-                    Text("Saved Scans", style = MaterialTheme.typography.headlineMedium,
+                        },
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    ) {
+                        Text(
+                            if (allSelected) "Clear all" else "Select all",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = SunnyColors.OrangeText,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                    } else {
+                    Text("Tracked Areas", style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.weight(1f))
                     HeaderIconButton(
                         icon = Icons.Filled.NotificationsActive,
@@ -203,17 +293,10 @@ fun SavedScreen(
                         onClick = { showReminderCenter = true },
                     )
                     Spacer(Modifier.size(6.dp))
-                    HeaderIconButton(
-                        icon = Icons.Filled.PictureAsPdf,
-                        description = "Saved reports",
+                    HeaderReportsButton(
                         onClick = onOpenReports,
                     )
-                    Spacer(Modifier.size(6.dp))
-                    HeaderIconButton(
-                        icon = Icons.Filled.Description,
-                        description = "Generate report",
-                        onClick = onGenerateReport,
-                    )
+                    }
                 }
             }
             Spacer(Modifier.height(4.dp))
@@ -225,14 +308,20 @@ fun SavedScreen(
             ) {
                 OutlinedTextField(
                     value = query,
-                    onValueChange = { query = it },
+                    onValueChange = {
+                        animateItemPlacement = false
+                        query = it
+                    },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    placeholder = { Text("Search scans") },
+                    placeholder = { Text("Search tracked areas") },
                     leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                     trailingIcon = if (query.isNotEmpty()) {
                         {
-                            IconButton(onClick = { query = "" }) {
+                            IconButton(onClick = {
+                                animateItemPlacement = false
+                                query = ""
+                            }) {
                                 Icon(Icons.Filled.Close, contentDescription = "Clear search")
                             }
                         }
@@ -260,9 +349,15 @@ fun SavedScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                item { SunnyChip("All", filter == null, { filter = null }) }
+                item { SunnyChip("All", filter == null, {
+                    animateItemPlacement = true
+                    filter = null
+                }) }
                 items(BodyRegion.entries) { region ->
-                    SunnyChip(region.label, filter == region, { filter = region })
+                    SunnyChip(region.label, filter == region, {
+                        animateItemPlacement = true
+                        filter = region
+                    })
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -274,7 +369,7 @@ fun SavedScreen(
                 )
             } else {
                 if (!selecting) {
-                    Text("Tip: long-press a scan to select several.",
+                    Text("Tip: long-press an area to select several.",
                         style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextTertiary,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp))
                     Spacer(Modifier.height(4.dp))
@@ -283,17 +378,34 @@ fun SavedScreen(
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(
                         start = 16.dp, end = 16.dp, top = 4.dp,
-                        bottom = 120.dp + contentPadding.calculateBottomPadding(),
+                        bottom = 24.dp + contentPadding.calculateBottomPadding(),
                     ),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(filtered, key = { it.scan.id }) { scan ->
+                        val placementModifier = if (animateItemPlacement && motionEnabled) {
+                            Modifier.animateItem(
+                                fadeInSpec = null,
+                                placementSpec = tween(
+                                    SunnyMotion.StateMillis,
+                                    easing = SunnyMotion.EaseInOut,
+                                ),
+                                fadeOutSpec = null,
+                            )
+                        } else {
+                            Modifier
+                        }
                         ScanRow(
+                            modifier = placementModifier,
                             scan = scan,
                             selecting = selecting,
                             selected = scan.scan.id in selectedIds,
                             onOpen = { onScanClick(scan.scan.id) },
-                            onLongPress = { selecting = true; if (scan.scan.id !in selectedIds) selectedIds.add(scan.scan.id) },
+                            onLongPress = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                selecting = true
+                                if (scan.scan.id !in selectedIds) selectedIds.add(scan.scan.id)
+                            },
                             onToggle = { toggle(scan.scan.id) },
                         )
                     }
@@ -302,9 +414,36 @@ fun SavedScreen(
         }
 
         // Floating action bar in selection mode.
-        if (selecting && selectedIds.isNotEmpty()) {
+        AnimatedVisibility(
+            visible = selecting && selectedIds.isNotEmpty(),
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = if (motionEnabled) {
+                fadeIn(tween(SunnyMotion.ModalEnterMillis, easing = SunnyMotion.EaseOut)) +
+                    slideInVertically(
+                        animationSpec = tween(
+                            SunnyMotion.ModalEnterMillis,
+                            easing = SunnyMotion.DrawerEase,
+                        ),
+                        initialOffsetY = { it / 5 },
+                    )
+            } else {
+                fadeIn(tween(SunnyMotion.ModalEnterMillis, easing = SunnyMotion.EaseOut))
+            },
+            exit = if (motionEnabled) {
+                fadeOut(tween(SunnyMotion.ModalExitMillis, easing = SunnyMotion.EaseOut)) +
+                    slideOutVertically(
+                        animationSpec = tween(
+                            SunnyMotion.ModalExitMillis,
+                            easing = SunnyMotion.DrawerEase,
+                        ),
+                        targetOffsetY = { it / 5 },
+                    )
+            } else {
+                fadeOut(tween(SunnyMotion.ModalExitMillis, easing = SunnyMotion.EaseOut))
+            },
+        ) {
             Row(
-                Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                Modifier.fillMaxWidth()
                     .padding(horizontal = 16.dp)
                     .padding(bottom = 16.dp + contentPadding.calculateBottomPadding()),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -316,9 +455,12 @@ fun SavedScreen(
                         else Icon(Icons.Filled.PictureAsPdf, null, tint = Color.White,
                             modifier = Modifier.size(18.dp)) },
                     label = "Report (${selectedIds.size})",
-                    container = SunnyColors.Orange, content = Color.White,
+                    container = SunnyColors.Action, content = Color.White,
                     onClick = {
-                        if (!generating) {
+                        if (!proReportsEnabled) {
+                            exitSelection()
+                            onGenerateReport()
+                        } else if (!generating) {
                             generating = true
                             val toReport = selectedScans
                             scope.launch {
@@ -351,9 +493,9 @@ fun SavedScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = SunnyColors.Surface,
-            title = { Text(if (n == 1) "Delete this scan?" else "Delete $n scans?") },
+            title = { Text(if (n == 1) "Delete this tracked area?" else "Delete $n tracked areas?") },
             text = {
-                Text("The selected ${if (n == 1) "scan" else "scans"} and all their photos will be " +
+                Text("The selected ${if (n == 1) "area" else "areas"} and all their photos will be " +
                     "permanently removed. This can't be undone.",
                     style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
             },
@@ -376,6 +518,7 @@ fun SavedScreen(
         SortPickerDialog(
             selected = sort,
             onSelect = {
+                animateItemPlacement = true
                 sort = it
                 sortExpanded = false
             },
@@ -447,6 +590,30 @@ private fun HeaderIconButton(
 }
 
 @Composable
+private fun HeaderReportsButton(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.height(48.dp).clip(RoundedCornerShape(24.dp)).clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        color = SunnyColors.Surface,
+        shadowElevation = 2.dp,
+    ) {
+        Row(
+            Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Filled.PictureAsPdf,
+                contentDescription = null,
+                tint = SunnyColors.TextPrimary,
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.size(6.dp))
+            Text("Reports", style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@Composable
 private fun ReminderCenterDialog(
     recurring: Reminder?,
     spotReminders: List<Reminder>,
@@ -456,7 +623,14 @@ private fun ReminderCenterDialog(
     onRemove: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    LiquidGlassDialog(onDismiss = onDismiss) {
+    var pendingAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    LiquidGlassDialog(
+        onDismiss = {
+            val action = pendingAction
+            pendingAction = null
+            if (action != null) action() else onDismiss()
+        },
+    ) { requestDismiss ->
         Column(
             Modifier.fillMaxWidth().heightIn(max = 620.dp)
                 .verticalScroll(rememberScrollState())
@@ -508,7 +682,10 @@ private fun ReminderCenterDialog(
                 Row(
                     Modifier.fillMaxWidth().height(58.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable(onClick = onEditInterval)
+                        .clickable {
+                            pendingAction = onEditInterval
+                            requestDismiss()
+                        }
                         .padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -569,7 +746,7 @@ private fun ReminderCenterDialog(
             }
 
             TextButton(
-                onClick = onDismiss,
+                onClick = requestDismiss,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
             ) {
                 Text("Done", color = SunnyColors.TextSecondary)
@@ -584,7 +761,14 @@ private fun SortPickerDialog(
     onSelect: (ScanSort) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    LiquidGlassDialog(onDismiss = onDismiss) {
+    var pendingSelection by remember { mutableStateOf<ScanSort?>(null) }
+    LiquidGlassDialog(
+        onDismiss = {
+            val selection = pendingSelection
+            pendingSelection = null
+            if (selection != null) onSelect(selection) else onDismiss()
+        },
+    ) { requestDismiss ->
         Column(Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 10.dp)) {
             Box(
                 Modifier.size(48.dp).clip(CircleShape)
@@ -615,7 +799,10 @@ private fun SortPickerDialog(
                         .selectable(
                             selected = selected == option,
                             role = Role.RadioButton,
-                            onClick = { onSelect(option) },
+                            onClick = {
+                                pendingSelection = option
+                                requestDismiss()
+                            },
                         )
                         .background(
                             if (selected == option) SunnyColors.OrangeSoft.copy(alpha = 0.55f)
@@ -632,7 +819,7 @@ private fun SortPickerDialog(
                     )
                     if (selected == option) {
                         Box(
-                            Modifier.size(24.dp).clip(CircleShape).background(SunnyColors.Orange),
+                            Modifier.size(24.dp).clip(CircleShape).background(SunnyColors.Action),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
@@ -649,7 +836,7 @@ private fun SortPickerDialog(
                 }
             }
             TextButton(
-                onClick = onDismiss,
+                onClick = requestDismiss,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
             ) {
                 Text("Cancel", color = SunnyColors.TextSecondary)
@@ -688,6 +875,7 @@ private fun ActionPill(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ScanRow(
+    modifier: Modifier = Modifier,
     scan: ScanWithObservations,
     selecting: Boolean,
     selected: Boolean,
@@ -697,7 +885,12 @@ private fun ScanRow(
 ) {
     val latest = scan.latest
     SunnyCard(
-        modifier = Modifier.combinedClickable(
+        modifier = modifier.semantics {
+            if (selecting) {
+                this.selected = selected
+                stateDescription = if (selected) "Selected" else "Not selected"
+            }
+        }.combinedClickable(
             onClick = { if (selecting) onToggle() else onOpen() },
             onLongClick = onLongPress,
         ),
@@ -706,9 +899,25 @@ private fun ScanRow(
             Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (selecting) {
-                SelectionDot(selected)
-                Spacer(Modifier.size(12.dp))
+            AnimatedVisibility(
+                visible = selecting,
+                enter = fadeIn(tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut)) +
+                    expandHorizontally(
+                        animationSpec = tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut),
+                        expandFrom = Alignment.Start,
+                    ),
+                exit = fadeOut(tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut)) +
+                    shrinkHorizontally(
+                        animationSpec = tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut),
+                        shrinkTowards = Alignment.Start,
+                    ),
+            ) {
+                Box(
+                    Modifier.size(width = 36.dp, height = 56.dp),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    SelectionDot(selected)
+                }
             }
             Box(
                 Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)).background(SunnyColors.SurfaceMuted),
@@ -746,14 +955,45 @@ private fun ScanRow(
 
 @Composable
 private fun SelectionDot(selected: Boolean) {
-    if (selected) {
-        Box(Modifier.size(24.dp).clip(CircleShape).background(SunnyColors.Orange),
-            contentAlignment = Alignment.Center) {
-            Icon(Icons.Filled.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
-        }
-    } else {
-        Box(Modifier.size(24.dp).clip(CircleShape)
-            .border(1.5.dp, SunnyColors.TextTertiary, CircleShape))
+    val motionEnabled = rememberSunnyMotionEnabled()
+    val fill by animateColorAsState(
+        targetValue = if (selected) SunnyColors.Action else Color.Transparent,
+        animationSpec = tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut),
+        label = "Selection fill",
+    )
+    val checkAlpha by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut),
+        label = "Selection check opacity",
+    )
+    val checkScale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.92f,
+        animationSpec = if (motionEnabled) {
+            tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut)
+        } else {
+            snap()
+        },
+        label = "Selection check scale",
+    )
+    Box(
+        Modifier.size(24.dp).clip(CircleShape).background(fill)
+            .border(
+                width = 1.5.dp,
+                color = if (selected) SunnyColors.Action else SunnyColors.TextTertiary,
+                shape = CircleShape,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Icons.Filled.Check,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(15.dp).graphicsLayer {
+                alpha = checkAlpha
+                scaleX = checkScale
+                scaleY = checkScale
+            },
+        )
     }
 }
 
@@ -761,13 +1001,116 @@ private fun SelectionDot(selected: Boolean) {
 private fun EmptyScans(modifier: Modifier, noMatches: Boolean) {
     Box(modifier.padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(if (noMatches) "No matching scans" else "No scans yet",
+            EmptyScansIllustration(noMatches = noMatches)
+            Spacer(Modifier.height(20.dp))
+            Text(if (noMatches) "No matching areas" else "No tracked areas yet",
                 style = MaterialTheme.typography.titleMedium,
                 color = SunnyColors.TextSecondary)
             Spacer(Modifier.height(6.dp))
             Text(if (noMatches) "Try another search or body-area filter."
-                else "Tap + to add a spot, then re-check it in a\nfew weeks to see any change.",
-                style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextTertiary)
+                else "Tap + to add a photo, then re-check the area in a\nfew weeks to see any change.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = SunnyColors.TextTertiary,
+                textAlign = TextAlign.Center)
+        }
+    }
+}
+
+@Composable
+private fun EmptyScansIllustration(noMatches: Boolean) {
+    val lineColor = SunnyColors.TextTertiary.copy(alpha = 0.62f)
+    val softColor = SunnyColors.SurfaceMuted.copy(alpha = 0.82f)
+    val accentSoft = SunnyColors.OrangeSoft.copy(alpha = 0.9f)
+    val accent = SunnyColors.Orange.copy(alpha = 0.88f)
+    Canvas(Modifier.size(112.dp)) {
+        val stroke = size.minDimension * 0.035f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        drawCircle(
+            color = softColor,
+            radius = size.minDimension * 0.45f,
+            center = center,
+        )
+
+        if (noMatches) {
+            val lensCenter = Offset(size.width * 0.45f, size.height * 0.43f)
+            val lensRadius = size.minDimension * 0.19f
+            drawCircle(
+                color = lineColor,
+                radius = lensRadius,
+                center = lensCenter,
+                style = Stroke(width = stroke),
+            )
+            drawLine(
+                color = lineColor,
+                start = Offset(
+                    lensCenter.x + lensRadius * 0.72f,
+                    lensCenter.y + lensRadius * 0.72f,
+                ),
+                end = Offset(size.width * 0.72f, size.height * 0.72f),
+                strokeWidth = stroke * 1.25f,
+            )
+            drawCircle(
+                color = accentSoft,
+                radius = size.minDimension * 0.055f,
+                center = lensCenter,
+            )
+        } else {
+            val figureX = size.width * 0.43f
+            drawCircle(
+                color = lineColor,
+                radius = size.minDimension * 0.07f,
+                center = Offset(figureX, size.height * 0.27f),
+            )
+            drawRoundRect(
+                color = lineColor,
+                topLeft = Offset(size.width * 0.35f, size.height * 0.37f),
+                size = Size(size.width * 0.16f, size.height * 0.27f),
+                cornerRadius = CornerRadius(stroke * 1.4f),
+                style = Stroke(width = stroke),
+            )
+            drawLine(
+                color = lineColor,
+                start = Offset(figureX, size.height * 0.64f),
+                end = Offset(size.width * 0.34f, size.height * 0.80f),
+                strokeWidth = stroke,
+            )
+            drawLine(
+                color = lineColor,
+                start = Offset(figureX, size.height * 0.64f),
+                end = Offset(size.width * 0.52f, size.height * 0.80f),
+                strokeWidth = stroke,
+            )
+            drawLine(
+                color = lineColor,
+                start = Offset(size.width * 0.35f, size.height * 0.43f),
+                end = Offset(size.width * 0.25f, size.height * 0.59f),
+                strokeWidth = stroke,
+            )
+            drawLine(
+                color = lineColor,
+                start = Offset(size.width * 0.51f, size.height * 0.43f),
+                end = Offset(size.width * 0.61f, size.height * 0.57f),
+                strokeWidth = stroke,
+            )
+
+            val plusCenter = Offset(size.width * 0.69f, size.height * 0.35f)
+            drawCircle(
+                color = accentSoft,
+                radius = size.minDimension * 0.14f,
+                center = plusCenter,
+            )
+            drawLine(
+                color = accent,
+                start = Offset(plusCenter.x - size.width * 0.055f, plusCenter.y),
+                end = Offset(plusCenter.x + size.width * 0.055f, plusCenter.y),
+                strokeWidth = stroke,
+            )
+            drawLine(
+                color = accent,
+                start = Offset(plusCenter.x, plusCenter.y - size.height * 0.055f),
+                end = Offset(plusCenter.x, plusCenter.y + size.height * 0.055f),
+                strokeWidth = stroke,
+            )
         }
     }
 }

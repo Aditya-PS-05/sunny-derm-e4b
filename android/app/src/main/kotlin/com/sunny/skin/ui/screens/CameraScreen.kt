@@ -1,10 +1,12 @@
 package com.sunny.skin.ui.screens
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.os.SystemClock
+import android.provider.Settings
 import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -20,9 +22,17 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
@@ -31,9 +41,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -47,8 +56,11 @@ import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedButton
+import com.sunny.skin.ui.i18n.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -57,15 +69,16 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
@@ -75,16 +88,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import coil.compose.AsyncImage
 import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.ui.SunnyViewModel
+import com.sunny.skin.ui.components.CenteredIconLabel
+import com.sunny.skin.ui.theme.SunnyMotion
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
 import com.sunny.skin.util.BitmapLoader
 import com.sunny.skin.util.AlignmentResult
 import com.sunny.skin.util.ImageAlignment
@@ -94,6 +116,7 @@ import kotlin.math.max
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -109,6 +132,7 @@ fun CameraScreen(
     onClose: () -> Unit,
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     CameraSystemBarsEffect()
     var hasPermission by remember {
         mutableStateOf(
@@ -116,16 +140,73 @@ fun CameraScreen(
                 PackageManager.PERMISSION_GRANTED,
         )
     }
+    var permissionDenied by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { granted -> hasPermission = granted; if (!granted) onClose() }
+    ) { granted ->
+        hasPermission = granted
+        permissionDenied = !granted
+    }
+
+    DisposableEffect(lifecycleOwner, context) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasPermission = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.CAMERA,
+                ) == PackageManager.PERMISSION_GRANTED
+                if (hasPermission) permissionDenied = false
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(Unit) {
         if (!hasPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
     }
 
     if (!hasPermission) {
-        Box(Modifier.fillMaxSize().background(Color.Black)) {}
+        Box(Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+            if (permissionDenied) {
+                Column(
+                    Modifier.fillMaxWidth().padding(28.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        "Camera access is needed",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        "Allow camera access to take a photo. You can still choose an existing photo from your library.",
+                        color = Color(0xFFD7D7D7),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.size(20.dp))
+                    Button(
+                        onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    ) { Text("Try again") }
+                    Spacer(Modifier.size(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            context.startActivity(
+                                Intent(
+                                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                    android.net.Uri.parse("package:${context.packageName}"),
+                                ),
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    ) { Text("Open app settings", color = Color.White) }
+                    TextButton(onClick = onClose) { Text("Not now", color = Color(0xFFD7D7D7)) }
+                }
+            }
+        }
         return
     }
     CameraContent(vm = vm, onCaptured = onCaptured, onClose = onClose)
@@ -154,7 +235,9 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
     var previouslyMatched by remember { mutableStateOf(false) }
     var previewReady by remember { mutableStateOf(false) }
     var captureError by remember { mutableStateOf<String?>(null) }
-    var focusPoint by remember { mutableStateOf<Offset?>(null) }
+    var focusTarget by remember { mutableStateOf<FocusTarget?>(null) }
+    var focusRequestId by remember { mutableIntStateOf(0) }
+    var captureFlashVisible by remember { mutableStateOf(false) }
     var showReference by remember(capture.referenceImagePath) {
         mutableStateOf(capture.referenceImagePath != null)
     }
@@ -178,10 +261,10 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
         cameraControl?.setZoomRatio(zoom)
     }
 
-    LaunchedEffect(focusPoint) {
-        if (focusPoint != null) {
-            delay(900)
-            focusPoint = null
+    LaunchedEffect(captureFlashVisible) {
+        if (captureFlashVisible) {
+            delay(100)
+            captureFlashVisible = false
         }
     }
 
@@ -249,7 +332,11 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
                     setOnTouchListener { _, event ->
                         if (event.action != MotionEvent.ACTION_UP) return@setOnTouchListener true
                         performClick()
-                        focusPoint = Offset(event.x, event.y)
+                        focusRequestId += 1
+                        focusTarget = FocusTarget(
+                            point = Offset(event.x, event.y),
+                            requestId = focusRequestId,
+                        )
                         val point = meteringPointFactory.createPoint(event.x, event.y)
                         cameraControl?.startFocusAndMetering(
                             FocusMeteringAction.Builder(point)
@@ -262,6 +349,11 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
             },
             modifier = Modifier.fillMaxSize(),
         )
+
+        if (captureFlashVisible) {
+            // Flash the preview only; the framing guide and controls stay legible above it.
+            Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.16f)))
+        }
 
         capture.referenceImagePath?.let { path ->
             if (showReference) {
@@ -281,26 +373,46 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
             )
         }
 
+        val rawGuidance = cameraGuidancePresentation(
+            ready = previewReady,
+            issue = previewIssue,
+            alignment = previewAlignment,
+            recheck = capture.referenceImagePath != null,
+        )
+        var presentedGuidance by remember(capture.referenceImagePath) {
+            mutableStateOf(CameraGuidancePresentation.Checking)
+        }
+        LaunchedEffect(rawGuidance) {
+            delay(250)
+            presentedGuidance = rawGuidance
+        }
+        val visibleGuidance = captureError?.let {
+            CameraGuidancePresentation(message = it, acceptable = false, matched = false)
+        } ?: presentedGuidance
+        val guideBorderColor by animateColorAsState(
+            targetValue = if (visibleGuidance.acceptable) Color(0xFF7FE09A) else Color.White,
+            animationSpec = tween(
+                durationMillis = SunnyMotion.StateMillis,
+                easing = SunnyMotion.EaseOut,
+            ),
+            label = "Camera guide border",
+        )
+
         Box(
             Modifier.align(Alignment.Center).fillMaxWidth(0.72f).aspectRatio(1f)
                 .border(
                     width = 1.5.dp,
-                    color = if (
-                        previewReady && previewIssue == null &&
-                        (capture.referenceImagePath == null || framingMatched)
-                    ) Color(0xFF7FE09A) else Color.White,
+                    color = guideBorderColor,
                     shape = RoundedCornerShape(20.dp),
                 ),
         )
 
-        focusPoint?.let { point ->
-            Box(
-                Modifier.offset {
-                    IntOffset(
-                        x = (point.x - 24.dp.toPx()).toInt(),
-                        y = (point.y - 24.dp.toPx()).toInt(),
-                    )
-                }.size(48.dp).border(2.dp, Color.White, RoundedCornerShape(8.dp)),
+        focusTarget?.let { target ->
+            FocusReticle(
+                target = target,
+                onFinished = {
+                    if (focusTarget?.requestId == target.requestId) focusTarget = null
+                },
             )
         }
 
@@ -335,12 +447,9 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
         }
 
         CaptureGuidance(
-            ready = previewReady,
-            issue = previewIssue,
-            error = captureError,
-            alignment = previewAlignment,
-            recheck = capture.referenceImagePath != null,
+            presentation = visibleGuidance,
             modifier = Modifier.align(Alignment.BottomCenter)
+                .fillMaxWidth()
                 .padding(horizontal = 20.dp).padding(bottom = 158.dp),
         )
 
@@ -365,6 +474,8 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
                     if (capturing) return@ShutterButton
                     capturing = true
                     captureError = null
+                    captureFlashVisible = true
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     imageCapture.takePicture(
                         executor,
                         object : ImageCapture.OnImageCapturedCallback() {
@@ -380,8 +491,8 @@ private fun CameraContent(vm: SunnyViewModel, onCaptured: () -> Unit, onClose: (
                             }
 
                             override fun onError(exc: ImageCaptureException) {
-                                capturing = false
                                 ContextCompat.getMainExecutor(context).execute {
+                                    capturing = false
                                     captureError = "Photo could not be captured. Try again."
                                 }
                             }
@@ -426,18 +537,47 @@ private fun CameraSystemBarsEffect() {
 
 @Composable
 private fun ZoomBar(current: Float, onSelect: (Float) -> Unit, modifier: Modifier = Modifier) {
-    val levels = listOf(0.5f to ".5", 1f to "1×", 2f to "2", 4f to "4", 8f to "8")
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        levels.forEach { (value, label) ->
+    val motionEnabled = rememberSunnyMotionEnabled()
+    val levels = listOf(
+        Triple(0.5f, ".5", "0.5 times"),
+        Triple(1f, "1×", "1 time"),
+        Triple(2f, "2", "2 times"),
+        Triple(4f, "4", "4 times"),
+        Triple(8f, "8", "8 times"),
+    )
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        levels.forEach { (value, label, description) ->
             val selected = current == value
+            val scale by animateFloatAsState(
+                targetValue = if (selected) 1f else 0.88f,
+                animationSpec = if (motionEnabled) {
+                    tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut)
+                } else {
+                    snap()
+                },
+                label = "Zoom selection",
+            )
             Box(
-                Modifier.size(if (selected) 34.dp else 30.dp).clip(CircleShape)
-                    .background(if (selected) Color(0x66000000) else Color(0x33000000))
+                Modifier.size(48.dp)
+                    .semantics {
+                        contentDescription = "Zoom $description"
+                        stateDescription = if (selected) "Selected" else "Not selected"
+                        role = Role.RadioButton
+                    }
                     .clickable { onSelect(value) },
                 contentAlignment = Alignment.Center,
             ) {
-                Text(label, color = if (selected) Color(0xFFFFC24B) else Color.White,
-                    style = MaterialTheme.typography.labelSmall)
+                Box(
+                    Modifier.size(34.dp).graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }.clip(CircleShape)
+                        .background(if (selected) Color(0x66000000) else Color(0x33000000)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(label, color = if (selected) Color(0xFFFFC24B) else Color.White,
+                        style = MaterialTheme.typography.labelSmall)
+                }
             }
         }
     }
@@ -445,15 +585,45 @@ private fun ZoomBar(current: Float, onSelect: (Float) -> Unit, modifier: Modifie
 
 @Composable
 private fun ShutterButton(enabled: Boolean, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val motionEnabled = rememberSunnyMotionEnabled()
+    val scale by animateFloatAsState(
+        targetValue = if (enabled && pressed) 0.95f else 1f,
+        animationSpec = if (motionEnabled) {
+            tween(SunnyMotion.PressMillis, easing = SunnyMotion.EaseOut)
+        } else {
+            snap()
+        },
+        label = "Shutter press",
+    )
+    val shutterAlpha by animateFloatAsState(
+        targetValue = if (enabled) 1f else 0.58f,
+        animationSpec = tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+        label = "Shutter availability",
+    )
     Box(
-        Modifier.size(76.dp).clip(CircleShape).background(Color.White)
+        Modifier.size(76.dp).graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+            alpha = shutterAlpha
+        }.clip(CircleShape).background(Color.White)
             .border(4.dp, Color(0x55FFFFFF), CircleShape)
             .semantics {
-                contentDescription = "Take photo"
+                contentDescription = if (enabled) "Take photo" else "Taking photo"
+                stateDescription = if (enabled) "Ready" else "Capturing"
                 role = Role.Button
             }
-            .clickable(enabled = enabled, onClick = onClick),
-    )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (!enabled) Box(Modifier.size(22.dp).clip(CircleShape).background(Color(0xFF8A8A8A)))
+    }
 }
 
 @Composable
@@ -466,7 +636,7 @@ private fun RoundIconButton(
 ) {
     Box(
         modifier.size(48.dp).clip(CircleShape)
-            .background(if (selected) SunnyColors.Orange.copy(alpha = 0.8f) else Color(0x66000000))
+            .background(if (selected) SunnyColors.Action.copy(alpha = 0.92f) else Color(0x66000000))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) { Icon(icon, desc, tint = Color.White, modifier = Modifier.size(24.dp)) }
@@ -474,15 +644,54 @@ private fun RoundIconButton(
 
 @Composable
 private fun CaptureGuidance(
-    ready: Boolean,
-    issue: PhotoQualityIssue?,
-    error: String?,
-    alignment: AlignmentResult?,
-    recheck: Boolean,
+    presentation: CameraGuidancePresentation,
     modifier: Modifier = Modifier,
 ) {
+    Crossfade(
+        targetState = presentation,
+        animationSpec = tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+        label = "Camera guidance",
+        modifier = modifier.heightIn(min = 64.dp).clip(RoundedCornerShape(18.dp))
+            .background(Color(0xCC000000))
+            .clearAndSetSemantics {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = presentation.message
+            },
+    ) { current ->
+        CenteredIconLabel(
+            icon = if (current.acceptable && current.matched) Icons.Filled.CenterFocusStrong
+                else if (current.acceptable) Icons.Filled.WbSunny else Icons.Filled.WarningAmber,
+            text = current.message,
+            iconTint = if (current.acceptable) Color(0xFF7FE09A) else Color(0xFFFFC24B),
+            textColor = Color.White,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 14.dp),
+            iconSize = 18.dp,
+            maxLines = 2,
+        )
+    }
+}
+
+private data class CameraGuidancePresentation(
+    val message: String,
+    val acceptable: Boolean,
+    val matched: Boolean,
+) {
+    companion object {
+        val Checking = CameraGuidancePresentation(
+            message = "Checking light and detail…",
+            acceptable = false,
+            matched = false,
+        )
+    }
+}
+
+private fun cameraGuidancePresentation(
+    ready: Boolean,
+    issue: PhotoQualityIssue?,
+    alignment: AlignmentResult?,
+    recheck: Boolean,
+): CameraGuidancePresentation {
     val message = when {
-        error != null -> error
         !ready -> "Checking light and detail…"
         issue == PhotoQualityIssue.TOO_DARK -> "Add more even light"
         issue == PhotoQualityIssue.TOO_BRIGHT -> "Reduce glare or direct flash"
@@ -491,23 +700,50 @@ private fun CaptureGuidance(
         recheck -> framingGuidance(alignment)
         else -> "Exposure and detail look good"
     }
-    val acceptable = ready && issue == null && error == null && (!recheck || alignment?.framingReady == true)
-    Row(
-        modifier.clip(RoundedCornerShape(18.dp))
-            .background(Color(0xCC000000))
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            if (acceptable && recheck) Icons.Filled.CenterFocusStrong
-            else if (acceptable) Icons.Filled.WbSunny else Icons.Filled.WarningAmber,
-            contentDescription = null,
-            tint = if (acceptable) Color(0xFF7FE09A) else Color(0xFFFFC24B),
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(Modifier.size(8.dp))
-        Text(message, color = Color.White, style = MaterialTheme.typography.bodyMedium)
+    val acceptable = ready && issue == null && (!recheck || alignment?.framingReady == true)
+    return CameraGuidancePresentation(
+        message = message,
+        acceptable = acceptable,
+        matched = acceptable && recheck,
+    )
+}
+
+private data class FocusTarget(val point: Offset, val requestId: Int)
+
+@Composable
+private fun FocusReticle(target: FocusTarget, onFinished: () -> Unit) {
+    val motionEnabled = rememberSunnyMotionEnabled()
+    val scale = remember(target.requestId) { Animatable(if (motionEnabled) 1.15f else 1f) }
+    val alpha = remember(target.requestId) { Animatable(0.4f) }
+    val latestOnFinished by rememberUpdatedState(onFinished)
+
+    LaunchedEffect(target.requestId, motionEnabled) {
+        val scaleJob = if (motionEnabled) {
+            launch {
+                scale.animateTo(
+                    1f,
+                    tween(160, easing = SunnyMotion.EaseOut),
+                )
+            }
+        } else {
+            null
+        }
+        alpha.animateTo(1f, tween(160, easing = SunnyMotion.EaseOut))
+        scaleJob?.join()
+        delay(600)
+        alpha.animateTo(0f, tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut))
+        latestOnFinished()
     }
+
+    Box(
+        Modifier.size(48.dp).graphicsLayer {
+            translationX = target.point.x - 24.dp.toPx()
+            translationY = target.point.y - 24.dp.toPx()
+            scaleX = scale.value
+            scaleY = scale.value
+            this.alpha = alpha.value
+        }.border(2.dp, Color.White, RoundedCornerShape(8.dp)),
+    )
 }
 
 private fun framingGuidance(result: AlignmentResult?): String {

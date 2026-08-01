@@ -3,20 +3,32 @@ package com.sunny.skin.ui.screens
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -24,7 +36,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Compare
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.filled.Place
@@ -35,19 +50,26 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -66,12 +88,17 @@ import com.sunny.skin.ui.components.MetaChip
 import com.sunny.skin.ui.components.LiquidGlassDialog
 import com.sunny.skin.ui.components.ReCheckReminderDialog
 import com.sunny.skin.ui.components.ScreenScaffold
+import com.sunny.skin.ui.components.ScreenLoadingState
+import com.sunny.skin.ui.components.ScreenMessageState
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.findDermatologistNearby
 import com.sunny.skin.ui.components.rememberNotificationRequester
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
 import com.sunny.skin.util.BitmapLoader
 import com.sunny.skin.util.Format
+import kotlinx.coroutines.delay
 import java.io.File
 
 @Composable
@@ -81,6 +108,7 @@ fun ScanDetailScreen(
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onCompare: () -> Unit,
+    onOpenAnalysisSetup: () -> Unit,
     onCaptureFollowUp: () -> Unit,
     onReviewFollowUp: () -> Unit,
 ) {
@@ -89,9 +117,33 @@ fun ScanDetailScreen(
     val data = scan
     var showDelete by remember { mutableStateOf(false) }
     var showNotes by remember { mutableStateOf(false) }
+    val motionEnabled = rememberSunnyMotionEnabled()
+    var knownTimelineCount by rememberSaveable(scanId) { mutableIntStateOf(-1) }
+    var showHistorySaved by remember(scanId) { mutableStateOf(false) }
+    var noteSaveRevision by remember(scanId) { mutableIntStateOf(0) }
+    var showNoteSaved by remember(scanId) { mutableStateOf(false) }
+    var followUpError by remember(scanId) { mutableStateOf<String?>(null) }
+    var historyExpanded by rememberSaveable(scanId) { mutableStateOf(false) }
+
+    val currentTimelineCount = data?.timeline?.size
+    LaunchedEffect(currentTimelineCount) {
+        val count = currentTimelineCount ?: return@LaunchedEffect
+        if (knownTimelineCount >= 0 && count > knownTimelineCount) {
+            showHistorySaved = true
+            delay(1_200)
+            showHistorySaved = false
+        }
+        knownTimelineCount = count
+    }
+    LaunchedEffect(noteSaveRevision) {
+        if (noteSaveRevision == 0) return@LaunchedEffect
+        showNoteSaved = true
+        delay(1_200)
+        showNoteSaved = false
+    }
 
     ScreenScaffold(
-        title = data?.scan?.name ?: "Scan",
+        title = data?.scan?.name ?: "Tracked area",
         onBack = onBack,
         trailing = if (data == null) null else {
             {
@@ -113,9 +165,20 @@ fun ScanDetailScreen(
             }
         },
     ) { inner ->
-        if (data == null) return@ScreenScaffold
+        if (data == null) {
+            ScreenLoadingState("Loading tracked area…", Modifier.padding(inner))
+            return@ScreenScaffold
+        }
         val timeline = data.timeline
-        val latest = timeline.firstOrNull() ?: return@ScreenScaffold
+        val latest = timeline.firstOrNull()
+        if (latest == null) {
+            ScreenMessageState(
+                title = "No photos saved",
+                body = "Add a photo to begin tracking this area.",
+                modifier = Modifier.padding(inner),
+            )
+            return@ScreenScaffold
+        }
         val previous = timeline.getOrNull(1)
 
         // Literal field differences only. No risk, stability, or urgency score.
@@ -143,12 +206,9 @@ fun ScanDetailScreen(
 
         fun openFollowUpCamera() {
             if (!modelAvailable) {
-                android.widget.Toast.makeText(
-                    context,
-                    com.sunny.skin.AppMode.unavailableMessage(com.sunny.skin.AppMode.serverActive(context)),
-                    android.widget.Toast.LENGTH_SHORT,
-                ).show()
+                onOpenAnalysisSetup()
             } else {
+                followUpError = null
                 prepareFollowUp()
                 onCaptureFollowUp()
             }
@@ -158,10 +218,15 @@ fun ScanDetailScreen(
             ActivityResultContracts.PickVisualMedia(),
         ) { uri ->
             if (uri != null) {
-                prepareFollowUp()
                 val bmp = BitmapLoader.fromUri(context, uri)
-                vm.startCapture(bmp)
-                onReviewFollowUp()
+                if (bmp == null) {
+                    followUpError = "That photo could not be opened. Choose another image."
+                } else {
+                    followUpError = null
+                    prepareFollowUp()
+                    vm.startCapture(bmp)
+                    onReviewFollowUp()
+                }
             }
         }
 
@@ -208,13 +273,13 @@ fun ScanDetailScreen(
                     ) {
                         Text(
                             when {
-                                !modelAvailable -> "AI model required"
+                                !modelAvailable -> "Analysis setup needed"
                                 else -> "Take a follow-up photo"
                             },
                             style = MaterialTheme.typography.titleMedium)
                         Text(
                             if (modelAvailable) "Use the previous photo as an alignment guide"
-                            else "Install the real model from Settings to enable analysis",
+                            else "Choose cloud or offline analysis before adding a follow-up",
                             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                     }
                     Box(
@@ -236,6 +301,10 @@ fun ScanDetailScreen(
                     }
                 }
             }
+            followUpError?.let { message ->
+                Spacer(Modifier.height(8.dp))
+                Text(message, style = MaterialTheme.typography.bodyMedium, color = SunnyColors.Danger)
+            }
             Spacer(Modifier.height(12.dp))
 
             // Compare over time — only when there are 2+ photos.
@@ -251,7 +320,18 @@ fun ScanDetailScreen(
                         }
                         Spacer(Modifier.size(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text("Compare over time", style = MaterialTheme.typography.titleMedium)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Compare over time", style = MaterialTheme.typography.titleMedium)
+                                Spacer(Modifier.size(8.dp))
+                                Text(
+                                    "PRO",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = SunnyColors.OrangeText,
+                                    modifier = Modifier
+                                        .background(SunnyColors.OrangeSoft, RoundedCornerShape(50))
+                                        .padding(horizontal = 7.dp, vertical = 2.dp),
+                                )
+                            }
                             Text("Align and inspect any two of ${timeline.size} photos",
                                 style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                         }
@@ -282,6 +362,11 @@ fun ScanDetailScreen(
                         tint = SunnyColors.TextTertiary)
                 }
             }
+            InlineSaveConfirmation(
+                visible = showNoteSaved,
+                text = "Private note saved on this device",
+                motionEnabled = motionEnabled,
+            )
             Spacer(Modifier.height(12.dp))
 
             // Re-check reminder
@@ -342,11 +427,38 @@ fun ScanDetailScreen(
 
             if (timeline.size > 1) {
                 Spacer(Modifier.height(24.dp))
-                Text("History", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(10.dp))
-                timeline.drop(1).forEach { obs ->
-                    HistoryRow(obs)
+                InlineSaveConfirmation(
+                    visible = showHistorySaved,
+                    text = "Follow-up saved to history",
+                    motionEnabled = motionEnabled,
+                )
+                val history = timeline.drop(1)
+                SunnyCard(onClick = { historyExpanded = !historyExpanded }) {
+                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Photo history", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "${history.size} earlier ${if (history.size == 1) "photo" else "photos"}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = SunnyColors.TextSecondary,
+                            )
+                        }
+                        Icon(
+                            if (historyExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = if (historyExpanded) "Collapse photo history" else "Expand photo history",
+                            tint = SunnyColors.TextTertiary,
+                        )
+                    }
+                }
+                if (historyExpanded) {
                     Spacer(Modifier.height(10.dp))
+                    history.forEachIndexed { index, obs ->
+                        HistoryRow(
+                            obs = obs,
+                            connectAbove = true,
+                            connectBelow = index < history.lastIndex,
+                        )
+                    }
                 }
             }
         }
@@ -372,7 +484,18 @@ fun ScanDetailScreen(
 
         if (showNotes) {
             var draft by remember(data.scan.notes) { mutableStateOf(data.scan.notes) }
-            LiquidGlassDialog(onDismiss = { showNotes = false }) {
+            var pendingNoteSave by remember { mutableStateOf<String?>(null) }
+            LiquidGlassDialog(
+                onDismiss = {
+                    val note = pendingNoteSave
+                    pendingNoteSave = null
+                    if (note != null) {
+                        vm.setScanNotes(scanId, note)
+                        noteSaveRevision += 1
+                    }
+                    showNotes = false
+                },
+            ) { requestDismiss ->
                 Text(
                     "Private note",
                     style = MaterialTheme.typography.titleLarge,
@@ -397,10 +520,10 @@ fun ScanDetailScreen(
                     Modifier.fillMaxWidth().padding(horizontal = 14.dp),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = { showNotes = false }) { Text("Cancel") }
+                    TextButton(onClick = requestDismiss) { Text("Cancel") }
                     TextButton(onClick = {
-                        vm.setScanNotes(scanId, draft)
-                        showNotes = false
+                        pendingNoteSave = draft
+                        requestDismiss()
                     }) { Text("Save", color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold) }
                 }
             }
@@ -410,7 +533,7 @@ fun ScanDetailScreen(
             AlertDialog(
                 onDismissRequest = { showDelete = false },
                 containerColor = SunnyColors.Surface,
-                title = { Text("Delete this scan?") },
+                title = { Text("Delete this tracked area?") },
                 text = {
                     Text(
                         "\"${data.scan.name}\" and all its photos will be permanently removed. " +
@@ -450,26 +573,126 @@ private fun ObservationImage(obs: ObservationEntity, bodyLabel: String) {
 }
 
 @Composable
-private fun HistoryRow(obs: ObservationEntity) {
-    SunnyCard {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.height(48.dp).aspectRatio(1f).clip(RoundedCornerShape(10.dp))
-                .background(SunnyColors.SurfaceMuted)) {
-                AsyncImage(model = EncryptedImage(obs.imagePath),
-                    contentDescription = "Skin photo from ${Format.date(obs.capturedAt)}",
-                    contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-            }
-            Spacer(Modifier.height(0.dp))
-            Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(Format.date(obs.capturedAt), style = MaterialTheme.typography.titleMedium)
-                Text(obs.analysis.summary, style = MaterialTheme.typography.bodyMedium,
-                    color = SunnyColors.TextSecondary, maxLines = 2)
-                obs.approximateSizeMm?.let {
-                    Text("Approx. ${formatApproximateMm(it)} · reference-based",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = SunnyColors.TextTertiary)
+private fun InlineSaveConfirmation(
+    visible: Boolean,
+    text: String,
+    motionEnabled: Boolean,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(
+            tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+        ) + if (motionEnabled) {
+            slideInVertically(
+                animationSpec = tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+                initialOffsetY = { it / 3 },
+            )
+        } else {
+            EnterTransition.None
+        },
+        exit = fadeOut(
+            tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+        ) + if (motionEnabled) {
+            slideOutVertically(
+                animationSpec = tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+                targetOffsetY = { -it / 4 },
+            )
+        } else {
+            ExitTransition.None
+        },
+    ) {
+        Row(
+            Modifier.fillMaxWidth().padding(top = 8.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(SunnyColors.Success.copy(alpha = 0.10f))
+                .semantics(mergeDescendants = true) {
+                    liveRegion = LiveRegionMode.Polite
+                    contentDescription = text
+                }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                Icons.Filled.CheckCircle,
+                contentDescription = null,
+                tint = SunnyColors.Success,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = SunnyColors.TextSecondary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun HistoryRow(
+    obs: ObservationEntity,
+    connectAbove: Boolean,
+    connectBelow: Boolean,
+) {
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+        Box(
+            Modifier.width(62.dp).fillMaxHeight(),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            Canvas(Modifier.fillMaxSize()) {
+                val x = size.width / 2f
+                val nodeY = 32.dp.toPx()
+                val lineColor = SunnyColors.Divider
+                if (connectAbove) {
+                    drawLine(
+                        lineColor,
+                        start = androidx.compose.ui.geometry.Offset(x, 0f),
+                        end = androidx.compose.ui.geometry.Offset(x, nodeY),
+                        strokeWidth = 2.dp.toPx(),
+                    )
+                }
+                if (connectBelow) {
+                    drawLine(
+                        lineColor,
+                        start = androidx.compose.ui.geometry.Offset(x, nodeY),
+                        end = androidx.compose.ui.geometry.Offset(x, size.height),
+                        strokeWidth = 2.dp.toPx(),
+                    )
                 }
             }
+            Box(
+                Modifier.padding(top = 8.dp).size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SunnyColors.SurfaceMuted),
+            ) {
+                AsyncImage(
+                    model = EncryptedImage(obs.imagePath),
+                    contentDescription = "Earlier skin photo from ${Format.date(obs.capturedAt)}",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+        Column(Modifier.weight(1f)) {
+            SunnyCard {
+                Column(Modifier.padding(12.dp)) {
+                    Text(Format.date(obs.capturedAt), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        obs.analysis.summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = SunnyColors.TextSecondary,
+                        maxLines = 2,
+                    )
+                    obs.approximateSizeMm?.let {
+                        Text(
+                            "Approx. ${formatApproximateMm(it)} · reference-based",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SunnyColors.TextTertiary,
+                        )
+                    }
+                }
+            }
+            if (connectBelow) Spacer(Modifier.height(10.dp))
         }
     }
 }

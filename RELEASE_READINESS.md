@@ -15,6 +15,15 @@ period, and a working contribution-deletion process. A compatible gateway
 template is provided in `ops/beta-gateway/`; storage and deletion remain backend
 responsibilities.
 
+Before enabling freemium in a public build, additionally verify that:
+
+- `sunny_pro` has monthly and annual base plans and the reviewed country prices;
+- Google Play purchase tokens are verified by the entitlement Worker;
+- D1 quota migrations and the 62-day inactive-counter cleanup are active;
+- the three checksum-pinned Sunny-MoE objects live only in the private R2 bucket;
+- only verified Pro sessions can mint expiring, allow-listed model URLs;
+- Free/Pro quota and model-download abuse tests pass with Play license testers.
+
 ## 1. Data and model rights
 
 The current fine-tune used `marmal88/skin_cancer`, a HAM10000 mirror whose card
@@ -44,8 +53,7 @@ For an approved release build only:
 
 ```bash
 ./gradlew bundleRelease \
-  -PwithLlama \
-  -PmodelBaseUrl=https://cdn.example/models/ \
+  -PentitlementApiUrl=https://entitlements.example/ \
   -PprivacyContact=privacy@example.com \
   -PdataRightsCleared=true \
   -PclinicalValidationComplete=true
@@ -55,6 +63,6 @@ Command-line flags are attestations, not substitutes for the evidence above.
 The `release` build type is the public distribution mode: it hard-codes empty
 inference/contribution endpoints and tokens, enables shrinking, and uses public
 on-device/privacy copy. Debug builds retain the environment-controlled beta mode.
-The build also refuses a release without the native llama runtime, an HTTPS model
-source, and full model digests. The checked-in digests were calculated from the
-canonical local GGUF artifacts; override them only when those artifacts change.
+The build also refuses a release without the pinned vendored Sunny-MoE runtime
+source, HTTPS model and Play-entitlement services. CMake compiles the arm64
+`libsunny_moe.so`; full model-file digests are pinned in the signed catalog.

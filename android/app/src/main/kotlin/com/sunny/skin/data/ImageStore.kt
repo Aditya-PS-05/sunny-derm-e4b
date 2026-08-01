@@ -33,6 +33,12 @@ class ImageStore(context: Context) {
         runCatching { File(path).takeIf { it.exists() }?.delete() }
     }
 
+    /** Remove the entire encrypted image directory, including orphaned files. */
+    fun deleteAll() {
+        check(dir.deleteRecursively() || !dir.exists()) { "Could not delete stored scan photos." }
+        check(dir.mkdirs() || dir.isDirectory) { "Could not recreate scan storage." }
+    }
+
     /** Decrypted JPEG bytes for a stored photo, or null if unreadable. */
     fun decryptBytes(path: String): ByteArray? = runCatching {
         CryptoManager.decrypt(appCtx, File(path).readBytes())

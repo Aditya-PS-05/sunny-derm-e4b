@@ -6,6 +6,7 @@
 **/build/
 .gradle/
 android/.gradle/
+android/.kotlin/
 android/app/.cxx/
 **/.cxx/
 android/local.properties
@@ -56,6 +57,10 @@ venv/
 env/
 .ipynb_checkpoints/
 
+# ---- Node / Cloudflare Worker tooling ----
+node_modules/
+.wrangler/
+
 # ---- Release signing (never commit keystores or their passwords) ----
 *.jks
 *.keystore
@@ -72,3 +77,5 @@ keystore.properties
 # ---- OS cruft ----
 .DS_Store
 Thumbs.db
+
+.agents/

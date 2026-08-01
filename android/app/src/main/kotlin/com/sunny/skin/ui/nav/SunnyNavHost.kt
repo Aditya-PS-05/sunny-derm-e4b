@@ -1,14 +1,23 @@
 package com.sunny.skin.ui.nav
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.AlertDialog
+import com.sunny.skin.ui.i18n.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,10 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.sunny.skin.LaunchRequest
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.screens.BodyGuideScreen
@@ -43,19 +52,55 @@ import com.sunny.skin.ui.screens.ReviewScanScreen
 import com.sunny.skin.ui.screens.SavedScreen
 import com.sunny.skin.ui.screens.ScanDetailScreen
 import com.sunny.skin.ui.screens.SettingsScreen
+import com.sunny.skin.ui.theme.SunnyMotion
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
+import com.sunny.skin.ui.theme.SunnyColors
+
+private data class ProFeatureRequest(
+    val title: String,
+    val description: String,
+    val destination: String,
+)
 
 @Composable
 fun SunnyNavHost(
+    nav: NavHostController,
     vm: SunnyViewModel = viewModel(),
     launchRequest: LaunchRequest? = null,
     onLaunchRequestHandled: () -> Unit = {},
 ) {
-    val nav = rememberNavController()
     var openReminderCenter by remember { mutableStateOf(false) }
+    var proFeatureRequest by remember { mutableStateOf<ProFeatureRequest?>(null) }
+    var pendingProDestination by remember { mutableStateOf<String?>(null) }
     val modelAvailable by vm.modelAvailable.collectAsStateWithLifecycle()
+    val verifiedEntitlement by com.sunny.skin.subscription.SubscriptionEntitlements.current
+        .collectAsStateWithLifecycle()
+    val now = System.currentTimeMillis()
+    val featureEntitlement = if (
+        com.sunny.skin.BuildConfig.DEBUG &&
+        com.sunny.skin.BuildConfig.SUNNY_ENTITLEMENT_API_URL.isBlank()
+    ) {
+        com.sunny.skin.subscription.SubscriptionEntitlements.accessEntitlement()
+    } else {
+        verifiedEntitlement
+    }
+    val proFeaturesAvailable = featureEntitlement.effectivePlan(now) ==
+        com.sunny.skin.inference.tier.SunnyPlan.PRO
     val backStack by nav.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
     val showBar = currentRoute in Routes.topLevel
+    val motionEnabled = rememberSunnyMotionEnabled()
+
+    LaunchedEffect(proFeaturesAvailable, pendingProDestination) {
+        val destination = pendingProDestination
+        if (proFeaturesAvailable && destination != null) {
+            pendingProDestination = null
+            nav.navigate(destination) {
+                popUpTo(Routes.MODEL_SETUP) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
 
     fun openTab(route: String) {
         if (route == Routes.OVERVIEW) {
@@ -69,6 +114,18 @@ fun SunnyNavHost(
                 launchSingleTop = true
                 restoreState = true
             }
+        }
+    }
+
+    fun openReportGenerator() {
+        if (proFeaturesAvailable) {
+            nav.navigate(Routes.GENERATE_REPORT)
+        } else {
+            proFeatureRequest = ProFeatureRequest(
+                title = "Create clinician-ready reports",
+                description = "Pro creates encrypted PDF reports with selected photos, dates and visual comparisons.",
+                destination = Routes.GENERATE_REPORT,
+            )
         }
     }
 
@@ -91,8 +148,32 @@ fun SunnyNavHost(
         bottomBar = {
             AnimatedVisibility(
                 visible = showBar,
-                enter = fadeIn() + slideInVertically { it },
-                exit = fadeOut() + slideOutVertically { it },
+                enter = fadeIn(
+                    tween(SunnyMotion.ModalEnterMillis, easing = SunnyMotion.DrawerEase),
+                ) + if (motionEnabled) {
+                    slideInVertically(
+                        animationSpec = tween(
+                            SunnyMotion.ModalEnterMillis,
+                            easing = SunnyMotion.DrawerEase,
+                        ),
+                        initialOffsetY = { height -> height / 5 },
+                    )
+                } else {
+                    EnterTransition.None
+                },
+                exit = fadeOut(
+                    tween(SunnyMotion.ModalExitMillis, easing = SunnyMotion.DrawerEase),
+                ) + if (motionEnabled) {
+                    slideOutVertically(
+                        animationSpec = tween(
+                            SunnyMotion.ModalExitMillis,
+                            easing = SunnyMotion.DrawerEase,
+                        ),
+                        targetOffsetY = { height -> height / 5 },
+                    )
+                } else {
+                    ExitTransition.None
+                },
             ) {
                 Box(Modifier.navigationBarsPadding()) {
                     SunnyBottomBar(
@@ -110,6 +191,62 @@ fun SunnyNavHost(
             navController = nav,
             startDestination = Routes.OVERVIEW,
             modifier = Modifier.fillMaxSize(),
+            enterTransition = {
+                if (switchesTopLevelTabs()) {
+                    EnterTransition.None
+                } else if (motionEnabled) {
+                    fadeIn(
+                        tween(SunnyMotion.ScreenEnterMillis, easing = SunnyMotion.EaseOut),
+                    ) + slideInHorizontally(
+                        animationSpec = tween(
+                            SunnyMotion.ScreenEnterMillis,
+                            easing = SunnyMotion.EaseOut,
+                        ),
+                        initialOffsetX = { width -> width * 8 / 100 },
+                    )
+                } else {
+                    fadeIn(
+                        tween(SunnyMotion.ScreenExitMillis, easing = SunnyMotion.EaseOut),
+                    )
+                }
+            },
+            exitTransition = {
+                if (switchesTopLevelTabs()) {
+                    ExitTransition.None
+                } else {
+                    fadeOut(
+                        tween(SunnyMotion.ScreenExitMillis, easing = SunnyMotion.EaseOut),
+                    )
+                }
+            },
+            popEnterTransition = {
+                if (switchesTopLevelTabs()) {
+                    EnterTransition.None
+                } else {
+                    fadeIn(
+                        tween(SunnyMotion.ScreenExitMillis, easing = SunnyMotion.EaseOut),
+                    )
+                }
+            },
+            popExitTransition = {
+                if (switchesTopLevelTabs()) {
+                    ExitTransition.None
+                } else if (motionEnabled) {
+                    fadeOut(
+                        tween(SunnyMotion.ScreenExitMillis, easing = SunnyMotion.EaseOut),
+                    ) + slideOutHorizontally(
+                        animationSpec = tween(
+                            SunnyMotion.ScreenExitMillis,
+                            easing = SunnyMotion.EaseOut,
+                        ),
+                        targetOffsetX = { width -> width * 8 / 100 },
+                    )
+                } else {
+                    fadeOut(
+                        tween(SunnyMotion.ScreenExitMillis, easing = SunnyMotion.EaseOut),
+                    )
+                }
+            },
         ) {
             composable(Routes.OVERVIEW) {
                 OverviewScreen(
@@ -119,6 +256,9 @@ fun SunnyNavHost(
                         vm.startCheckSession()
                         nav.navigate(Routes.CHECK_SESSION) { launchSingleTop = true }
                     },
+                    onAddPhoto = {
+                        nav.navigate(if (modelAvailable) Routes.CAPTURE else Routes.MODEL_SETUP)
+                    },
                 )
             }
             composable(Routes.SAVED) {
@@ -126,7 +266,8 @@ fun SunnyNavHost(
                     vm,
                     contentPadding = padding,
                     onScanClick = { nav.navigate(Routes.scanDetail(it)) },
-                    onGenerateReport = { nav.navigate(Routes.GENERATE_REPORT) },
+                    onGenerateReport = ::openReportGenerator,
+                    proReportsEnabled = proFeaturesAvailable,
                     onOpenReports = { nav.navigate(Routes.REPORTS) },
                     onOpenReport = { nav.navigate(Routes.reportDetail(it)) },
                     openReminderCenter = openReminderCenter,
@@ -135,14 +276,16 @@ fun SunnyNavHost(
             }
             composable(Routes.SETTINGS) {
                 SettingsScreen(vm, contentPadding = padding,
-                    onOpenReports = { nav.navigate(Routes.REPORTS) },
                     onOpenModelSetup = { nav.navigate(Routes.MODEL_SETUP) },
                     onSetupPin = { nav.navigate(Routes.pinSetup(false)) },
                     onChangePin = { nav.navigate(Routes.pinSetup(true)) },
                     onOpenPrivacy = { nav.navigate(Routes.PRIVACY) })
             }
             composable(Routes.MODEL_SETUP) {
-                ModelSetupScreen(onBack = { nav.popBackStack() })
+                ModelSetupScreen(onBack = {
+                    if (!proFeaturesAvailable) pendingProDestination = null
+                    nav.popBackStack()
+                })
             }
             composable(Routes.PRIVACY) {
                 PrivacyScreen(onBack = { nav.popBackStack() })
@@ -166,27 +309,55 @@ fun SunnyNavHost(
                 )
             }
 
-            captureGraph(nav, vm, modelAvailable)
+            captureGraph(
+                nav = nav,
+                vm = vm,
+                modelAvailable = modelAvailable,
+                proFeaturesAvailable = proFeaturesAvailable,
+                onRequirePro = { proFeatureRequest = it },
+            )
 
             composable(Routes.SCAN_DETAIL) { entry ->
                 val scanId = entry.arguments?.getString("scanId").orEmpty()
                 ScanDetailScreen(vm, scanId, onBack = { nav.popBackStack() },
                     onEdit = { nav.navigate(Routes.editScan(scanId)) },
-                    onCompare = { nav.navigate(Routes.compare(scanId)) },
+                    onCompare = {
+                        if (proFeaturesAvailable) nav.navigate(Routes.compare(scanId))
+                        else proFeatureRequest = ProFeatureRequest(
+                            title = "Compare photos over time",
+                            description = "Pro aligns two dated photos and provides fade, wipe, blink and side-by-side comparison tools.",
+                            destination = Routes.compare(scanId),
+                        )
+                    },
+                    onOpenAnalysisSetup = { nav.navigate(Routes.MODEL_SETUP) },
                     onCaptureFollowUp = { nav.navigate(Routes.CAMERA) },
                     onReviewFollowUp = { nav.navigate(Routes.REVIEW) })
             }
             composable(Routes.COMPARE) { entry ->
-                val scanId = entry.arguments?.getString("scanId").orEmpty()
-                CompareScreen(vm, scanId, onBack = { nav.popBackStack() })
+                if (proFeaturesAvailable) {
+                    val scanId = entry.arguments?.getString("scanId").orEmpty()
+                    CompareScreen(vm, scanId, onBack = { nav.popBackStack() })
+                } else {
+                    LaunchedEffect(entry) {
+                        nav.popBackStack()
+                        proFeatureRequest = ProFeatureRequest(
+                            title = "Compare photos over time",
+                            description = "Pro aligns two dated photos and provides fade, wipe, blink and side-by-side comparison tools.",
+                            destination = Routes.compare(entry.arguments?.getString("scanId").orEmpty()),
+                        )
+                    }
+                }
             }
             composable(Routes.EDIT_SCAN) { entry ->
                 val scanId = entry.arguments?.getString("scanId").orEmpty()
                 EditScanScreen(vm, scanId, onDone = { nav.popBackStack() })
             }
             composable(Routes.REPORTS) {
-                ReportsScreen(onBack = { nav.popBackStack() },
-                    onReportClick = { nav.navigate(Routes.reportDetail(it)) })
+                ReportsScreen(
+                    onBack = { nav.popBackStack() },
+                    onReportClick = { nav.navigate(Routes.reportDetail(it)) },
+                    onGenerateReport = ::openReportGenerator,
+                )
             }
             composable(Routes.REPORT_DETAIL) { entry ->
                 val reportId = entry.arguments?.getString("reportId").orEmpty()
@@ -194,12 +365,46 @@ fun SunnyNavHost(
             }
         }
     }
+
+    proFeatureRequest?.let { request ->
+        AlertDialog(
+            onDismissRequest = { proFeatureRequest = null },
+            containerColor = SunnyColors.Surface,
+            title = { Text(request.title, style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Text(
+                    request.description + " Your existing photos remain available without Pro.",
+                    color = SunnyColors.TextSecondary,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    proFeatureRequest = null
+                    pendingProDestination = request.destination
+                    nav.navigate(Routes.MODEL_SETUP) { launchSingleTop = true }
+                }) { Text("View Pro", color = SunnyColors.OrangeText) }
+            },
+            dismissButton = {
+                TextButton(onClick = { proFeatureRequest = null }) {
+                    Text("Not now", color = SunnyColors.TextSecondary)
+                }
+            },
+        )
+    }
 }
+
+private fun androidx.compose.animation.AnimatedContentTransitionScope<
+    androidx.navigation.NavBackStackEntry,
+>.switchesTopLevelTabs(): Boolean =
+    initialState.destination.route in Routes.topLevel &&
+        targetState.destination.route in Routes.topLevel
 
 private fun NavGraphBuilder.captureGraph(
     nav: androidx.navigation.NavHostController,
     vm: SunnyViewModel,
     modelAvailable: Boolean,
+    proFeaturesAvailable: Boolean,
+    onRequirePro: (ProFeatureRequest) -> Unit,
 ) {
     composable(Routes.CAPTURE) {
         if (modelAvailable) {
@@ -281,11 +486,24 @@ private fun NavGraphBuilder.captureGraph(
         )
     }
     composable(Routes.GENERATE_REPORT) {
-        GenerateReportScreen(vm, onDismiss = { nav.popBackStack() },
-            onOpenReport = { id ->
-                nav.navigate(Routes.reportDetail(id)) {
-                    popUpTo(Routes.GENERATE_REPORT) { inclusive = true }
-                }
-            })
+        if (proFeaturesAvailable) {
+            GenerateReportScreen(vm, onDismiss = { nav.popBackStack() },
+                onOpenReport = { id ->
+                    nav.navigate(Routes.reportDetail(id)) {
+                        popUpTo(Routes.GENERATE_REPORT) { inclusive = true }
+                    }
+                })
+        } else {
+            LaunchedEffect(Unit) {
+                nav.popBackStack()
+                onRequirePro(
+                    ProFeatureRequest(
+                        title = "Create clinician-ready reports",
+                        description = "Pro creates encrypted PDF reports with selected photos, dates and visual comparisons.",
+                        destination = Routes.GENERATE_REPORT,
+                    ),
+                )
+            }
+        }
     }
 }

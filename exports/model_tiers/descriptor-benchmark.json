@@ -1,0 +1,45 @@
+{
+  "date": "2026-07-16",
+  "dataset": {
+    "source": "HAM10000 mirror marmal88/skin_cancer",
+    "validation_images": 154,
+    "validation_lesions": 125,
+    "train_validation_lesion_overlap": 0,
+    "references": "deterministic morphology labels; not clinician labels"
+  },
+  "lite": {
+    "artifact": "sunny-lite-mobilenetv3.onnx",
+    "bytes": 6192794,
+    "sha256": "7358037d02cefc53adcba0bb29772c60e9ef9f7f82af14274d0d2e70c98e836e",
+    "type_exact": 0.6558441558441559,
+    "symmetry_exact": 0.6558441558441559,
+    "borders_exact": 0.6558441558441559,
+    "texture_exact": 0.7337662337662337,
+    "colour_jaccard": 0.5852813852813852,
+    "mean_task_score": 0.6573160173160174,
+    "cpu_latency_ms_median": 2.1
+  },
+  "medium_convnext": {
+    "artifact": "sunny-medium-convnexttiny.onnx",
+    "bytes": 111458297,
+    "sha256": "fe3e95e15954efddc971518188277af5f9be4fea2ae240a7fa90c76bb772f626",
+    "type_exact": 0.6688311688311688,
+    "symmetry_exact": 0.6623376623376623,
+    "borders_exact": 0.6428571428571429,
+    "texture_exact": 0.6818181818181818,
+    "colour_jaccard": 0.6871212121212121,
+    "mean_task_score": 0.6685930735930735,
+    "cpu_latency_ms_median": 104.1
+  },
+  "medium_runtime_ensemble": {
+    "description": "equal-weight ConvNeXt Tiny and installed Lite logits",
+    "type_exact": 0.7012987012987013,
+    "symmetry_exact": 0.6558441558441559,
+    "borders_exact": 0.6818181818181818,
+    "texture_exact": 0.7077922077922078,
+    "colour_jaccard": 0.6471861471861471,
+    "mean_task_score": 0.6787878787878788,
+    "mean_task_score_minus_lite": 0.0214718614718615,
+    "paired_bootstrap_95": [-0.0044588744588745, 0.0472510822510822]
+  }
+}

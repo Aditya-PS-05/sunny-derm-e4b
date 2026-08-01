@@ -20,6 +20,7 @@ import java.util.UUID
  * Flows so the UI updates as soon as a scan is saved or deleted.
  */
 class ScanRepository(context: Context) {
+    private val app = context.applicationContext
     private val dao = SunnyDatabase.get(context).scanDao()
     private val images = ImageStore(context)
 
@@ -151,8 +152,10 @@ class ScanRepository(context: Context) {
     }
 
     suspend fun deleteAll() {
-        dao.allScansOnce().flatMap { it.observations }.forEach { images.delete(it.imagePath) }
+        SunnyDatabase.enableSecureDelete(app)
         dao.deleteAllScans()
+        images.deleteAll()
+        SunnyDatabase.purgeDeletedPages(app)
     }
 
     fun imageStore(): ImageStore = images

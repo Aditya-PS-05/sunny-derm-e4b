@@ -178,6 +178,9 @@ def main():
     random.seed(args.seed)
     os.makedirs(args.out_dir, exist_ok=True)
     m = pd.read_csv(args.manifest)
+    # Some mirrors repeat the same ISIC image across source shards/splits. Keep
+    # one physical image so duplicates cannot overweight training or validation.
+    m = m.drop_duplicates(subset=["image_id"], keep="first").reset_index(drop=True)
     summaries = {}
     if args.summaries and os.path.exists(args.summaries):
         summaries = json.load(open(args.summaries))
@@ -195,11 +198,34 @@ def main():
                                   summaries.get(str(r["image_id"])))
         if fails:
             dropped.append((r["image_id"], ",".join(fails))); continue
+        # All images of one HAM10000 lesion must remain in the same split.
+        # Otherwise near-duplicate views can make validation look artificially good.
+        rec["meta"]["lesion_id"] = str(r["lesion_id"])
         kept.append(rec)
 
-    random.shuffle(kept)
-    n_val = int(len(kept) * args.val_frac)
-    val, train = kept[:n_val], kept[n_val:]
+    # Group by lesion within each class, then select whole groups for validation.
+    # Per-class grouping keeps the small held-out set representative of all seven
+    # visual categories while guaranteeing zero lesion identity overlap.
+    by_class = {}
+    for rec in kept:
+        by_class.setdefault(rec["meta"]["dx"], {}).setdefault(
+            rec["meta"]["lesion_id"], [],
+        ).append(rec)
+    train, val = [], []
+    for dx in sorted(by_class):
+        groups = list(by_class[dx].values())
+        random.shuffle(groups)
+        target = max(1, round(sum(len(group) for group in groups) * args.val_frac))
+        val_count = 0
+        for index, group in enumerate(groups):
+            groups_left = len(groups) - index - 1
+            if val_count < target and groups_left >= 1:
+                val.extend(group)
+                val_count += len(group)
+            else:
+                train.extend(group)
+    random.shuffle(train)
+    random.shuffle(val)
     for name, split in [("train", train), ("val", val)]:
         with open(os.path.join(args.out_dir, f"{name}.jsonl"), "w") as f:
             for rec in split:

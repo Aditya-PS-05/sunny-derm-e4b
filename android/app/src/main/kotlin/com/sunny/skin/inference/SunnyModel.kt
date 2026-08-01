@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 
 /**
  * The on-device vision-language model. Implementations wrap a concrete runtime
- * (llama.cpp/mtmd or LiteRT-LM). The contract is deliberately tiny: one image
+ * (Sunny-MoE locally or Sunny AI Cloud remotely). The contract is deliberately tiny: one image
  * in, raw model text out — parsing, guardrails and re-runs live in
  * [SunnyDescriber] so every runtime enforces the same safety boundary.
  *
@@ -21,7 +21,7 @@ interface SunnyModel {
     suspend fun warmUp()
 
     /** Run one image through the model and return its raw six-line text. */
-    suspend fun describeRaw(bitmap: Bitmap): String
+    suspend fun describeRaw(bitmap: Bitmap, analysisId: String): String
 
     fun close()
 }

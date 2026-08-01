@@ -1,0 +1,83 @@
+version: 0.2
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - xcodebuild -version
+      - |
+        if ! command -v xcodegen >/dev/null 2>&1; then
+          brew install xcodegen
+        fi
+      - xcodegen version
+  pre_build:
+    commands:
+      - cd "$CODEBUILD_SRC_DIR/ios"
+      - xcodegen generate
+      - xcodebuild -list -project Sunny.xcodeproj
+      - xcrun simctl list devices available
+  build:
+    commands:
+      - cd "$CODEBUILD_SRC_DIR/ios"
+      - mkdir -p "$CODEBUILD_SRC_DIR/build-results"
+      - |
+        set -o pipefail
+        xcodebuild \
+          -project Sunny.xcodeproj \
+          -scheme Sunny \
+          -sdk iphonesimulator \
+          -destination 'generic/platform=iOS Simulator' \
+          -derivedDataPath "$CODEBUILD_SRC_DIR/DerivedData" \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO \
+          build-for-testing \
+          | tee "$CODEBUILD_SRC_DIR/build-results/xcodebuild-build.log"
+      - |
+        SIMULATOR_ID="$(python3 - <<'PY'
+        import json
+        import subprocess
+
+        devices = json.loads(
+            subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"])
+        )["devices"]
+        for runtime, candidates in sorted(devices.items(), reverse=True):
+            if "iOS" not in runtime:
+                continue
+            for device in candidates:
+                if device.get("isAvailable") and device.get("name", "").startswith("iPhone"):
+                    print(device["udid"])
+                    raise SystemExit
+        PY
+        )"
+        if [ -z "$SIMULATOR_ID" ]; then
+          echo "No available iPhone Simulator was found" >&2
+          exit 1
+        fi
+        echo "Using simulator $SIMULATOR_ID"
+        xcrun simctl boot "$SIMULATOR_ID" || true
+        xcrun simctl bootstatus "$SIMULATOR_ID" -b
+        printf '%s' "$SIMULATOR_ID" > "$CODEBUILD_SRC_DIR/build-results/simulator-udid.txt"
+      - |
+        set -o pipefail
+        SIMULATOR_ID="$(cat "$CODEBUILD_SRC_DIR/build-results/simulator-udid.txt")"
+        xcodebuild \
+          -project Sunny.xcodeproj \
+          -scheme Sunny \
+          -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+          -derivedDataPath "$CODEBUILD_SRC_DIR/DerivedData" \
+          -resultBundlePath "$CODEBUILD_SRC_DIR/build-results/SunnyTests.xcresult" \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO \
+          test-without-building \
+          | tee "$CODEBUILD_SRC_DIR/build-results/xcodebuild-test.log"
+
+artifacts:
+  files:
+    - build-results/**/*
+  discard-paths: no
+
+cache:
+  paths:
+    - /Users/codebuild/Library/Caches/Homebrew/**/*

@@ -1,6 +1,13 @@
 package com.sunny.skin.ui.screens
 
 import android.animation.ValueAnimator
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,7 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,8 +57,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -65,9 +75,12 @@ import com.sunny.skin.data.db.ObservationEntity
 import com.sunny.skin.data.model.Analysis
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.ScreenScaffold
+import com.sunny.skin.ui.components.ScreenLoadingState
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
 import com.sunny.skin.util.AlignTransform
 import com.sunny.skin.util.AlignmentResult
 import com.sunny.skin.util.FramingQuality
@@ -102,7 +115,10 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
     val data = scan
 
     ScreenScaffold(title = "Compare", onBack = onBack) { inner ->
-        if (data == null) return@ScreenScaffold
+        if (data == null) {
+            ScreenLoadingState("Loading comparison…", Modifier.padding(inner))
+            return@ScreenScaffold
+        }
         // Oldest first so "before" → "after" reads left/earlier to right/later.
         val obs = data.timeline.sortedBy { it.capturedAt }
         if (obs.size < 2) {
@@ -119,12 +135,14 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
         var fade by remember { mutableFloatStateOf(0.5f) }
         var wipe by remember { mutableFloatStateOf(0.5f) }
         var blinkAfter by remember { mutableStateOf(false) }
+        val motionEnabled = rememberSunnyMotionEnabled()
         var blinkPlaying by remember { mutableStateOf(ValueAnimator.areAnimatorsEnabled()) }
 
         // Auto-alignment state for the selected pair.
         var alignOn by remember { mutableStateOf(true) }
         var aligning by remember { mutableStateOf(false) }
         var alignment by remember { mutableStateOf(AlignmentResult()) }
+        var alignmentPair by remember { mutableStateOf<Pair<String, String>?>(null) }
         var nudge by remember { mutableStateOf(Offset.Zero) } // manual fine-tune (normalised)
 
         // Clamp against the current list so a reactive shrink can't crash and the
@@ -139,7 +157,11 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
         LaunchedEffect(before.imagePath, after.imagePath) {
             nudge = Offset.Zero
             aligning = true
-            alignment = ImageAlignment.computeResult(alignCtx, before.imagePath, after.imagePath)
+            alignmentPair = null
+            val pair = before.imagePath to after.imagePath
+            val result = ImageAlignment.computeResult(alignCtx, pair.first, pair.second)
+            alignment = result
+            alignmentPair = pair
             aligning = false
         }
 
@@ -151,39 +173,43 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
             }
         }
 
-        // Effective transform applied to the "after" photo.
-        val eff = if (alignOn && alignment.isUsable) {
-            alignment.transform.copy(
-                tx = alignment.transform.tx + nudge.x,
-                ty = alignment.transform.ty + nudge.y,
-            )
+        // Only the computed registration settles. Manual nudge remains a direct,
+        // unanimated offset so the photo never lags behind the user's finger.
+        val pairMatches = alignmentPair == (before.imagePath to after.imagePath)
+        val computedTransform = if (alignOn && pairMatches && alignment.isUsable) {
+            alignment.transform
         } else {
             AlignTransform.Identity
         }
+        val alignmentSpec = if (motionEnabled && pairMatches && !aligning) {
+            tween<Float>(durationMillis = 220, easing = SunnyMotion.EaseInOut)
+        } else {
+            snap()
+        }
+        val alignedTx by animateFloatAsState(computedTransform.tx, alignmentSpec, label = "Alignment x")
+        val alignedTy by animateFloatAsState(computedTransform.ty, alignmentSpec, label = "Alignment y")
+        val alignedScale by animateFloatAsState(computedTransform.scale, alignmentSpec, label = "Alignment scale")
+        val alignedRotation by animateFloatAsState(
+            computedTransform.rotationDeg,
+            alignmentSpec,
+            label = "Alignment rotation",
+        )
+        val eff = AlignTransform(
+            tx = alignedTx + nudge.x,
+            ty = alignedTy + nudge.y,
+            scale = alignedScale,
+            rotationDeg = alignedRotation,
+        )
 
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                 .padding(inner).padding(horizontal = 16.dp).padding(bottom = 40.dp),
         ) {
-            // Mode segmented control
-            Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(50))
-                    .background(SunnyColors.SurfaceMuted).padding(3.dp),
-            ) {
-                CompareMode.entries.forEach { m ->
-                    val selected = mode == m
-                    Box(
-                        Modifier.weight(1f).clip(RoundedCornerShape(50))
-                            .background(if (selected) SunnyColors.Surface else Color.Transparent)
-                            .clickable { mode = m }.padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(m.label, style = MaterialTheme.typography.bodyMedium,
-                            color = if (selected) SunnyColors.TextPrimary else SunnyColors.TextSecondary,
-                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium)
-                    }
-                }
-            }
+            CompareModeSelector(
+                selected = mode,
+                motionEnabled = motionEnabled,
+                onSelect = { mode = it },
+            )
             Spacer(Modifier.height(12.dp))
 
             // Auto-align control row
@@ -228,21 +254,39 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
             }
             Spacer(Modifier.height(12.dp))
 
-            when (mode) {
-                CompareMode.FADE -> FadeCompare(before, after, eff, alignOn, fade,
-                    onFade = { fade = it }, onNudge = { nudge += it })
-                CompareMode.WIPE -> WipeCompare(before, after, eff, wipe) { wipe = it }
-                CompareMode.BLINK -> BlinkCompare(
-                    before = before,
-                    after = after,
-                    transform = eff,
-                    showAfter = blinkAfter,
-                    playing = blinkPlaying,
-                    onTogglePlaying = { blinkPlaying = !blinkPlaying },
-                    onToggleFrame = { blinkAfter = !blinkAfter },
-                )
-                CompareMode.SIDE -> SideCompare(before, after, eff)
+            AnimatedContent(
+                targetState = mode,
+                transitionSpec = {
+                    ContentTransform(
+                        targetContentEnter = fadeIn(tween(150, easing = SunnyMotion.EaseOut)),
+                        initialContentExit = fadeOut(tween(150, easing = SunnyMotion.EaseOut)),
+                        sizeTransform = null,
+                    )
+                },
+                label = "Comparison mode",
+            ) { activeMode ->
+                when (activeMode) {
+                    CompareMode.FADE -> FadeCompare(before, after, eff, alignOn, fade,
+                        onFade = { fade = it }, onNudge = { nudge += it })
+                    CompareMode.WIPE -> WipeCompare(before, after, eff, wipe) { wipe = it }
+                    CompareMode.BLINK -> BlinkCompare(
+                        before = before,
+                        after = after,
+                        transform = eff,
+                        showAfter = blinkAfter,
+                        playing = blinkPlaying,
+                        onTogglePlaying = { blinkPlaying = !blinkPlaying },
+                        onToggleFrame = { blinkAfter = !blinkAfter },
+                    )
+                    CompareMode.SIDE -> SideCompare(before, after, eff)
+                }
             }
+
+            Spacer(Modifier.height(12.dp))
+            ComparisonDateRail(
+                before = Format.date(before.capturedAt),
+                after = Format.date(after.capturedAt),
+            )
 
             if (alignOn && mode == CompareMode.FADE) {
                 Spacer(Modifier.height(6.dp))
@@ -310,6 +354,171 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
 }
 
 @Composable
+private fun CompareModeSelector(
+    selected: CompareMode,
+    motionEnabled: Boolean,
+    onSelect: (CompareMode) -> Unit,
+) {
+    BoxWithConstraints(
+        Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(50))
+            .background(SunnyColors.SurfaceMuted).padding(3.dp),
+    ) {
+        val modes = CompareMode.entries
+        val segmentWidth = maxWidth / modes.size
+        val segmentWidthPx = with(LocalDensity.current) { segmentWidth.toPx() }
+        val selectedOffsetPx by animateFloatAsState(
+            targetValue = segmentWidthPx * selected.ordinal,
+            animationSpec = if (motionEnabled) {
+                tween(durationMillis = SunnyMotion.StateMillis, easing = SunnyMotion.EaseInOut)
+            } else {
+                snap()
+            },
+            label = "Comparison mode indicator",
+        )
+        Box(
+            Modifier.width(segmentWidth).fillMaxHeight().graphicsLayer {
+                translationX = selectedOffsetPx
+            }
+                .clip(RoundedCornerShape(50)).background(SunnyColors.Surface),
+        )
+        Row(Modifier.fillMaxSize()) {
+            modes.forEach { mode ->
+                val isSelected = mode == selected
+                Box(
+                    Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(50))
+                        .clickable { onSelect(mode) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        CompareModePictogram(
+                            mode = mode,
+                            tint = if (isSelected) SunnyColors.TextPrimary else SunnyColors.TextTertiary,
+                        )
+                        Text(
+                            mode.label,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isSelected) SunnyColors.TextPrimary else SunnyColors.TextSecondary,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompareModePictogram(mode: CompareMode, tint: Color) {
+    Canvas(Modifier.size(16.dp)) {
+        val stroke = Stroke(width = 1.5.dp.toPx())
+        val inset = 1.5.dp.toPx()
+        val corner = CornerRadius(2.dp.toPx())
+        when (mode) {
+            CompareMode.FADE -> {
+                drawRoundRect(
+                    color = tint.copy(alpha = 0.45f),
+                    topLeft = Offset(inset, inset),
+                    size = androidx.compose.ui.geometry.Size(size.width * 0.58f, size.height * 0.58f),
+                    cornerRadius = corner,
+                    style = stroke,
+                )
+                drawRoundRect(
+                    color = tint,
+                    topLeft = Offset(size.width * 0.32f, size.height * 0.32f),
+                    size = androidx.compose.ui.geometry.Size(size.width * 0.58f, size.height * 0.58f),
+                    cornerRadius = corner,
+                    style = stroke,
+                )
+            }
+            CompareMode.WIPE -> {
+                drawRoundRect(tint, cornerRadius = corner, style = stroke)
+                drawLine(
+                    tint,
+                    start = Offset(size.width / 2f, inset),
+                    end = Offset(size.width / 2f, size.height - inset),
+                    strokeWidth = stroke.width,
+                )
+                drawCircle(tint, radius = 1.8.dp.toPx(), center = center)
+            }
+            CompareMode.BLINK -> {
+                drawOval(
+                    color = tint,
+                    topLeft = Offset(inset, size.height * 0.25f),
+                    size = androidx.compose.ui.geometry.Size(size.width - inset * 2, size.height * 0.5f),
+                    style = stroke,
+                )
+                drawCircle(tint, radius = 2.dp.toPx(), center = center)
+            }
+            CompareMode.SIDE -> {
+                val gap = 2.dp.toPx()
+                val panelWidth = (size.width - gap) / 2f
+                drawRoundRect(
+                    tint,
+                    size = androidx.compose.ui.geometry.Size(panelWidth, size.height),
+                    cornerRadius = corner,
+                    style = stroke,
+                )
+                drawRoundRect(
+                    tint,
+                    topLeft = Offset(panelWidth + gap, 0f),
+                    size = androidx.compose.ui.geometry.Size(panelWidth, size.height),
+                    cornerRadius = corner,
+                    style = stroke,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComparisonDateRail(before: String, after: String) {
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            before,
+            style = MaterialTheme.typography.labelMedium,
+            color = SunnyColors.TextSecondary,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Canvas(Modifier.weight(1f).height(12.dp)) {
+            val y = size.height / 2f
+            val radius = 2.5.dp.toPx()
+            drawCircle(SunnyColors.TextTertiary, radius, Offset(radius, y))
+            drawLine(
+                SunnyColors.TextTertiary,
+                Offset(radius * 2.5f, y),
+                Offset(size.width - radius * 2.5f, y),
+                strokeWidth = 1.5.dp.toPx(),
+            )
+            drawLine(
+                SunnyColors.TextTertiary,
+                Offset(size.width - radius * 4f, y - radius * 1.7f),
+                Offset(size.width - radius, y),
+                strokeWidth = 1.5.dp.toPx(),
+            )
+            drawLine(
+                SunnyColors.TextTertiary,
+                Offset(size.width - radius * 4f, y + radius * 1.7f),
+                Offset(size.width - radius, y),
+                strokeWidth = 1.5.dp.toPx(),
+            )
+        }
+        Text(
+            after,
+            style = MaterialTheme.typography.labelMedium,
+            color = SunnyColors.TextPrimary,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+@Composable
 private fun FadeCompare(
     before: ObservationEntity,
     after: ObservationEntity,
@@ -335,8 +544,8 @@ private fun FadeCompare(
             } else it
         }
         AsyncImage(EncryptedImage(after.imagePath), null, overlay, contentScale = ContentScale.Crop, alpha = fade)
-        DateTag(Format.date(before.capturedAt), Alignment.TopStart, faded = fade > 0.5f)
-        DateTag(Format.date(after.capturedAt), Alignment.TopEnd, faded = fade < 0.5f)
+        DateTag(Format.date(before.capturedAt), Alignment.TopStart, emphasis = 1f - fade)
+        DateTag(Format.date(after.capturedAt), Alignment.TopEnd, emphasis = fade)
     }
     Spacer(Modifier.height(4.dp))
     Slider(value = fade, onValueChange = onFade,
@@ -373,8 +582,8 @@ private fun WipeCompare(
             AsyncImage(EncryptedImage(after.imagePath), null, Modifier.fillMaxSize().applyAlign(transform),
                 contentScale = ContentScale.Crop)
         }
-        DateTag(Format.date(before.capturedAt), Alignment.TopStart, faded = false)
-        DateTag(Format.date(after.capturedAt), Alignment.TopEnd, faded = false)
+        DateTag(Format.date(before.capturedAt), Alignment.TopStart, emphasis = 1f)
+        DateTag(Format.date(after.capturedAt), Alignment.TopEnd, emphasis = 1f)
         // Divider + handle, draggable
         Canvas(Modifier.fillMaxSize().pointerInput(fullWpx) {
             detectHorizontalDragGestures { change, _ ->
@@ -417,7 +626,7 @@ private fun BlinkCompare(
         DateTag(
             Format.date(if (showAfter) after.capturedAt else before.capturedAt),
             Alignment.TopStart,
-            faded = false,
+            emphasis = 1f,
         )
         Box(
             Modifier.align(Alignment.BottomEnd).padding(10.dp).clip(RoundedCornerShape(50))
@@ -473,14 +682,15 @@ private fun SideCompare(before: ObservationEntity, after: ObservationEntity, tra
 
 @Composable
 private fun androidx.compose.foundation.layout.BoxScope.DateTag(
-    text: String, align: Alignment, faded: Boolean,
+    text: String, align: Alignment, emphasis: Float,
 ) {
+    val backgroundAlpha = 0.25f + 0.30f * emphasis.coerceIn(0f, 1f)
     Box(Modifier.align(align).padding(10.dp)) {
         Text(text, style = MaterialTheme.typography.labelMedium, color = Color.White,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier
                 .clip(RoundedCornerShape(50))
-                .background(Color.Black.copy(alpha = if (faded) 0.25f else 0.55f))
+                .background(Color.Black.copy(alpha = backgroundAlpha))
                 .padding(horizontal = 10.dp, vertical = 4.dp))
     }
 }

@@ -26,95 +26,93 @@ cd android
 
 Verified: `./gradlew assembleDebug` produces a ~20 MB debug APK.
 
+Release and beta signing should come from the CI/OS secret store through
+`SUNNY_SIGNING_STORE_FILE`, `SUNNY_SIGNING_STORE_PASSWORD`,
+`SUNNY_SIGNING_KEY_ALIAS`, and `SUNNY_SIGNING_KEY_PASSWORD`. An ignored
+`keystore.properties` is supported only as a local fallback and must be mode
+`0600`; never commit either it or the keystore.
+
 ### Private GPU-server beta
 
-The debug beta can send a scan to the existing OpenAI-compatible GPU inference
-endpoint while the phone-photo model is being evaluated. It uses the same parser
-and guardrails as the on-device path and does not package a mock model. Select
-the mode without editing source:
+The beta app exchanges its random installation ID with the HTTPS access broker
+for short-lived cloud authorization and signed model URLs. No reusable gateway
+credential is compiled into the APK or entered by the tester. This repository's
+Debug/Beta default points to the private `sunny-gpu` broker, so a local build is:
 
 ```bash
-SUNNY_INFERENCE_MODE=server \
-SUNNY_INFERENCE_API_URL=https://beta.example/ \
-SUNNY_INFERENCE_API_TOKEN=... \
-./gradlew assembleDebug
-
-SUNNY_INFERENCE_MODE=device SUNNY_CONTRIBUTION_MODE=disabled ./gradlew assembleDebug
+./gradlew assembleBeta
 ```
 
-The checked-in HTTP host remains a compatibility fallback for the current
-private debug beta only. It requires `allowInsecureBetaEndpoints=true`, is
-disclosed in-app, and is excluded by the release gate and release network
-security policy. Move beta traffic to HTTPS before using sensitive photos.
+Override `betaEntitlementApiUrl` (or `SUNNY_BETA_ENTITLEMENT_API_URL`) when the
+GPU hostname changes. Public Release deliberately ignores that beta value and
+requires a separately configured production `entitlementApiUrl`.
 
-`SUNNY_CONTRIBUTE_URL` and `SUNNY_CONTRIBUTE_API_TOKEN` configure the separate,
-explicitly opted-in model-improvement endpoint. Environment values override the
-development values in `gradle.properties`.
-
-When a beta endpoint is compiled in, Settings exposes an **Analysis source**
-toggle. Switching it resets the cached inference session so the next scan uses
-the selected server or on-device engine. Release builds omit the server capability.
+Cloud authorization is restored automatically at startup. Settings exposes only
+the user-facing analysis-source choice; there is no credential-management UI.
+Switching source resets the cached inference session so the next scan uses the
+selected server or on-device engine.
 
 For an external beta, deploy the TLS/auth/rate-limit gateway in
-`../ops/beta-gateway/`, use its HTTPS domain and separate inference/contribution
-tokens, and disable the cleartext compatibility flag.
+`../ops/beta-gateway/` and use its HTTPS domain and separate
+inference/contribution tokens.
 
-## The model: real or unavailable
+## The models: Sunny-MoE local, Pro server-only
 
-The app talks through `inference/SunnyModel`. Server beta mode uses
-`RemoteSunnyModel`; device mode uses `LlamaCppSunnyModel` and disables scanning
-unless both exact GGUF files and `libsunny_llama.so` are available. No mock
-implementation is packaged, preventing plausible fake health output.
+The app talks through `inference/SunnyModel`. `SunnyMoeModel` is the sole
+downloadable on-device engine. Consented, entitled Pro requests use
+`RemoteSunnyModel`; the legacy 5.86 GB GGUF Pro pair is never downloaded. No
+mock implementation is packaged, preventing plausible fake health output.
 
 The prompt (`inference/Prompt`), greedy decoding, six-field parse
 (`SchemaParser`), banned-word post-filter (`Guardrails`) and single re-run
 (`SunnyDescriber`) enforce the boundary. Prompt is byte-identical to
 `../docs/USING_THE_MODEL.md` §2.
 
-### Going live — two steps, both built
+### Model products
 
-**1. Native bridge (`libsunny_llama.so`).** `inference/LlamaBridge` is backed by
-`app/src/main/cpp/sunny_llama.cpp` (JNI over llama.cpp + `mtmd`) and
-`CMakeLists.txt`. The native build is gated so the default build never needs the
-toolchain:
+- **Sunny AI Cloud:** included server inference; no model download, with explicit
+  photo-processing consent and runtime authorization. Free receives 5 analyses
+  per UTC month (maximum 2/day); Pro receives 100/month (maximum 25/day).
+- **Sunny MoE Pro:** 3.082 GB downloadable GGUF pack; Q4 language/experts and an
+  FP16 corrected perception path that runs offline after installation.
 
-```bash
-./scripts/vendor_llama.sh                 # clone pinned llama.cpp into cpp/
-./gradlew assembleDebug -PwithLlama       # builds ggml+llama+mtmd+bridge (arm64)
-```
+Advanced comparison and new report generation route Free users to the Pro setup
+screen. Existing scans and already-generated reports remain readable after Pro
+expires.
 
-Without `-PwithLlama` the `.so` is absent, `LlamaBridge.ensureLibrary()` returns
-false, and scanning remains disabled.
+The APK pins the byte count and full SHA-256 of the two GGUFs and manifest.
 
-**2. Weights.** The GGUFs already exist locally in this repo
-(`../exports/model_on_host/`), so **no download is required**. `ModelProvider`
-resolves them at runtime from the first of these on-device folders that has both
-files: `filesDir/models/`, the app's external files dir, or `/data/local/tmp/sunny/`.
+### Going live
+
+**Sunny-MoE native bridge (`libsunny_moe.so`).** `inference/SunnyMoeBridge`
+declares the JNI surface for the sparse SmolVLM runtime. CMake builds it from a
+pinned, patched llama.cpp/mtmd source tree. It loads the mixed dense/MoE text
+GGUF, the corrected FP16 vision GGUF, pools one expert route per sequence, and
+pins those routes through decoding. Run `./scripts/vendor_sunny_moe_runtime.sh`
+after a fresh clone before building.
+
+**Model delivery.** `ModelProvider` resolves downloads from private internal
+storage. Debug builds additionally accept the app external directory and
+`/data/local/tmp/sunny/` for developer pushes.
 
 - **Local (recommended here):** push the repo's weights onto a device once —
   ```bash
-  ./scripts/push_weights_to_device.sh      # adb push -> app external files dir
+  ./scripts/push_weights_to_device.sh /path/to/sunny-moe-2.2b-v4-gguf
   ```
   Then **Settings › AI Model** shows "Model installed" and the real model runs.
-- **Download (optional, for distribution):** `inference/download/*` also
-  implements a resumable, checksum-verified download into `filesDir/models/`
-  (Wi-Fi-gated, progress UI). After rights clearance, set an HTTPS base URL
-  ending in `/` with `-PmodelBaseUrl=https://example.invalid/models/` or the
-  `SUNNY_MODEL_BASE_URL` CI environment variable. The empty default disables
-  downloads. The production device-mode describe/track loop stays offline.
+- **Download:** Pro users receive short-lived per-file URLs from the entitlement
+  worker's private model bucket and can download over Wi-Fi or mobile data.
+  `inference/download/*` resumes partial files, verifies APK-pinned checksums,
+  and atomically finalizes each file in `filesDir/models/`.
 
-Either way `ModelProvider.reset()` closes any prior native session and the active
-ViewModel dynamically resolves the newly installed model. To shrink the ~6 GB
-footprint, re-quantize on the GPU host (int8
-mmproj + Q4_0/Q3 LM → ~4 GB) and drop the smaller files in the same folder — no
-app code changes.
+`ModelProvider.reset()` closes the previous native/remote session and
+dynamically resolves Sunny-MoE or Sunny AI Cloud.
 
 ## Structure
 
 ```
-inference/   SunnyModel interface, llama.cpp impl, parser, guardrails, describer
+inference/   Sunny-MoE JNI + AI Cloud, parser, guardrails and describer
 inference/download/  resumable checksum-verified weight downloader + status manager
-cpp/         sunny_llama.cpp (JNI/mtmd bridge) + CMakeLists (built with -PwithLlama)
 data/        Room (scans + observations), repository, image + settings stores
 report/      encrypted PDF generation + stream-decrypting share provider
 ui/theme     Sunny palette / type / theme
@@ -124,11 +122,27 @@ ui/screens   Overview · Saved · ScanDetail · Settings · Capture · Camera ·
              Review · GenerateReport · Reports · ReportDetail · Lock
 ```
 
+## Languages
+
+Sunny follows the device language by default and also provides an immediate,
+persistent selector in **Settings → Language & region**. English, Hindi,
+Spanish, Italian, French, German, Brazilian Portuguese, Japanese, Korean,
+Simplified Chinese and Traditional Chinese are included. Compose text goes through the shared
+localization layer in `ui/i18n/`; Android 13+ can also discover the declared
+locales through `res/xml/locales_config.xml`.
+
+The extended locale catalogs are generated with
+`scripts/generate_locale_catalogs.py`. Treat generated translations as a first
+pass: the non-diagnostic safety disclaimer has a reviewed override for every
+locale, and the complete product copy should receive native-speaker review
+before a public store release.
+
 ## Privacy & safety enforced in-app (not just the model)
 
-- Production inference stays on-device. The temporary server beta requires
-  explicit onboarding acknowledgement, and contribution requires a separate
-  timestamped opt-in; backup/transfer remain excluded (P-01…P-03).
+- Sunny-MoE inference stays on-device and requires verified Pro access outside
+  local debug builds. AI Cloud requires runtime authorization and explicit
+  per-device processing consent; contribution remains
+  a separate timestamped opt-in (P-01…P-03).
 - Persistent disclaimer on every analysis, timeline and report (S-02).
 - Banned-word filter suppresses + re-runs on any disease/verdict term (S-03).
 - Conservative exposure, contrast, and size checks recommend a retake before
@@ -149,10 +163,10 @@ repeated beside results. See `../docs/performance.md`.
 instrumentation suite on pushes and pull requests.
 
 `debug` is the private beta mode and can use the configured server endpoints.
-`release` is the public mode: server inference and contribution endpoints are
-forcibly empty regardless of environment variables, beta controls/copy disappear,
-and R8 removes unreachable beta networking code from the artifact.
+`release` is the public mode: shared beta inference/contribution credentials are
+never compiled in. AI Cloud uses short-lived server authorization and user
+consent; Pro verification unlocks the Sunny-MoE download.
 
-Release builds require `-PwithLlama`, a configured HTTPS model base URL, and the
-two full SHA-256 values (`modelLanguageSha256` and `modelProjectorSha256`) in
-addition to the legal and validation attestations in `RELEASE_READINESS.md`.
+Release builds compile `libsunny_moe.so` for arm64 and require the vendored
+runtime source, HTTPS entitlement/model gateway, and the legal/validation
+attestations in `RELEASE_READINESS.md`.

@@ -1,9 +1,21 @@
 package com.sunny.skin.ui.screens
 
 import android.content.Intent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,28 +27,35 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.DeleteForever
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,23 +65,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sunny.skin.ui.SunnyViewModel
+import com.sunny.skin.ui.i18n.SunnyLanguage
+import com.sunny.skin.ui.i18n.SunnyLanguageController
 import com.sunny.skin.ui.components.DisclaimerCard
 import com.sunny.skin.ui.components.LiquidGlassDialog
 import com.sunny.skin.ui.components.SectionHeader
 import com.sunny.skin.ui.components.SunnyToggle
 import com.sunny.skin.ui.components.SunnyCard
+import com.sunny.skin.ui.components.SunnyVaultAsset
+import com.sunny.skin.ui.components.VaultAssetKind
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
+import kotlinx.coroutines.delay
+
+private enum class BackupExportPhase { EDITING, PREPARING, READY }
 
 @Composable
 fun SettingsScreen(
     vm: SunnyViewModel,
     contentPadding: PaddingValues,
-    onOpenReports: () -> Unit,
     onOpenModelSetup: () -> Unit,
     onSetupPin: () -> Unit,
     onChangePin: () -> Unit,
@@ -72,21 +109,51 @@ fun SettingsScreen(
     val improve by vm.improveSunny.collectAsStateWithLifecycle()
     val contributionStatus by vm.contributionStatus.collectAsStateWithLifecycle()
     val useServer by vm.useServerInference.collectAsStateWithLifecycle()
+    val language by SunnyLanguageController.selection.collectAsStateWithLifecycle()
+    val modelStatus by com.sunny.skin.inference.download.ModelDownloadManager.status
+        .collectAsStateWithLifecycle()
+    val cloudAuthorization by com.sunny.skin.subscription.SubscriptionEntitlements.cloudInference
+        .collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val motionEnabled = rememberSunnyMotionEnabled()
     var showContributionConsent by remember { mutableStateOf(false) }
     var showExport by remember { mutableStateOf(false) }
     var showDeleteAll by remember { mutableStateOf(false) }
+    var showDeleteSuccess by remember { mutableStateOf(false) }
+    var showLanguagePicker by remember { mutableStateOf(false) }
+    val now = System.currentTimeMillis()
+    val localInstalled = modelStatus is com.sunny.skin.inference.download.ModelStatus.Ready ||
+        com.sunny.skin.inference.ModelProvider.packPresent(
+            context,
+            com.sunny.skin.inference.tier.SunnyModelTier.SUNNY_MOE,
+        )
+    val localReady = com.sunny.skin.inference.ModelProvider.localModelAvailable(context)
+    val hasProAccess = com.sunny.skin.subscription.SubscriptionEntitlements.accessEntitlement()
+        .effectivePlan(now) == com.sunny.skin.inference.tier.SunnyPlan.PRO
+    val cloudReady = cloudAuthorization?.isValid(now) == true ||
+        com.sunny.skin.inference.ModelProvider.serverAvailable(context)
+
+    LaunchedEffect(showDeleteSuccess) {
+        if (showDeleteSuccess) {
+            delay(1_200)
+            showDeleteSuccess = false
+        }
+    }
 
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState())
             .statusBarsPadding()
             .padding(horizontal = 16.dp)
-            .padding(top = 16.dp, bottom = 120.dp + contentPadding.calculateBottomPadding()),
+            .padding(top = 16.dp, bottom = 24.dp + contentPadding.calculateBottomPadding()),
     ) {
         Text("Settings", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(20.dp))
 
         SectionHeader("Privacy & Security")
+        DeviceVaultStatus(
+            pinEnabled = pinOn,
+        )
+        Spacer(Modifier.height(8.dp))
         SunnyCard {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconBadge(Icons.Filled.Lock, SunnyColors.Orange, iconSize = 30.dp)
@@ -105,19 +172,35 @@ fun SettingsScreen(
         }
         Spacer(Modifier.height(8.dp))
         Text("When enabled, you will need to enter your PIN each time you open Sunny. " +
-            com.sunny.skin.AppMode.dataPrivacySubtitle(vm.serverModeAvailable && useServer),
+            com.sunny.skin.AppMode.dataPrivacySubtitle(useServer),
             style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
             modifier = Modifier.padding(horizontal = 4.dp))
-        if (pinOn) {
-            Spacer(Modifier.height(8.dp))
-            SunnyCard(onClick = onChangePin) {
-                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconBadge(Icons.Filled.Lock, SunnyColors.TextPrimary)
-                    Spacer(Modifier.size(12.dp))
-                    Text("Change PIN", style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f))
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
-                        tint = SunnyColors.TextTertiary)
+        Column(
+            Modifier.animateContentSize(
+                animationSpec = if (motionEnabled) {
+                    tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)
+                } else {
+                    snap()
+                },
+            ),
+        ) {
+            AnimatedVisibility(
+                visible = pinOn,
+                enter = fadeIn(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)),
+                exit = fadeOut(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)),
+            ) {
+                Column {
+                    Spacer(Modifier.height(8.dp))
+                    SunnyCard(onClick = onChangePin) {
+                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            IconBadge(Icons.Filled.Lock, SunnyColors.TextPrimary)
+                            Spacer(Modifier.size(12.dp))
+                            Text("Change PIN", style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f))
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
+                                tint = SunnyColors.TextTertiary)
+                        }
+                    }
                 }
             }
         }
@@ -125,78 +208,112 @@ fun SettingsScreen(
 
         SectionHeader("Your data")
         SunnyCard {
-            Row(
-                Modifier.fillMaxWidth().clickable { showExport = true }.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconBadge(Icons.Filled.Download, SunnyColors.TextPrimary)
-                Spacer(Modifier.size(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Encrypted backup", style = MaterialTheme.typography.titleMedium)
-                    Text("Export scans, notes, reminders and reports",
-                        style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
-                }
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SunnyColors.TextTertiary)
-            }
-            HorizontalDivider(color = SunnyColors.Divider)
-            Row(
-                Modifier.fillMaxWidth().clickable { showDeleteAll = true }.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconBadge(Icons.Filled.DeleteForever, SunnyColors.Danger)
-                Spacer(Modifier.size(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Delete all local data", style = MaterialTheme.typography.titleMedium,
-                        color = SunnyColors.Danger)
-                    Text("Remove every scan, reminder and report",
-                        style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
-                }
-            }
-        }
-        Spacer(Modifier.height(20.dp))
-
-        SectionHeader("Reports")
-        SunnyCard(onClick = onOpenReports) {
-            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconBadge(Icons.Filled.PictureAsPdf, SunnyColors.TextPrimary)
-                Spacer(Modifier.size(12.dp))
-                Text("Exported Reports", style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f))
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SunnyColors.TextTertiary)
-            }
-        }
-        Spacer(Modifier.height(20.dp))
-
-        if (vm.serverModeAvailable) {
-            SectionHeader("Analysis source (beta)")
-            SunnyCard {
-                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconBadge(Icons.Filled.Memory, SunnyColors.Orange, iconSize = 26.dp)
+            Column(Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier.fillMaxWidth()
+                        .clickable(role = Role.Button) { showExport = true }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconBadge(Icons.Filled.Download, SunnyColors.TextPrimary)
                     Spacer(Modifier.size(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(if (useServer) "Beta server" else "On-device",
-                            style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            if (useServer) {
-                                "Scans run on Sunny's GPU server. Photos leave the phone " +
-                                    "to be described."
-                            } else {
-                                "Scans run entirely on this phone. Nothing leaves the device — " +
-                                    "needs the 6 GB model installed on a 64-bit phone."
-                            },
-                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary,
-                        )
+                        Text("Encrypted backup", style = MaterialTheme.typography.titleMedium)
+                        Text("Export scans, notes, reminders and reports",
+                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
                     }
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SunnyColors.TextTertiary)
+                }
+                HorizontalDivider(color = SunnyColors.Divider)
+                Row(
+                    Modifier.fillMaxWidth()
+                        .clickable(role = Role.Button) { showDeleteAll = true }
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconBadge(Icons.Filled.DeleteForever, SunnyColors.Danger)
                     Spacer(Modifier.size(12.dp))
-                    SunnyToggle(
-                        checked = useServer,
-                        onCheckedChange = { vm.setUseServerInference(it) },
-                        accessibilityLabel = "Use beta server for analysis",
+                    Column(Modifier.weight(1f)) {
+                        Text("Delete all local data", style = MaterialTheme.typography.titleMedium,
+                            color = SunnyColors.Danger)
+                        Text("Remove every scan, reminder and report",
+                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = showDeleteSuccess,
+            enter = fadeIn(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)) +
+                if (motionEnabled) {
+                    expandVertically(
+                        animationSpec = tween(
+                            SunnyMotion.StateMillis,
+                            easing = SunnyMotion.EaseOut,
+                        ),
+                    )
+                } else {
+                    EnterTransition.None
+                },
+            exit = fadeOut(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)) +
+                if (motionEnabled) {
+                    shrinkVertically(
+                        animationSpec = tween(
+                            SunnyMotion.StateMillis,
+                            easing = SunnyMotion.EaseOut,
+                        ),
+                    )
+                } else {
+                    ExitTransition.None
+                },
+        ) {
+            Row(
+                Modifier.fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(SunnyColors.OrangeSoft.copy(alpha = 0.72f))
+                    .clearAndSetSemantics {
+                        liveRegion = LiveRegionMode.Polite
+                        contentDescription = "All local health data deleted. Device vault is empty."
+                    }
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SunnyVaultAsset(
+                    kind = VaultAssetKind.CLEARED,
+                    modifier = Modifier.size(32.dp),
+                )
+                Spacer(Modifier.size(10.dp))
+                Column {
+                    Text(
+                        "Local data deleted",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        "Your device vault is empty.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SunnyColors.TextSecondary,
                     )
                 }
             }
-            Spacer(Modifier.height(20.dp))
         }
+        Spacer(Modifier.height(20.dp))
+
+        SectionHeader("Analysis")
+        AnalysisPreferenceCard(
+            cloudSelected = useServer,
+            cloudReady = cloudReady,
+            localInstalled = localInstalled,
+            localReady = localReady,
+            hasProAccess = hasProAccess,
+            onSelectCloud = { vm.setUseServerInference(true) },
+            onSelectLocal = {
+                if (localReady) vm.setUseServerInference(false) else onOpenModelSetup()
+            },
+            onManageCurrent = onOpenModelSetup,
+        )
+        Spacer(Modifier.height(20.dp))
 
         if (com.sunny.skin.BuildConfig.SUNNY_CONTRIBUTE_URL.isNotBlank()) {
             SectionHeader("Help improve Sunny")
@@ -224,24 +341,46 @@ fun SettingsScreen(
                     )
                 }
             }
-            if (improve && contributionStatus != com.sunny.skin.ui.ContributionStatus.IDLE) {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    when (contributionStatus) {
-                        com.sunny.skin.ui.ContributionStatus.UPLOADING -> "Sending latest contribution…"
-                        com.sunny.skin.ui.ContributionStatus.SENT -> "Latest contribution sent."
-                        com.sunny.skin.ui.ContributionStatus.FAILED ->
-                            "Latest contribution could not be sent. Future scans remain enabled."
-                        com.sunny.skin.ui.ContributionStatus.IDLE -> ""
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (contributionStatus == com.sunny.skin.ui.ContributionStatus.FAILED) {
-                        SunnyColors.Danger
+            Column(
+                Modifier.animateContentSize(
+                    animationSpec = if (motionEnabled) {
+                        tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)
                     } else {
-                        SunnyColors.TextSecondary
+                        snap()
                     },
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                )
+                ),
+            ) {
+                AnimatedVisibility(
+                    visible = improve && contributionStatus != com.sunny.skin.ui.ContributionStatus.IDLE,
+                    enter = fadeIn(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)),
+                    exit = fadeOut(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)),
+                ) {
+                    Crossfade(
+                        targetState = contributionStatus,
+                        animationSpec = tween(
+                            SunnyMotion.StateMillis,
+                            easing = SunnyMotion.EaseOut,
+                        ),
+                        label = "Contribution status",
+                    ) { status ->
+                        Text(
+                            when (status) {
+                                com.sunny.skin.ui.ContributionStatus.UPLOADING -> "Sending latest contribution…"
+                                com.sunny.skin.ui.ContributionStatus.SENT -> "Latest contribution sent."
+                                com.sunny.skin.ui.ContributionStatus.FAILED ->
+                                    "Latest contribution could not be sent. Future scans remain enabled."
+                                com.sunny.skin.ui.ContributionStatus.IDLE -> ""
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (status == com.sunny.skin.ui.ContributionStatus.FAILED) {
+                                SunnyColors.Danger
+                            } else {
+                                SunnyColors.TextSecondary
+                            },
+                            modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 6.dp),
+                        )
+                    }
+                }
             }
             Spacer(Modifier.height(20.dp))
         }
@@ -249,6 +388,9 @@ fun SettingsScreen(
         if (showContributionConsent) {
             AlertDialog(
                 onDismissRequest = { showContributionConsent = false },
+                containerColor = SunnyColors.Surface,
+                titleContentColor = SunnyColors.TextPrimary,
+                textContentColor = SunnyColors.TextSecondary,
                 title = { Text("Contribute beta scans?") },
                 text = {
                     Text(
@@ -270,13 +412,29 @@ fun SettingsScreen(
             )
         }
 
-
         if (showExport) {
             var password by remember { mutableStateOf("") }
             var confirmPassword by remember { mutableStateOf("") }
-            var exporting by remember { mutableStateOf(false) }
+            var exportPhase by remember { mutableStateOf(BackupExportPhase.EDITING) }
             var error by remember { mutableStateOf<String?>(null) }
-            LiquidGlassDialog(onDismiss = { if (!exporting) showExport = false }) {
+            var pendingExportAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+            LiquidGlassDialog(
+                onDismiss = {
+                    if (exportPhase != BackupExportPhase.PREPARING) {
+                        val action = pendingExportAction
+                        pendingExportAction = null
+                        showExport = false
+                        action?.invoke()
+                    }
+                },
+                dismissEnabled = exportPhase != BackupExportPhase.PREPARING,
+            ) { requestDismiss ->
+                LaunchedEffect(exportPhase, pendingExportAction) {
+                    if (exportPhase == BackupExportPhase.READY && pendingExportAction != null) {
+                        delay(220)
+                        requestDismiss()
+                    }
+                }
                 Text("Encrypted backup", style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 8.dp))
@@ -289,17 +447,29 @@ fun SettingsScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it; error = null },
+                    enabled = exportPhase == BackupExportPhase.EDITING,
                     label = { Text("Password") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next,
+                        autoCorrectEnabled = false,
+                    ),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 6.dp),
                 )
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it; error = null },
+                    enabled = exportPhase == BackupExportPhase.EDITING,
                     label = { Text("Confirm password") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                        autoCorrectEnabled = false,
+                    ),
                     supportingText = {
                         when {
                             password.isNotEmpty() && password.length < 10 -> Text("Use at least 10 characters")
@@ -309,39 +479,93 @@ fun SettingsScreen(
                     },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 22.dp),
                 )
+                AnimatedVisibility(
+                    visible = exportPhase != BackupExportPhase.EDITING,
+                    enter = fadeIn(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)),
+                    exit = fadeOut(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)),
+                ) {
+                    val preparing = exportPhase == BackupExportPhase.PREPARING
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 22.dp, vertical = 8.dp)
+                            .clearAndSetSemantics {
+                                liveRegion = LiveRegionMode.Polite
+                                contentDescription = if (preparing) {
+                                    "Preparing encrypted backup"
+                                } else {
+                                    "Encrypted backup ready. Opening share sheet"
+                                }
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (preparing) {
+                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(
+                                Icons.Filled.CheckCircle,
+                                contentDescription = null,
+                                tint = SunnyColors.Success,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                        Spacer(Modifier.size(8.dp))
+                        Text(
+                            if (preparing) {
+                                "Preparing encrypted backup…"
+                            } else {
+                                "Backup ready — opening share sheet…"
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = SunnyColors.TextSecondary,
+                        )
+                    }
+                }
                 Row(
                     Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (exporting) {
-                        CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
-                        Spacer(Modifier.size(8.dp))
-                    }
-                    TextButton(onClick = { showExport = false }, enabled = !exporting) { Text("Cancel") }
                     TextButton(
-                        enabled = !exporting && password.length >= 10 && password == confirmPassword,
+                        onClick = requestDismiss,
+                        enabled = exportPhase == BackupExportPhase.EDITING,
+                    ) { Text("Cancel") }
+                    TextButton(
+                        enabled = exportPhase == BackupExportPhase.EDITING &&
+                            password.length >= 10 && password == confirmPassword,
                         onClick = {
-                            exporting = true
+                            exportPhase = BackupExportPhase.PREPARING
                             val secret = password.toCharArray()
                             password = ""
                             confirmPassword = ""
                             vm.exportEncryptedBackup(secret) { uri, message ->
-                                exporting = false
                                 if (uri != null) {
-                                    showExport = false
+                                    exportPhase = BackupExportPhase.READY
                                     val share = Intent(Intent.ACTION_SEND).apply {
                                         type = "application/octet-stream"
                                         putExtra(Intent.EXTRA_STREAM, uri)
                                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                     }
-                                    context.startActivity(Intent.createChooser(share, "Share encrypted backup"))
+                                    pendingExportAction = {
+                                        context.startActivity(
+                                            Intent.createChooser(share, "Share encrypted backup"),
+                                        )
+                                    }
                                 } else {
+                                    exportPhase = BackupExportPhase.EDITING
                                     error = message ?: "Backup could not be created."
                                 }
                             }
                         },
-                    ) { Text("Export", color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold) }
+                    ) {
+                        Text(
+                            when (exportPhase) {
+                                BackupExportPhase.EDITING -> "Export"
+                                BackupExportPhase.PREPARING -> "Preparing…"
+                                BackupExportPhase.READY -> "Ready"
+                            },
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
             }
         }
@@ -349,6 +573,9 @@ fun SettingsScreen(
         if (showDeleteAll) {
             AlertDialog(
                 onDismissRequest = { showDeleteAll = false },
+                containerColor = SunnyColors.Surface,
+                titleContentColor = SunnyColors.TextPrimary,
+                textContentColor = SunnyColors.TextSecondary,
                 title = { Text("Delete all local data?") },
                 text = {
                     Text(
@@ -365,17 +592,66 @@ fun SettingsScreen(
                     )
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        showDeleteAll = false
-                        vm.deleteAllLocalData {
-                            android.widget.Toast.makeText(
-                                context, "All local health data deleted.", android.widget.Toast.LENGTH_SHORT,
-                            ).show()
-                        }
-                    }) { Text("Delete everything", color = SunnyColors.Danger, fontWeight = FontWeight.SemiBold) }
+                    TextButton(
+                        onClick = {
+                            showDeleteAll = false
+                            vm.deleteAllLocalData {
+                                showDeleteSuccess = true
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = SunnyColors.Danger),
+                    ) { Text("Delete everything", fontWeight = FontWeight.SemiBold) }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteAll = false }) { Text("Cancel") }
+                },
+            )
+        }
+
+        SectionHeader("Language & region")
+        SunnyCard {
+            Column(Modifier.padding(horizontal = 16.dp)) {
+                AboutRow(
+                    Icons.Filled.Language,
+                    "App language",
+                    language.nativeName,
+                    onClick = { showLanguagePicker = true },
+                )
+            }
+        }
+        Spacer(Modifier.height(20.dp))
+
+        if (showLanguagePicker) {
+            AlertDialog(
+                onDismissRequest = { showLanguagePicker = false },
+                containerColor = SunnyColors.Surface,
+                title = { Text("Choose language") },
+                text = {
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        SunnyLanguage.entries.forEach { option ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().selectable(
+                                    selected = language == option,
+                                    role = Role.RadioButton,
+                                    onClick = {
+                                        SunnyLanguageController.select(context, option)
+                                        showLanguagePicker = false
+                                    },
+                                ).padding(vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                RadioButton(
+                                    selected = language == option,
+                                    onClick = null,
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                Text(option.nativeName, style = MaterialTheme.typography.bodyLarge)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showLanguagePicker = false }) { Text("Close") }
                 },
             )
         }
@@ -384,8 +660,6 @@ fun SettingsScreen(
         SunnyCard {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 AboutRow(Icons.Filled.Info, "Version", "1.0 (1)")
-                HorizontalDivider(color = SunnyColors.Divider)
-                AboutRow(Icons.Filled.Memory, "AI Model", vm.modelName(), onClick = onOpenModelSetup)
                 HorizontalDivider(color = SunnyColors.Divider)
                 AboutRow(Icons.Filled.Shield, "Privacy Policy", "", onClick = onOpenPrivacy)
             }
@@ -402,6 +676,138 @@ fun SettingsScreen(
 }
 
 @Composable
+private fun AnalysisPreferenceCard(
+    cloudSelected: Boolean,
+    cloudReady: Boolean,
+    localInstalled: Boolean,
+    localReady: Boolean,
+    hasProAccess: Boolean,
+    onSelectCloud: () -> Unit,
+    onSelectLocal: () -> Unit,
+    onManageCurrent: () -> Unit,
+) {
+    SunnyCard {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    if (cloudSelected) Icons.Filled.Cloud else Icons.Filled.Memory,
+                    contentDescription = null,
+                    tint = SunnyColors.OrangeText,
+                    modifier = Modifier.size(28.dp),
+                )
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text(
+                        "Where analysis runs",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        "You can change this anytime",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SunnyColors.TextSecondary,
+                    )
+                }
+            }
+            Spacer(Modifier.height(14.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AnalysisModeChoice(
+                    modifier = Modifier.weight(1f),
+                    selected = cloudSelected,
+                    label = "Cloud",
+                    onClick = onSelectCloud,
+                )
+                AnalysisModeChoice(
+                    modifier = Modifier.weight(1f),
+                    selected = !cloudSelected,
+                    label = "On device",
+                    onClick = onSelectLocal,
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            HorizontalDivider(color = SunnyColors.Divider)
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .clickable(role = Role.Button, onClick = onManageCurrent)
+                    .padding(top = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (cloudSelected) {
+                            if (cloudReady) "Cloud analysis is ready" else "Cloud setup needed"
+                        } else {
+                            if (localReady) "Offline analysis is ready" else "Download offline analysis"
+                        },
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if ((cloudSelected && cloudReady) || (!cloudSelected && localReady)) {
+                            SunnyColors.TextPrimary
+                        } else {
+                            SunnyColors.OrangeText
+                        },
+                    )
+                    Spacer(Modifier.height(3.dp))
+                    Text(
+                        when {
+                            cloudSelected && cloudReady ->
+                                "Fast and requires no download. Photos are securely sent to Sunny for analysis."
+                            cloudSelected ->
+                                "Connecting securely to Sunny AI Cloud."
+                            localReady ->
+                                "Works without internet and keeps analysis on this phone."
+                            localInstalled && !hasProAccess ->
+                                "The offline model is installed. A Pro plan is required to use it."
+                            hasProAccess ->
+                                "Requires a one-time 3.08 GB download, then works without internet."
+                            else ->
+                                "Available with Pro after a one-time 3.08 GB download."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SunnyColors.TextSecondary,
+                    )
+                }
+                Spacer(Modifier.width(8.dp))
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = SunnyColors.TextTertiary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnalysisModeChoice(
+    modifier: Modifier,
+    selected: Boolean,
+    label: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (selected) SunnyColors.OrangeSoft else SunnyColors.SurfaceMuted)
+            .selectable(
+                selected = selected,
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
+            .padding(horizontal = 12.dp, vertical = 11.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            color = if (selected) SunnyColors.OrangeText else SunnyColors.TextSecondary,
+        )
+    }
+}
+
+@Composable
 private fun IconBadge(
     icon: ImageVector,
     tint: androidx.compose.ui.graphics.Color,
@@ -411,6 +817,83 @@ private fun IconBadge(
     Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
         Icon(icon, null, tint = tint, modifier = Modifier.size(iconSize))
     }
+}
+
+@Composable
+private fun DeviceVaultStatus(
+    pinEnabled: Boolean,
+) {
+    val lockStatus = if (pinEnabled) "PIN on" else "PIN optional"
+    SunnyCard {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SunnyVaultAsset(
+                    kind = VaultAssetKind.VAULT,
+                    modifier = Modifier.size(32.dp),
+                )
+                Spacer(Modifier.size(8.dp))
+                Column {
+                    Text(
+                        "Device vault",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        "Your protection settings at a glance",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = SunnyColors.TextSecondary,
+                    )
+                }
+            }
+            Spacer(Modifier.height(14.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().clearAndSetSemantics {
+                    contentDescription =
+                        "Device vault: $lockStatus and encrypted local storage"
+                },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                VaultStatusNode(
+                    asset = VaultAssetKind.LOCK,
+                    label = lockStatus,
+                    active = pinEnabled,
+                    modifier = Modifier.weight(1f),
+                )
+                VaultConnector()
+                VaultStatusNode(
+                    asset = VaultAssetKind.ENCRYPTED,
+                    label = "Encrypted local",
+                    active = true,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VaultStatusNode(
+    asset: VaultAssetKind,
+    label: String,
+    active: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        SunnyVaultAsset(kind = asset, active = active, modifier = Modifier.size(42.dp))
+        Spacer(Modifier.height(6.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = SunnyColors.TextSecondary,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+        )
+    }
+}
+
+@Composable
+private fun VaultConnector() {
+    Box(Modifier.size(width = 18.dp, height = 2.dp).background(SunnyColors.OrangeLight))
 }
 
 @Composable
@@ -425,7 +908,17 @@ private fun AboutRow(icon: ImageVector, label: String, value: String, onClick: (
         Spacer(Modifier.size(12.dp))
         Text(label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f))
-        Text(value, style = MaterialTheme.typography.bodyLarge, color = SunnyColors.TextSecondary)
+        if (value.isNotEmpty()) {
+            Text(
+                value,
+                style = MaterialTheme.typography.bodyLarge,
+                color = SunnyColors.TextSecondary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
+                modifier = Modifier.weight(1f),
+            )
+        }
         if (onClick != null) {
             Spacer(Modifier.size(6.dp))
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = SunnyColors.TextTertiary,

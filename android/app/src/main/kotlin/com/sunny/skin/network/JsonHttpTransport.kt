@@ -10,6 +10,7 @@ data class JsonHttpRequest(
     val connectTimeoutMs: Int,
     val readTimeoutMs: Int,
     val maxResponseChars: Int = 256 * 1024,
+    val analysisId: String? = null,
 )
 
 data class JsonHttpResponse(val code: Int, val body: String)
@@ -34,6 +35,9 @@ class UrlConnectionJsonTransport(
             if (request.bearerToken.isNotBlank()) {
                 setRequestProperty("Authorization", "Bearer ${request.bearerToken}")
             }
+            request.analysisId?.takeIf {
+                it.length in 16..128 && it.all { char -> char.isLetterOrDigit() || char in "._-" }
+            }?.let { setRequestProperty("X-Sunny-Analysis-Id", it) }
             setFixedLengthStreamingMode(request.payload.size)
         }
         return try {

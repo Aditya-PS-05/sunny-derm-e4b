@@ -1,6 +1,5 @@
 package com.sunny.skin.ui.screens
 
-import android.animation.ValueAnimator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -8,16 +7,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -50,7 +46,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -73,8 +69,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sunny.skin.AppMode
 import com.sunny.skin.R
+import com.sunny.skin.ui.components.CenteredIconLabel
 import com.sunny.skin.ui.components.OnboardingMotionScene
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.SunnyMotion
+import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
+import com.sunny.skin.ui.theme.sunnyPressScale
 import kotlinx.coroutines.launch
 
 private data class OnboardingPage(val title: String, val body: String)
@@ -83,20 +83,28 @@ private data class OnboardingPage(val title: String, val body: String)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinish: () -> Unit) {
-    val motionEnabled = remember { ValueAnimator.areAnimatorsEnabled() }
+    val motionEnabled = rememberSunnyMotionEnabled()
     var walkthroughStarted by rememberSaveable { mutableStateOf(false) }
 
     AnimatedContent(
         targetState = walkthroughStarted,
         transitionSpec = {
             if (!motionEnabled) {
-                fadeIn(tween(0)) togetherWith fadeOut(tween(0))
+                fadeIn(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut)) togetherWith
+                    fadeOut(tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut))
             } else {
                 val direction = if (targetState) 1 else -1
-                (fadeIn(tween(240)) + slideInHorizontally(tween(360)) { direction * it / 5 })
+                (fadeIn(tween(SunnyMotion.ScreenEnterMillis, easing = SunnyMotion.EaseOut)) +
+                    slideInHorizontally(
+                        tween(SunnyMotion.ScreenEnterMillis, easing = SunnyMotion.EaseOut),
+                    ) { direction * it / 5 })
                     .togetherWith(
-                        fadeOut(tween(180)) +
-                            slideOutHorizontally(tween(300)) { -direction * it / 5 },
+                        fadeOut(
+                            tween(SunnyMotion.ScreenExitMillis, easing = SunnyMotion.EaseOut),
+                        ) +
+                            slideOutHorizontally(
+                                tween(SunnyMotion.ScreenExitMillis, easing = SunnyMotion.EaseOut),
+                            ) { -direction * it / 5 },
                     )
             }
         },
@@ -192,7 +200,20 @@ private fun OnboardingWalkthrough(
                             if (pager.currentPage == 0) {
                                 onBackToWelcome()
                             } else {
-                                scope.launch { pager.animateScrollToPage(pager.currentPage - 1) }
+                                scope.launch {
+                                    val previousPage = pager.currentPage - 1
+                                    if (motionEnabled) {
+                                        pager.animateScrollToPage(
+                                            page = previousPage,
+                                            animationSpec = tween(
+                                                SunnyMotion.ScreenExitMillis,
+                                                easing = SunnyMotion.EaseInOut,
+                                            ),
+                                        )
+                                    } else {
+                                        pager.scrollToPage(previousPage)
+                                    }
+                                }
                             }
                         },
                     ) {
@@ -219,11 +240,26 @@ private fun OnboardingWalkthrough(
                 )
             }
 
-            OnboardingMotionScene(
-                progress = if (motionEnabled) progress else pager.currentPage.toFloat(),
-                motionEnabled = motionEnabled,
-                modifier = Modifier.height(sceneHeight),
-            )
+            if (motionEnabled) {
+                OnboardingMotionScene(
+                    progress = progress,
+                    motionEnabled = true,
+                    modifier = Modifier.height(sceneHeight),
+                )
+            } else {
+                Crossfade(
+                    targetState = pager.currentPage,
+                    animationSpec = tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
+                    label = "reduced motion onboarding scene",
+                    modifier = Modifier.height(sceneHeight),
+                ) { page ->
+                    OnboardingMotionScene(
+                        progress = page.toFloat(),
+                        motionEnabled = false,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
 
             HorizontalPager(
                 state = pager,
@@ -256,7 +292,7 @@ private fun OnboardingWalkthrough(
 
             Crossfade(
                 targetState = pager.currentPage,
-                animationSpec = tween(if (motionEnabled) 180 else 0),
+                animationSpec = tween(SunnyMotion.StateMillis, easing = SunnyMotion.EaseOut),
                 label = "onboarding supporting content",
                 modifier = Modifier.fillMaxWidth().height(supportingHeight),
             ) { page ->
@@ -285,16 +321,15 @@ private fun OnboardingWalkthrough(
                     } else {
                         "Literal photo and description differences, without a verdict"
                     }
-                    Row(
-                        Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                    ) {
-                        Icon(icon, null, tint = SunnyColors.OrangeText, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.size(10.dp))
-                        Text(text, style = MaterialTheme.typography.bodyMedium,
-                            color = SunnyColors.TextSecondary)
-                    }
+                    CenteredIconLabel(
+                        icon = icon,
+                        text = text,
+                        iconTint = SunnyColors.OrangeText,
+                        textColor = SunnyColors.TextSecondary,
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(horizontal = 18.dp, vertical = 14.dp),
+                        spacing = 10.dp,
+                    )
                 }
             }
 
@@ -304,7 +339,20 @@ private fun OnboardingWalkthrough(
                 enabled = !isLast || acknowledged,
                 onClick = {
                     if (isLast) onFinish()
-                    else scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
+                    else scope.launch {
+                        val nextPage = pager.currentPage + 1
+                        if (motionEnabled) {
+                            pager.animateScrollToPage(
+                                page = nextPage,
+                                animationSpec = tween(
+                                    SunnyMotion.ScreenEnterMillis,
+                                    easing = SunnyMotion.EaseInOut,
+                                ),
+                            )
+                        } else {
+                            pager.scrollToPage(nextPage)
+                        }
+                    }
                 },
             )
             Spacer(Modifier.height(4.dp))
@@ -322,9 +370,9 @@ private fun WelcomeScreen(
     LaunchedEffect(motionEnabled) { appeared = true }
     val entrance by animateFloatAsState(
         targetValue = if (appeared) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMediumLow,
+        animationSpec = tween(
+            durationMillis = if (motionEnabled) SunnyMotion.ScreenEnterMillis else 0,
+            easing = SunnyMotion.EaseOut,
         ),
         label = "welcome mascot entrance",
     )
@@ -383,27 +431,14 @@ private fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
             )
             Spacer(Modifier.height(14.dp))
-            Row(
+            CenteredIconLabel(
+                icon = Icons.Filled.Lock,
+                text = "Made for tracking, not diagnosis",
+                iconTint = SunnyColors.OrangeText,
+                textColor = SunnyColors.TextSecondary,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                Icon(
-                    Icons.Filled.Lock,
-                    contentDescription = null,
-                    tint = SunnyColors.OrangeText,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    "Made for tracking, not diagnosis",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SunnyColors.TextSecondary,
-                    modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.size(26.dp))
-            }
+                iconSize = 18.dp,
+            )
 
             if (!compact) Spacer(Modifier.weight(1f)) else Spacer(Modifier.height(40.dp))
             OnboardingButton(
@@ -423,10 +458,17 @@ private fun PageIndicator(progress: Float, pages: Int) {
             val distance = kotlin.math.abs(progress - index).coerceIn(0f, 1f)
             val emphasis = 1f - distance
             Box(
-                Modifier.size(width = (26 - 14 * distance).dp, height = 5.dp)
-                    .clip(CircleShape)
-                    .background(lerp(SunnyColors.SwitchOffTrack, SunnyColors.OrangeText, emphasis)),
-            )
+                Modifier.size(width = 26.dp, height = 5.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    Modifier.fillMaxSize().graphicsLayer {
+                        scaleX = (12f + 14f * emphasis) / 26f
+                        alpha = 0.56f + 0.44f * emphasis
+                    }.clip(CircleShape)
+                        .background(lerp(SunnyColors.SwitchOffTrack, SunnyColors.OrangeText, emphasis)),
+                )
+            }
         }
     }
 }
@@ -434,20 +476,10 @@ private fun PageIndicator(progress: Float, pages: Int) {
 @Composable
 private fun OnboardingButton(text: String, enabled: Boolean, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (pressed && enabled) 0.975f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "onboarding button press",
-    )
     Surface(
-        Modifier.fillMaxWidth().heightIn(min = 56.dp).graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        }.clip(RoundedCornerShape(28.dp)).clickable(
+        Modifier.fillMaxWidth().heightIn(min = 56.dp)
+            .sunnyPressScale(interactionSource = interaction, enabled = enabled)
+            .clip(RoundedCornerShape(28.dp)).clickable(
             enabled = enabled,
             interactionSource = interaction,
             indication = null,

@@ -2,6 +2,7 @@ package com.sunny.skin.inference
 
 import android.graphics.Bitmap
 import com.sunny.skin.data.model.Analysis
+import java.util.UUID
 
 /**
  * Result of a describe request. [Success] carries the parsed six fields plus the
@@ -32,8 +33,9 @@ sealed interface DescribeResult {
 class SunnyDescriber(private val model: SunnyModel) {
 
     suspend fun describe(bitmap: Bitmap): DescribeResult {
+        val analysisId = UUID.randomUUID().toString()
         repeat(MAX_ATTEMPTS) {
-            val raw = model.describeRaw(bitmap)
+            val raw = model.describeRaw(bitmap, analysisId)
             val analysis = SchemaParser.parse(raw)
             if (analysis != null && Guardrails.isClean(analysis)) {
                 return DescribeResult.Success(analysis, raw, model.version)

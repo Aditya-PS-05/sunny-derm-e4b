@@ -3,15 +3,8 @@ package com.sunny.skin.ui.components
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,11 +21,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -44,10 +35,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import com.sunny.skin.ui.i18n.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,18 +49,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.content.ContextCompat
 import com.sunny.skin.reminder.ReminderInterval
 import com.sunny.skin.reminder.ReminderIntervalUnit
-import com.sunny.skin.reminder.reminderIntervalLabel
+import com.sunny.skin.reminder.selectedReminderIntervalLabel
 import com.sunny.skin.ui.theme.SunnyColors
 
 /** Selectable delay options for a re-check reminder. */
@@ -121,96 +108,88 @@ fun ReCheckReminderDialog(
     onDismiss: () -> Unit,
 ) {
     var selected by remember { mutableStateOf<Int?>(null) }
+    var pendingPick by remember { mutableStateOf<Int?>(null) }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        // Blur the app behind the dialog for the "glass" depth (API 31+). The
-        // dim keeps the frosted panel readable on both light and busy backdrops.
-        val view = LocalView.current
-        LaunchedEffect(view) {
-            (view.parent as? DialogWindowProvider)?.window?.apply {
-                setDimAmount(0.28f)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-                    attributes = attributes.apply { blurBehindRadius = 48 }
-                }
+    AnimatedGlassDialog(
+        onDismiss = {
+            val days = pendingPick
+            if (days != null) {
+                pendingPick = null
+                onPick(days)
+            } else {
+                onDismiss()
             }
-        }
+        },
+        dimAmount = 0.28f,
+    ) { requestDismiss ->
+        GlassCard {
+            Box(
+                Modifier.size(56.dp).clip(CircleShape)
+                    .background(SunnyColors.OrangeSoft.copy(alpha = 0.9f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.NotificationsActive, null, tint = SunnyColors.Orange,
+                    modifier = Modifier.size(26.dp))
+            }
+            Spacer(Modifier.height(14.dp))
+            Text(
+                "Remind me to re-check",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = SunnyColors.TextPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Sunny will nudge you to re-photograph this spot so you can compare it over time.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = SunnyColors.TextSecondary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(18.dp))
 
-        // Enter with a gentle iOS spring: fade + slight scale up.
-        var shown by remember { mutableStateOf(false) }
-        LaunchedEffect(Unit) { shown = true }
-        AnimatedVisibility(
-            visible = shown,
-            enter = fadeIn(tween(180)) + scaleIn(tween(220), initialScale = 0.92f),
-            exit = fadeOut(tween(120)) + scaleOut(tween(120), targetScale = 0.92f),
-        ) {
-            GlassCard {
-                Box(
-                    Modifier.size(56.dp).clip(CircleShape)
-                        .background(SunnyColors.OrangeSoft.copy(alpha = 0.9f)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(Icons.Filled.NotificationsActive, null, tint = SunnyColors.Orange,
-                        modifier = Modifier.size(26.dp))
-                }
-                Spacer(Modifier.height(14.dp))
-                Text(
-                    "Remind me to re-check",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = SunnyColors.TextPrimary,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "Sunny will nudge you to re-photograph this spot so you can compare it over time.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SunnyColors.TextSecondary,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(18.dp))
-
-                // Grouped selectable rows — hairline separators, iOS inset list.
-                Column(
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
-                        .background(Color.White.copy(alpha = 0.55f)),
-                ) {
-                    RECHECK_OPTIONS.forEachIndexed { i, (label, days) ->
-                        OptionRow(
-                            label = label,
-                            selected = selected == days,
-                            onClick = { selected = days },
+            // Grouped selectable rows — hairline separators, iOS inset list.
+            Column(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+                    .background(Color.White.copy(alpha = 0.55f)),
+            ) {
+                RECHECK_OPTIONS.forEachIndexed { i, (label, days) ->
+                    OptionRow(
+                        label = label,
+                        selected = selected == days,
+                        onClick = { selected = days },
+                    )
+                    if (i < RECHECK_OPTIONS.lastIndex) {
+                        Box(
+                            Modifier.fillMaxWidth().height(1.dp)
+                                .padding(start = 18.dp)
+                                .background(Color.White.copy(alpha = 0.5f)),
                         )
-                        if (i < RECHECK_OPTIONS.lastIndex) {
-                            Box(
-                                Modifier.fillMaxWidth().height(1.dp)
-                                    .padding(start = 18.dp)
-                                    .background(Color.White.copy(alpha = 0.5f)),
-                            )
-                        }
                     }
                 }
-                Spacer(Modifier.height(20.dp))
+            }
+            Spacer(Modifier.height(20.dp))
 
-                // Primary action — orange glass pill.
-                GlassButton(
-                    text = "Set Reminder",
-                    enabled = selected != null,
-                    onClick = { selected?.let(onPick) },
-                )
-                Spacer(Modifier.height(6.dp))
-                Box(
-                    Modifier.fillMaxWidth().height(48.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .clickable(onClick = onDismiss),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("Cancel", style = MaterialTheme.typography.titleMedium,
-                        color = SunnyColors.TextSecondary, fontWeight = FontWeight.Medium)
-                }
+            // Primary action — orange glass pill.
+            GlassButton(
+                text = "Set Reminder",
+                enabled = selected != null,
+                onClick = {
+                    selected?.let {
+                        pendingPick = it
+                        requestDismiss()
+                    }
+                },
+            )
+            Spacer(Modifier.height(6.dp))
+            Box(
+                Modifier.fillMaxWidth().height(48.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .clickable(onClick = requestDismiss),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("Cancel", style = MaterialTheme.typography.titleMedium,
+                    color = SunnyColors.TextSecondary, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -228,10 +207,20 @@ fun RecurringIntervalDialog(
     val value = valueText.toIntOrNull()?.takeIf { it in 1..unit.maxValue }
     val totalHours = value?.let { ReminderInterval(it, unit).totalHours }
 
-    LiquidGlassDialog(onDismiss = onDismiss) {
+    var pendingHours by remember { mutableStateOf<Int?>(null) }
+    LiquidGlassDialog(
+        onDismiss = {
+            val hours = pendingHours
+            if (hours != null) {
+                pendingHours = null
+                onPick(hours)
+            } else {
+                onDismiss()
+            }
+        },
+    ) { requestDismiss ->
         Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(horizontal = 22.dp, vertical = 10.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 22.dp, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
@@ -275,7 +264,13 @@ fun RecurringIntervalDialog(
             }
             Spacer(Modifier.height(18.dp))
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp))
+                    .background(SunnyColors.SurfaceMuted.copy(alpha = 0.72f))
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 IconButton(
                     enabled = (value ?: 1) > 1,
                     onClick = { valueText = ((value ?: 1) - 1).coerceAtLeast(1).toString() },
@@ -296,7 +291,15 @@ fun RecurringIntervalDialog(
                         fontWeight = FontWeight.SemiBold,
                     ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        disabledContainerColor = Color.Transparent,
+                        focusedBorderColor = SunnyColors.Orange,
+                        unfocusedBorderColor = SunnyColors.Divider,
+                        cursorColor = SunnyColors.Orange,
+                    ),
                 )
                 IconButton(
                     enabled = (value ?: 0) < unit.maxValue,
@@ -309,7 +312,7 @@ fun RecurringIntervalDialog(
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                totalHours?.let(::reminderIntervalLabel) ?: "Enter an interval",
+                value?.let { selectedReminderIntervalLabel(it, unit) } ?: "Enter an interval",
                 style = MaterialTheme.typography.bodyLarge,
                 color = SunnyColors.TextSecondary,
                 fontWeight = FontWeight.Medium,
@@ -317,22 +320,27 @@ fun RecurringIntervalDialog(
             Spacer(Modifier.height(20.dp))
 
             Button(
-                onClick = { totalHours?.let(onPick) },
+                onClick = {
+                    totalHours?.let {
+                        pendingHours = it
+                        requestDismiss()
+                    }
+                },
                 enabled = totalHours != null,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Orange),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Action),
             ) {
                 Text("Set interval", fontWeight = FontWeight.SemiBold)
             }
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            TextButton(onClick = requestDismiss, modifier = Modifier.fillMaxWidth().height(48.dp)) {
                 Text("Cancel", color = SunnyColors.TextSecondary)
             }
         }
     }
 }
 
-/** Translucent frosted panel with a soft top-lit glass sheen and hairline rim. */
+/** Opaque modal surface that remains legible across OEM blur implementations. */
 @Composable
 private fun GlassCard(content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit) {
     Column(
@@ -340,24 +348,9 @@ private fun GlassCard(content: @Composable androidx.compose.foundation.layout.Co
             .fillMaxWidth()
             .padding(horizontal = 28.dp)
             .clip(RoundedCornerShape(30.dp))
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        Color.White.copy(alpha = 0.86f),
-                        Color.White.copy(alpha = 0.72f),
-                    ),
-                ),
-            )
+            .background(SunnyColors.Surface)
             .border(
-                BorderStroke(
-                    1.dp,
-                    Brush.verticalGradient(
-                        listOf(
-                            Color.White.copy(alpha = 0.9f),
-                            Color.White.copy(alpha = 0.2f),
-                        ),
-                    ),
-                ),
+                BorderStroke(1.dp, SunnyColors.Divider),
                 RoundedCornerShape(30.dp),
             )
             .padding(horizontal = 22.dp, vertical = 24.dp),
@@ -392,7 +385,7 @@ private fun OptionRow(
         Spacer(Modifier.weight(1f))
         if (selected) {
             Box(
-                Modifier.size(24.dp).clip(CircleShape).background(SunnyColors.Orange),
+                Modifier.size(24.dp).clip(CircleShape).background(SunnyColors.Action),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(Icons.Filled.Check, null, tint = Color.White, modifier = Modifier.size(15.dp))
@@ -413,7 +406,7 @@ private fun GlassButton(text: String, enabled: Boolean, onClick: () -> Unit) {
             .clip(RoundedCornerShape(27.dp))
             .background(
                 Brush.verticalGradient(
-                    if (enabled) listOf(SunnyColors.Orange, SunnyColors.OrangeDark)
+                    if (enabled) listOf(SunnyColors.Action, SunnyColors.OrangeDark)
                     else listOf(SunnyColors.TextTertiary, SunnyColors.TextTertiary),
                 ),
             )

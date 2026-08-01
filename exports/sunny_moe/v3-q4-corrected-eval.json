@@ -1,0 +1,212 @@
+{
+  "format": "sunny-moe-eval-v1",
+  "source": "/home/ec2-user/sunny-training/out/sunny-moe-2.2b-v3-q4-corrected",
+  "source_format": "grouped-q4",
+  "q4_loaded_tensors": 1491,
+  "seed_model": "HuggingFaceTB/SmolVLM2-2.2B-Instruct",
+  "n": 134,
+  "quality": {
+    "n": 134,
+    "format_compliance": 1.0,
+    "safety_compliance": 1.0,
+    "disclaimer_rate": 1.0,
+    "mean_fields_present": 6.0,
+    "symmetry_exact": 0.597,
+    "borders_exact": 0.5896,
+    "texture_exact": 0.694,
+    "colour_jaccard_mean": 0.6907,
+    "lesion_type_exact": 0.6194029850746269,
+    "mean_task_score": 0.6381343283582089
+  },
+  "router": {
+    "overall_counts": [
+      326,
+      358,
+      424,
+      500
+    ],
+    "overall_shares": [
+      0.2027363184079602,
+      0.22263681592039802,
+      0.263681592039801,
+      0.31094527363184077
+    ],
+    "worst_layer_max_share": 0.3656716417910448,
+    "mean_layer_normalized_entropy": 0.9785482647096017,
+    "per_layer": {
+      "12": {
+        "counts": [
+          24,
+          35,
+          33,
+          42
+        ],
+        "max_share": 0.31343283582089554,
+        "normalized_entropy": 0.9863791351321756
+      },
+      "13": {
+        "counts": [
+          36,
+          32,
+          32,
+          34
+        ],
+        "max_share": 0.26865671641791045,
+        "normalized_entropy": 0.9991228166675624
+      },
+      "14": {
+        "counts": [
+          29,
+          43,
+          16,
+          46
+        ],
+        "max_share": 0.34328358208955223,
+        "normalized_entropy": 0.9498554784769743
+      },
+      "15": {
+        "counts": [
+          29,
+          25,
+          39,
+          41
+        ],
+        "max_share": 0.30597014925373134,
+        "normalized_entropy": 0.9854021611690472
+      },
+      "16": {
+        "counts": [
+          21,
+          28,
+          38,
+          47
+        ],
+        "max_share": 0.35074626865671643,
+        "normalized_entropy": 0.9683747249465278
+      },
+      "17": {
+        "counts": [
+          33,
+          23,
+          39,
+          39
+        ],
+        "max_share": 0.291044776119403,
+        "normalized_entropy": 0.9854016698580069
+      },
+      "18": {
+        "counts": [
+          31,
+          33,
+          35,
+          35
+        ],
+        "max_share": 0.26119402985074625,
+        "normalized_entropy": 0.9991083909491484
+      },
+      "19": {
+        "counts": [
+          28,
+          17,
+          46,
+          43
+        ],
+        "max_share": 0.34328358208955223,
+        "normalized_entropy": 0.9527981752673882
+      },
+      "20": {
+        "counts": [
+          25,
+          30,
+          40,
+          39
+        ],
+        "max_share": 0.29850746268656714,
+        "normalized_entropy": 0.9871082782746106
+      },
+      "21": {
+        "counts": [
+          26,
+          25,
+          34,
+          49
+        ],
+        "max_share": 0.3656716417910448,
+        "normalized_entropy": 0.9718417729147324
+      },
+      "22": {
+        "counts": [
+          24,
+          37,
+          32,
+          41
+        ],
+        "max_share": 0.30597014925373134,
+        "normalized_entropy": 0.986594943232915
+      },
+      "23": {
+        "counts": [
+          20,
+          30,
+          40,
+          44
+        ],
+        "max_share": 0.3283582089552239,
+        "normalized_entropy": 0.970591629626131
+      }
+    }
+  },
+  "performance": {
+    "latency_seconds_median": 3.5929339729773346,
+    "latency_seconds_p95": 3.9814071059809066,
+    "generated_tokens": 12703,
+    "tokens_per_second": 26.271614227867534,
+    "peak_gpu_bytes": 8368723456
+  },
+  "parameters": {
+    "total_parameters": 4097591152,
+    "trainable_parameters": 38866944,
+    "trainable_percent": 0.9485315288478542
+  },
+  "replaced_layers": [
+    "model.text_model.layers.12.mlp",
+    "model.text_model.layers.13.mlp",
+    "model.text_model.layers.14.mlp",
+    "model.text_model.layers.15.mlp",
+    "model.text_model.layers.16.mlp",
+    "model.text_model.layers.17.mlp",
+    "model.text_model.layers.18.mlp",
+    "model.text_model.layers.19.mlp",
+    "model.text_model.layers.20.mlp",
+    "model.text_model.layers.21.mlp",
+    "model.text_model.layers.22.mlp",
+    "model.text_model.layers.23.mlp"
+  ],
+  "samples": [
+    {
+      "image": "images/melanoma/ISIC_0025603.jpg",
+      "prediction": "Lesion Type: pigmented lesion\nColour: multiple colours (light brown, dark brown, red)\nSymmetry: roughly symmetric\nBorders: somewhat irregular borders\nTexture: rough or structurally varied surface\nSummary: A light brown, dark brown and red pigmented lesion that appears roughly symmetric with somewhat irregular borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern.",
+      "reference": "Lesion Type: pigmented lesion\nColour: multiple colours (light brown, dark brown, purple)\nSymmetry: mildly asymmetric\nBorders: somewhat irregular borders\nTexture: rough or structurally varied surface\nSummary: A light brown, dark brown and purple pigmented lesion that appears mildly asymmetric with somewhat irregular borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern."
+    },
+    {
+      "image": "images/melanoma/ISIC_0024313.jpg",
+      "prediction": "Lesion Type: pigmented lesion\nColour: multiple colours (red, light brown, dark brown)\nSymmetry: roughly symmetric\nBorders: smooth, well-defined borders\nTexture: rough or structurally varied surface\nSummary: A red, light brown and dark brown pigmented lesion that appears roughly symmetric with smooth, well-defined borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern.",
+      "reference": "Lesion Type: pigmented lesion\nColour: multiple colours (dark brown, red, light brown)\nSymmetry: roughly symmetric\nBorders: somewhat irregular borders\nTexture: rough or structurally varied surface\nSummary: A dark brown, red and light brown pigmented lesion that appears roughly symmetric with somewhat irregular borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern."
+    },
+    {
+      "image": "images/melanoma/ISIC_0026120.jpg",
+      "prediction": "Lesion Type: pigmented lesion\nColour: multiple colours (red, dark brown, light brown)\nSymmetry: roughly symmetric\nBorders: somewhat irregular borders\nTexture: rough or structurally varied surface\nSummary: A red, dark brown and light brown pigmented lesion that appears roughly symmetric with somewhat irregular borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern.",
+      "reference": "Lesion Type: pigmented lesion\nColour: multiple colours (red, light brown, dark brown)\nSymmetry: roughly symmetric\nBorders: smooth, well-defined borders\nTexture: rough or structurally varied surface\nSummary: A red, light brown and dark brown pigmented lesion that appears roughly symmetric with smooth, well-defined borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern."
+    },
+    {
+      "image": "images/dermatofibroma/ISIC_0026313.jpg",
+      "prediction": "Lesion Type: firm pigmented papule\nColour: multiple colours (light brown, purple)\nSymmetry: roughly symmetric\nBorders: somewhat irregular borders\nTexture: slightly uneven surface\nSummary: A light brown and purple firm pigmented papule that appears roughly symmetric with somewhat irregular borders and a slightly uneven surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern.",
+      "reference": "Lesion Type: firm pigmented papule\nColour: multiple colours (light brown, purple, red)\nSymmetry: roughly symmetric\nBorders: smooth, well-defined borders\nTexture: slightly uneven surface\nSummary: A light brown, purple and red firm pigmented papule that appears roughly symmetric with smooth, well-defined borders and a slightly uneven surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern."
+    },
+    {
+      "image": "images/melanoma/ISIC_0026735.jpg",
+      "prediction": "Lesion Type: pigmented lesion\nColour: multiple colours (dark brown, black, purple)\nSymmetry: notably asymmetric\nBorders: ragged, poorly-defined borders\nTexture: rough or structurally varied surface\nSummary: A dark brown, black and purple pigmented lesion that appears notably asymmetric with ragged, poorly-defined borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern.",
+      "reference": "Lesion Type: pigmented lesion\nColour: multiple colours (white, skin-toned)\nSymmetry: notably asymmetric\nBorders: somewhat irregular borders\nTexture: slightly uneven surface\nSummary: A white and skin-toned pigmented lesion that appears notably asymmetric with somewhat irregular borders and a slightly uneven surface. This is a visual description only, not a diagnosis \u2014 see a clinician for any concern."
+    }
+  ]
+}

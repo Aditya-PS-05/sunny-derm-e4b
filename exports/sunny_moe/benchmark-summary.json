@@ -1,0 +1,89 @@
+{
+  "format": "sunny-moe-benchmark-summary-v1",
+  "validation_images": 134,
+  "existing_pro_morph4": 0.6189,
+  "candidates": {
+    "fp16_v3": {
+      "weight_bytes": 8117942296,
+      "mean_task_score": 0.594726368159204,
+      "morph4_score": 0.610975,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "router_entropy": 0.9789391925518267,
+      "worst_layer_expert_share": 0.39552238805970147,
+      "median_seconds": 3.483488050493179,
+      "p95_seconds": 3.8906969579984434,
+      "tokens_per_second": 27.11169551917933,
+      "decision": "quality_reference"
+    },
+    "all_q4": {
+      "weight_bytes": 2158520556,
+      "mean_task_score": 0.3356716417910448,
+      "morph4_score": 0.361725,
+      "format_compliance": 1.0,
+      "safety_compliance": 0.9776,
+      "disclaimer_rate": 0.1567,
+      "router_entropy": 0.2248496304528799,
+      "worst_layer_expert_share": 1.0,
+      "median_seconds": 2.6928521020163316,
+      "p95_seconds": 3.602529638039414,
+      "tokens_per_second": 26.64167310637141,
+      "decision": "rejected_quality_and_routing"
+    },
+    "q4_fp16_perception": {
+      "directory_bytes": 2798414541,
+      "mean_task_score": 0.3839303482587065,
+      "morph4_score": 0.3866,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 0.0821,
+      "router_entropy": 0.3125362386972915,
+      "worst_layer_expert_share": 1.0,
+      "median_seconds": 2.736173523502657,
+      "p95_seconds": 3.3872341709793545,
+      "tokens_per_second": 26.47672514248404,
+      "decision": "rejected_quality_and_routing"
+    },
+    "router_only_calibrated": {
+      "mean_task_score": 0.38194029850746264,
+      "morph4_score": 0.384125,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 0.0746,
+      "router_entropy": 0.5907523534095397,
+      "worst_layer_expert_share": 1.0,
+      "median_seconds": 2.7481748520222027,
+      "p95_seconds": 3.6858828180120327,
+      "tokens_per_second": 26.255965517276884,
+      "decision": "rejected_no_quality_gain"
+    },
+    "q4_fp16_perception_corrected": {
+      "weight_bytes": 2872265072,
+      "directory_bytes": 2876046492,
+      "correction_adapter_bytes": 77631552,
+      "compression_ratio": 2.826320723368111,
+      "mean_task_score": 0.6381343283582089,
+      "morph4_score": 0.642825,
+      "format_compliance": 1.0,
+      "safety_compliance": 1.0,
+      "disclaimer_rate": 1.0,
+      "router_entropy": 0.9785482647096017,
+      "worst_layer_expert_share": 0.3656716417910448,
+      "median_seconds": 3.5929339729773346,
+      "p95_seconds": 3.9814071059809066,
+      "tokens_per_second": 26.271614227867534,
+      "peak_gpu_bytes": 8368723456,
+      "verified_weight_files": 17,
+      "decision": "gpu_gates_passed_phone_runtime_pending"
+    }
+  },
+  "correction_training": {
+    "epochs": 3,
+    "steps": 453,
+    "runtime_seconds": 671.8250269889832,
+    "peak_gpu_bytes": 11313857024,
+    "train_loss": 0.33393002082706813,
+    "final_eval_loss": 0.1649
+  }
+}

@@ -93,9 +93,12 @@ enabled, warm session, six-field schema parsing, safety guardrails).
 - ✅ Training: 3-epoch QLoRA on A10G, 61 min. train_loss 3.22→0.10,
   eval_loss 0.144→0.126→0.123. Adapter 134 MB (34.9M params, 0.44%).
 - ✅ Validation: held-out val images → correct 6-field schema + disclaimer.
-- ✅ Export: merged (15 GB) → **Q4_K_M GGUF 5.0 GB** + **vision mmproj 990 MB**
-  (≈6 GB on-device). Quantized model loads & generates.
-- ✅ Android: LiteRT-LM + llama.cpp/mtmd integration documented.
+- ✅ Pro export: **Q4_K_M GGUF 5.30 GB** + **Q8 vision projector 560 MB**
+  (5.86 GB). The Q8 projector passed a 70-image equivalence benchmark.
+- ✅ Lite/Medium experiments: separately trained MobileNetV3 and ConvNeXt
+  artifacts remain available for reproducibility but are retired from Android.
+- ✅ Android: included consented AI Cloud plus the Pro 3.08 GB Sunny-MoE GGUF
+  runtime, Play Billing 9.1, and local pack verification are wired.
 - ⛔ Clinical: no clinician-labelled phone-photo, skin-tone, human-factors, or
   real-device performance validation.
 - ⛔ Rights: the dataset mirror grants no commercial license and says its uploader

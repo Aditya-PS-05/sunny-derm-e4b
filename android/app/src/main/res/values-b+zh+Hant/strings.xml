@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Sunny</string>
+    <string name="nav_overview">概述</string>
+    <string name="nav_areas">領域</string>
+    <string name="nav_settings">設定</string>
+    <string name="action_add_photo">添加照片</string>
+    <string name="capture_title">添加照片</string>
+    <string name="capture_intro">使用一個區域的清晰特寫照片。 Sunny 將在分析前檢查光照和細節。</string>
+    <string name="capture_take_photo">拍張照片</string>
+    <string name="capture_take_photo_support">使用即時取景和燈光引導</string>
+    <string name="capture_choose_library">從庫中選擇</string>
+    <string name="capture_choose_library_support">使用此手機上已有的照片</string>
+    <string name="capture_library_error">那張照片無法打開。選擇另一張圖像。</string>
+    <string name="capture_full_body">全身照片檢查</string>
+    <string name="capture_full_body_support">使用每個區域的取景技巧從頭到腳進行拍攝</string>
+    <string name="review_photo_title">評論照片</string>
+    <string name="review_follow_up_title">審查後續行動</string>
+    <string name="save_photo">保存照片</string>
+    <string name="save_follow_up">儲存後續</string>
+    <string name="analysing_photo">正在分析照片...</string>
+    <string name="resolve_analysis_to_save">解析分析保存</string>
+</resources>

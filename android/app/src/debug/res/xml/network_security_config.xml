@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Temporary compatibility for the current private beta host. Never merged into release. -->
+<!-- Debug follows the same fail-closed transport policy as every other build. -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false" />
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">34.238.98.220</domain>
-    </domain-config>
 </network-security-config>
