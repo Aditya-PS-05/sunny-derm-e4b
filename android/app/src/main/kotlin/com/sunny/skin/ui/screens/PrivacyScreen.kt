@@ -100,13 +100,14 @@ fun PrivacyScreen(onBack: () -> Unit) {
                         "account or user ID. Reports and password-encrypted backups " +
                         "leave only when you explicitly share them."
                 } else if (com.sunny.skin.AppMode.publicRelease) {
-                    "Scan photos and descriptions do not leave for analysis. Sunny only downloads " +
-                        "model files over HTTPS. A random installation ID is sent only for cloud " +
-                        "access and quota accounting. Reports and password-encrypted backups leave only " +
+                    "Scan photos and descriptions do not leave for offline analysis. The model " +
+                        "arrives with the app installation; Sunny does not download it later. A random " +
+                        "installation ID is sent only for cloud access and quota accounting. Reports and " +
+                        "password-encrypted backups leave only " +
                         "when you explicitly choose a destination in Android's share screen."
                 } else {
-                    "No scan data leaves for inference. The app can download model files over " +
-                        "HTTPS and sends a random installation ID for quota accounting when the " +
+                    "No scan data leaves for offline inference. The model arrives in Play App Bundle " +
+                        "builds, and the app sends a random installation ID for quota accounting when the " +
                         "access service is configured. If the optional Help improve Sunny beta is configured and you " +
                         "explicitly enable it, contributed scans leave the device. Reports leave " +
                         "only when you explicitly share them. Password-encrypted backups leave " +
@@ -126,12 +127,11 @@ fun PrivacyScreen(onBack: () -> Unit) {
                 Icons.Filled.PermDeviceInformation,
                 "Permissions",
                 if (com.sunny.skin.AppMode.publicRelease) {
-                    "Camera (photos), Internet/Network state and a Foreground service (model " +
-                        "download), plus Notifications and Boot-completed (reminders)."
+                    "Camera (photos), Internet/Network state (optional cloud analysis), plus " +
+                        "Notifications and Boot-completed (reminders)."
                 } else {
-                    "Camera (photos), Internet/Network state (model download and configured beta " +
-                        "inference/contribution), Notifications and Boot-completed (reminders), " +
-                        "and a Foreground service (model download)."
+                    "Camera (photos), Internet/Network state (configured beta inference/contribution), " +
+                        "plus Notifications and Boot-completed (reminders)."
                 },
             )
             Section(
@@ -147,6 +147,17 @@ fun PrivacyScreen(onBack: () -> Unit) {
                     "doesn't diagnose, assess risk, or tell you what to do — always see a " +
                     "qualified professional for any concern. Skin can look different in photos " +
                     "and across skin tones, so trust a clinician's eyes over the app.",
+            )
+            Section(
+                Icons.Filled.Info,
+                "Model and dataset notices",
+                "Sunny uses a modified SmolVLM 500M model provided under Apache 2.0. " +
+                    "It was fine-tuned, merged and quantized using " +
+                    "PAD-UFES-20 smartphone images provided under CC BY 4.0. Dataset: " +
+                    "Pacheco et al., https://doi.org/10.17632/zr7vgbcyr2.1. License: " +
+                    "https://creativecommons.org/licenses/by/4.0/. The original creators, " +
+                    "institutions and Hugging Face do not endorse Sunny. Complete notices and the " +
+                    "Apache 2.0 license are included with the app.",
             )
             Section(
                 Icons.Filled.DeleteSweep,

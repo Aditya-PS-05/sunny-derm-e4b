@@ -146,6 +146,11 @@ private struct ReviewPhotoView: View {
     @State private var saving = false
     @State private var sizeText = ""
 
+    private var previousObservation: Observation? {
+        guard let target = app.captureDraft?.targetAreaID else { return nil }
+        return app.areas.first(where: { $0.id == target })?.latest
+    }
+
     var body: some View {
         Group {
             if let draft = app.captureDraft {
@@ -194,7 +199,18 @@ private struct ReviewPhotoView: View {
 
                         progressContent
 
-                        if let result = draft.result { AnalysisCard(analysis: result.analysis) }
+                        if let result = draft.result {
+                            if let previousObservation {
+                                AnalysisChangesCard(
+                                    since: previousObservation.capturedAt,
+                                    changes: AnalysisComparison.changes(
+                                        previous: previousObservation.analysis,
+                                        current: result.analysis
+                                    )
+                                )
+                            }
+                            AnalysisCard(analysis: result.analysis)
+                        }
                     }
                     .padding()
                 }

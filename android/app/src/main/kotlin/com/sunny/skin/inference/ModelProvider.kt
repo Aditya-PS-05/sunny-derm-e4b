@@ -16,12 +16,14 @@ import com.sunny.skin.subscription.SubscriptionEntitlements
 import java.io.File
 
 /**
- * Resolves the Pro downloadable Sunny-MoE pack or the included cloud engine. Runtime
+ * Resolves the install-time Sunny Offline pack or the included cloud engine. Runtime
  * code deliberately has no mock fallback: a missing or broken model disables
  * scanning instead of producing plausible-looking fabricated health output.
- * Downloaded weights are not bundled in the APK. They are found in:
+ * Play delivers weights in an install-time asset pack. On first launch they are
+ * verified and copied to the first directory below because llama.cpp requires
+ * normal filesystem paths. Developer fallbacks are also supported:
  *
- *   1. filesDir/models/                              (internal, private; download target)
+ *   1. filesDir/models/                              (internal, private; runtime target)
  *   2. getExternalFilesDir("models")                 (app external dir — adb push here for dev)
  *   3. /data/local/tmp/sunny/                        (last-resort dev push location)
  *
@@ -37,6 +39,8 @@ object ModelProvider {
             "e4b-derm-Q4_K_M.gguf",
             "mmproj-e4b-derm-f16.gguf",
             "mmproj-e4b-derm-Q8_0.gguf",
+            "sunny-moe-text-Q4_K_M.gguf",
+            "sunny-moe-mmproj-F16.gguf",
             "dense-00001.safetensors",
             "dense-00002.safetensors",
             "dense-00003.safetensors",
@@ -52,13 +56,13 @@ object ModelProvider {
         }
     }
 
-    /** Primary internal location (also the download target). */
+    /** Primary internal location for the verified runtime files. */
     fun modelsDir(context: Context) = File(context.filesDir, "models").apply { mkdirs() }
 
     /**
      * Candidate directories searched for the weight files, in priority order.
-     * Release builds load ONLY from internal, app-private storage (the download
-     * target). The shared external dir and /data/local/tmp — both writable
+     * Release builds load ONLY from internal, app-private storage (the prepared
+     * runtime target). The shared external dir and /data/local/tmp — both writable
      * without root and unverified — are dev conveniences, so they are scanned
      * only on debuggable builds where a model pack fed to native code couldn't be
      * planted by another app on a shipped install.
@@ -100,6 +104,8 @@ object ModelProvider {
     fun weightsPresent(context: Context): Boolean =
         packPresent(context, SunnyModelTier.SUNNY_MOE)
 
+    fun nativeRuntimeAvailable(): Boolean = SunnyMoeBridge.ensureLibrary()
+
     /** Human-readable location of the found weights, for the setup screen. */
     fun weightsLocation(context: Context): String? =
         resolvePack(context, ModelPackCatalog.sunnyMoe)?.firstOrNull()?.parentFile?.absolutePath
@@ -114,14 +120,15 @@ object ModelProvider {
     /**
      * Whether the next scan should use the included remote server. Public builds
      * accept a short-lived server authorization; beta builds may use their
-     * separately provisioned engineering credential. Pro gates the downloadable
+     * separately provisioned engineering credential. Pro gates the bundled
      * on-device model, not server analysis.
      */
     fun useServer(context: Context): Boolean = remoteAuthorization(context) != null
 
     private fun remoteAuthorization(context: Context): Pair<String, String>? {
         val app = context.applicationContext
-        if (!SettingsStore(app).useServerInference) return null
+        val settings = SettingsStore(app)
+        if (!settings.useServerInference || settings.cloudAnalysisConsentAt <= 0L) return null
         return configuredRemoteAuthorization(app)
     }
 
@@ -145,16 +152,21 @@ object ModelProvider {
     /**
      * Analysis is available when EITHER the server path is selected and configured
      * OR the on-device weights + native runtime are both present. This does not
-     * load the 3.08 GB pack.
+     * load the 605 MB pack into memory.
      */
     fun realModelAvailable(context: Context): Boolean =
         useServer(context) ||
             localRoute(context) != null
 
-    /** Local readiness only; remote Pro must not make the download UI say installed. */
+    /** Local readiness only; cloud authorization must not imply local readiness. */
     fun localModelAvailable(context: Context): Boolean = localRoute(context) != null
 
+    /** False for hardware whose native accelerator path failed physical-device validation. */
+    fun localDeviceSupported(): Boolean =
+        DeviceInferenceCapabilities.supportsReliableOnDeviceInference()
+
     private fun localRoute(context: Context): InferenceRoute? {
+        if (!localDeviceSupported()) return null
         val availability = ModelAvailability(
             sunnyMoeInstalled = packPresent(context, SunnyModelTier.SUNNY_MOE) &&
                 SunnyMoeBridge.ensureLibrary(),
@@ -220,7 +232,10 @@ object ModelProvider {
                     val pack = resolvePack(app, ModelPackCatalog.sunnyMoe)
                         ?: return@synchronized null
                     val directory = pack.firstOrNull()?.parentFile ?: return@synchronized null
-                    SunnyMoeModel(directory.absolutePath)
+                    SunnyMoeModel(
+                        packDirectory = directory.absolutePath,
+                        nativeLibraryDirectory = app.applicationInfo.nativeLibraryDir,
+                    )
                 }
                 SunnyModelTier.PRO_CLOUD -> return@synchronized null
                 null -> return@synchronized null

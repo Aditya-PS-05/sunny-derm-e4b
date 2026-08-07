@@ -47,12 +47,12 @@ https://34-238-98-220.sslip.io
 - `/beta-access/v1/inference/v1/chat/completions` validates that authorization,
   applies quota, and proxies to `127.0.0.1:8080`.
 - `/beta-access/v1/models/...` validates expiring signed URLs and serves only the
-  three allow-listed, checksum-pinned files with Range resume.
+  six allow-listed PAD-model, grammar, manifest, and license files with Range resume.
 - The inference and legacy collection services bind only to loopback on `8080`
   and `8090`; neither port is present in public security-group ingress. Only
   SSH, HTTP certificate renewal, and HTTPS are exposed.
-- `sunny-inference.service` binds llama-server to loopback and restarts it after
-  failure or host reboot.
+- `sunny-inference.service` binds the SmolVLM 500M llama-server to loopback,
+  loads `/etc/sunny-inference/derm.gbnf`, and restarts after failure or reboot.
 
 The checked-in Android Debug/Beta default already uses this broker. Build the
 closed-beta artifact with:

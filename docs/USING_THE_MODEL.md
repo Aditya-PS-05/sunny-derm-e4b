@@ -1,184 +1,104 @@
-# Using the fine-tuned model — a guide for Claude Code
+# Using the Sunny PAD SmolVLM 500M model
 
-> **Current mobile architecture (July 2026):** Android downloads only the
-> 3.08 GB `sunny-moe-2.2b-v4-gguf` pack. The Gemma GGUF pair described
-> below is the current **server-only Sunny Pro** model and must not be wired into
-> an app download. See `docs/model_tier_delivery.md` and `docs/sunny_moe.md`.
+> **Current architecture (August 2026):** Sunny AI Cloud and the downloadable
+> phone runtime use the same PAD-UFES-20-trained SmolVLM 500M family. The
+> checksum-pinned pack is `sunny-pad-smolvlm-500m-v1-gguf` and totals
+> 412,049,555 bytes (about 393 MiB).
 
-This is the operating manual for the dermatology-describer model when building
-the mobile app. It tells you exactly how the model was trained to be called, so
-your app prompts it the way it saw during fine-tuning. **Matching the training
-contract is the single biggest lever on output quality** — a mismatched prompt
-degrades the model far more than any decoding tweak.
+Sunny describes visible skin features for longitudinal tracking. It is not a
+diagnostic model and must never be presented as one.
 
----
+## Prompt contract
 
-## 1. What this model is (and is not)
+Send exactly one image first and this text second in one user message:
 
-- **Base:** `google/gemma-4-E4B-it` (ungated), a multimodal (vision+text) ~8B
-  effective-4B model designed for on-device use.
-- **Fine-tune:** QLoRA (r=16), language tower only, on 1,207 dermatoscopic images
-  with grounded structured descriptions.
-- **Job:** given ONE skin-lesion image, emit a fixed six-field description in a
-  controlled vocabulary, always ending with a not-a-diagnosis disclaimer.
-- **It is NOT a diagnostic model.** It never names a disease and must never be
-  presented as diagnosing. It describes appearance for tracking over time.
-- **Domain caveat:** trained on *dermatoscopic* images (through-the-lens, with
-  vignette/immersion artefacts). On raw phone photos it will still produce valid
-  output but accuracy drops — plan a phone-photo fine-tune or a clip-on
-  dermatoscope for production. See `docs/performance.md`.
-
----
-
-## 2. The prompt contract (copy this verbatim)
-
-The model was trained with this exact user prompt accompanying the image. Use it
-character-for-character; do not paraphrase, shorten, or "improve" it.
-
-```
+```text
 You are a dermatology description assistant. Look at this skin lesion photo and describe what you see. Do NOT diagnose or name a disease. Report only observable features in this exact format:
 Lesion Type: <descriptive category, e.g. pigmented macule / raised papule>
 Colour: <colours present>
 Symmetry: <symmetric / asymmetric>
 Borders: <smooth / irregular / well- or poorly-defined>
 Texture: <smooth / rough / raised / scaly>
-Summary: <one plain-language sentence describing the lesion's appearance and reminding the user this is not a diagnosis>
+Summary: <one plain-language sentence describing the lesion's appearance>
+Safety: This is a visual description only, not a diagnosis — see a clinician for any concern.
 ```
 
-**Message shape:** one user turn containing the image FIRST, then the text
-prompt. Exactly one image per request — the model was never trained on multiple
-images or on text-only lesion questions, and will behave out-of-distribution if
-you send either.
+Expected output:
 
-**Output it produces** (six lines; parse by `Field:` prefix):
-```
+```text
 Lesion Type: pigmented lesion
-Colour: multiple colours (light brown, dark brown, red)
+Colour: light and dark brown
 Symmetry: roughly symmetric
 Borders: somewhat irregular borders
 Texture: rough or structurally varied surface
-Summary: A light brown, dark brown and red pigmented lesion that appears roughly symmetric with somewhat irregular borders and a rough or structurally varied surface. This is a visual description only, not a diagnosis — see a clinician for any concern.
+Summary: A light and dark brown pigmented lesion with a roughly symmetric shape and somewhat irregular borders.
+Safety: This is a visual description only, not a diagnosis — see a clinician for any concern.
 ```
 
-The controlled vocabularies the model learned (your parser can rely on these):
-- **Symmetry:** `roughly symmetric` | `mildly asymmetric` | `notably asymmetric`
-- **Borders:** `smooth, well-defined borders` | `somewhat irregular borders` | `ragged, poorly-defined borders`
-- **Texture:** `smooth, even surface` | `slightly uneven surface` | `rough or structurally varied surface`
+## Runtime contract
 
----
+| Setting | Value |
+|---|---|
+| Temperature | `0` (greedy) |
+| Maximum new tokens | `256` |
+| Grammar | `derm.gbnf`, root rule `root` |
+| Message order | image first, prompt second |
+| Images per request | exactly one |
 
-## 3. Decoding settings
+The grammar bounds every field, requires all six fields in order, and forces
+the exact non-diagnosis safety line. Keeping that line separate makes the
+grammar unambiguous even when the model writes a long Summary. The app still
+parses all fields and applies its
+diagnosis/verdict banned-word guardrail before displaying an answer.
 
-For a **stable, reproducible** app experience use **greedy decoding** (this is
-how the model was evaluated):
+The Android runtime uses a fixed 256 px global image view with SmolVLM's bucketed
+position embeddings. The stock
+desktop processor expands a photo to a 2048 px tiled canvas and thirteen vision
+passes, which is not suitable for a phone CPU.
 
-| Setting | Value | Why |
-|---|---|---|
-| `do_sample` | `false` (greedy) | deterministic output; the schema is not a creative task |
-| `temperature` | 0.0–0.2 | low; the base default of 1.0 will make it wander off-format |
-| `max_new_tokens` | 180 | the full six-field output fits comfortably; caps runaway generation |
-| `top_p` / `top_k` | n/a when greedy | only relevant if you deliberately sample |
+## Artifacts
 
-Special tokens (already in the GGUF/HF configs — you don't set these manually):
-`bos=<bos>`, `eos=<eos>`, `pad=<pad>`. EOS ids: `[1, 106, 50]`.
+| Runtime | Files |
+|---|---|
+| Android pack | `sunny-pad-smolvlm-500m-Q8_0.gguf`, `sunny-pad-smolvlm-500m-mmproj-mobile256-F16.gguf`, `derm.gbnf`, notices, Apache license, manifest |
+| iOS pack | `sunny-pad-smolvlm-500m-Q4_K_M.gguf`, `sunny-pad-smolvlm-500m-mmproj-Q8_0.gguf`, `derm.gbnf`, notices, Apache license, manifest |
+| GPU source paths | `~/models/smolvlm-derm-pad-Q4_K_M.gguf`, `~/models/mmproj-smolvlm-derm-pad-Q8_0.gguf` |
+| Fine-tune | `~/models/smolvlm-derm-pad-lora`, merged checkpoint `~/models/smolvlm-derm-pad-merged` |
 
-> If you want slight natural-language variety in the Summary line, sample at
-> `temperature 0.3, top_p 0.9` — but keep `max_new_tokens` at 180 and expect
-> the occasional off-vocabulary phrase. For a tracking app, greedy is better.
+The complete checksums, training provenance, license references, and runtime
+commits are in
+`exports/model_tiers/sunny-pad-smolvlm-500m-v1-gguf/manifest.json`.
 
----
+## llama.cpp server
 
-## 4. Which file to load (see `exports/MODELS.md` for paths/sizes)
-
-| Runtime | Files needed | Notes |
-|---|---|---|
-| **Sunny-MoE Android runtime** | `sunny-moe-text-Q4_K_M.gguf` + `sunny-moe-mmproj-F16.gguf` + manifest | The sole downloadable app model; 3.08 GB. |
-| **llama.cpp / llama-mtmd** | `e4b-derm-Q4_K_M.gguf` + `mmproj-e4b-derm-f16.gguf` | Sunny Pro server/reproducibility only; never downloaded by Android. |
-| **transformers** | merged checkpoint OR base + adapter | Server/prototype use; not phones. |
-
-The **adapter** (`adapter_model.safetensors`, 134 MB) is the reproducible core —
-merge it onto the ungated base to regenerate any of the above.
-
----
-
-## 5. Minimal integration snippets
-
-### 5a. llama.cpp (legacy Pro server/reproducibility path)
-Load model + mmproj together and run the multimodal chat:
 ```bash
-# desktop/server test of the legacy Pro export:
-llama-mtmd-cli \
-  -m e4b-derm-Q4_K_M.gguf \
-  --mmproj mmproj-e4b-derm-f16.gguf \
-  --image lesion.jpg \
-  -p "You are a dermatology description assistant. ...(full prompt from §2)..." \
-  --temp 0.0 -n 180
-```
-Do not embed this pair or its former JNI bridge in Android. Production Android
-uses the Sunny-MoE pack; production Pro calls the verified cloud endpoint.
-
-### 5b. transformers (prototype / server)
-```python
-from transformers import AutoModelForImageTextToText, AutoProcessor
-from PIL import Image
-import torch
-
-proc = AutoProcessor.from_pretrained("google/gemma-4-E4B-it")
-model = AutoModelForImageTextToText.from_pretrained(
-    "path/to/e4b-derm-merged", dtype=torch.bfloat16, device_map="auto")
-
-PROMPT = "...(full prompt from §2)..."
-img = Image.open("lesion.jpg").convert("RGB")
-msgs = [{"role":"user","content":[
-    {"type":"image","image":img},
-    {"type":"text","text":PROMPT}]}]
-inputs = proc.apply_chat_template(msgs, add_generation_prompt=True,
-    tokenize=True, return_dict=True, return_tensors="pt").to(model.device)
-out = model.generate(**inputs, max_new_tokens=180, do_sample=False)
-print(proc.decode(out[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True))
+llama-server \
+  -m smolvlm-derm-pad-Q4_K_M.gguf \
+  --mmproj mmproj-smolvlm-derm-pad-Q8_0.gguf \
+  --grammar-file derm.gbnf \
+  -ngl 99 -c 4096 --jinja --reasoning-format none
 ```
 
-### 5c. Parsing the output (robust)
-```python
-import re
-FIELDS = ["Lesion Type","Colour","Symmetry","Borders","Texture","Summary"]
-def parse(text):
-    return {f: (re.search(rf"{re.escape(f)}:\s*(.+)", text) or [None,None])[1]
-            for f in FIELDS}
-# Always check all six are non-None before showing to a user; if any is missing,
-# re-run once (greedy is deterministic, so a missing field means a truncated
-# generation — raise max_new_tokens) or show a "couldn't read this image" state.
-```
+Use the OpenAI-compatible `/v1/chat/completions` endpoint with the prompt and
+message ordering above. Production applies the grammar at the server, so phone
+clients do not send or control the grammar.
 
----
+## App guardrails
 
-## 6. Guardrails the app MUST enforce (do not rely on the model alone)
+1. Require all six fields and the exact disclaimer.
+2. Suppress outputs containing a disease name, diagnosis, risk score, or
+   benign/malignant verdict.
+3. Keep the persistent “not a diagnostic tool” UI disclosure independent of
+   model output.
+4. Reject unusable, blurred, or unrelated images before inference.
+5. Never silently upload a photo; cloud analysis requires explicit consent.
+6. Do not build multi-image or conversational diagnosis flows on this model.
 
-1. **Always display the disclaimer.** The model appends it (100% of the time in
-   eval), but your UI should also show a persistent "not a diagnostic tool"
-   banner — belt and suspenders for a health app.
-2. **Reject non-lesion images.** The model will describe whatever it's given. Add
-   a cheap pre-check (blur/skin-tone heuristic, or a tiny classifier) so users
-   don't get a "description" of a random photo.
-3. **Never surface disease names even if they somehow appear.** Post-filter the
-   output for a banned-word list (cancer, melanoma, carcinoma, benign, biopsy,
-   tumour, malignant…) and suppress+re-run if hit. The fine-tune scored 100% on
-   this in eval, but a health app should hard-enforce it.
-4. **One image in, one description out.** Don't build multi-image or
-   conversational flows on top of this checkpoint — it's out of distribution.
-5. **Tracking, not triage.** Frame the feature as "log how a spot looks over
-   time," never "check if this is dangerous."
+## Validation status
 
----
-
-## 7. Quick quality checklist before shipping a prompt change
-- [ ] Prompt is byte-identical to §2 (image first, then text).
-- [ ] Greedy decoding, `max_new_tokens ≥ 180`.
-- [ ] Parser handles all six fields + a missing-field fallback.
-- [ ] Disclaimer shown in UI regardless of model output.
-- [ ] Banned-word post-filter active.
-- [ ] Tested on real phone photos (not just the dermatoscopic eval set) — expect
-      lower accuracy and calibrate copy accordingly.
-
-Full evaluation numbers: `docs/performance.md`. Export/merge/quantize details:
-`docs/android_integration.md`. Weight locations: `exports/MODELS.md`.
+The grammar benchmark covered all 277 lesion-grouped PAD validation images and
+reported 100% six-field format compliance and 100% safety compliance. A clean
+live request through the public Sunny broker completed with the grammar and a
+normal stop reason. These are model/service checks, not clinical validation.
+Independent clinician-labelled phone-photo, skin-tone, device, thermal, memory,
+and human-factors validation remain release requirements.

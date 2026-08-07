@@ -14,7 +14,8 @@ Priority: **M** = MVP / must-have, **S** = should-have, **C** = could-have.
 | F-03 | M | The app SHALL send the model exactly one image plus the verbatim prompt from `docs/USING_THE_MODEL.md` §2, image first. |
 | F-04 | M | The production on-device path SHALL use greedy decoding with `max_new_tokens = 180`. A beta server MAY use a larger internal reasoning budget but SHALL return only the guarded six-field schema. |
 | F-05 | M | The app SHALL parse the model output into the six fields (Lesion Type, Colour, Symmetry, Borders, Texture, Summary). |
-| F-06 | M | If any of the six fields fails to parse, the app SHALL NOT show a partial result as final — it SHALL re-run once, then show a "couldn't read this image" state. |
+| F-05A | M | Before presentation, the app SHALL map free-form observable fields to a controlled non-diagnostic vocabulary, resolve contradictory terms to an explicit `unclear` value, and generate the Summary from those controlled fields. Raw model output SHALL remain available only for audit and opted-in improvement data. |
+| F-06 | M | If any of the six fields fails to parse, the app SHALL NOT show a partial result as final and SHALL show a "couldn't read this image" state. Production decoding is deterministic and grammar-constrained, so repeating the identical request is prohibited. |
 | F-07 | S | The app SHALL run a pre-inference check to reject clearly non-lesion images (e.g. no skin detected) before calling the model. |
 | F-08 | M | Before inference, the app SHALL flag obviously undersized, underexposed, overexposed, or low-contrast photos and offer retake guidance; the user MAY explicitly continue because the check is photographic, not medical. |
 | F-09 | S | While the camera is open, the app SHALL provide non-medical exposure/detail feedback and tap-to-focus without retaining preview frames. |
@@ -25,7 +26,7 @@ Priority: **M** = MVP / must-have, **S** = should-have, **C** = could-have.
 | F-10 | M | The app SHALL let the user create named lesions, each with a body-area tag. |
 | F-11 | M | The app SHALL store each capture as a dated Observation in that lesion's timeline (photo + six fields + model version). |
 | F-12 | M | The app SHALL display a per-lesion chronological timeline of photos and descriptions. |
-| F-13 | M | On re-check, the app SHALL show a field-level diff versus the previous Observation. |
+| F-13 | M | On re-check, the app SHALL show each changed controlled field as an explicit Previous → Current value versus the previous Observation. |
 | F-14 | M | When a field changes materially, the app SHALL prompt the user to consider seeing a clinician — as routing, never as a verdict. |
 | F-15 | S | The app SHALL offer optional re-check reminders at a user-set cadence. |
 | F-16 | S | The app SHALL export an on-device clinician-oriented visual tracking PDF containing notes, model provenance, aligned first/latest comparison, and all selected uncropped originals. |

@@ -8,12 +8,17 @@ enum SunnyPrompt {
     Symmetry: <symmetric / asymmetric>
     Borders: <smooth / irregular / well- or poorly-defined>
     Texture: <smooth / rough / raised / scaly>
-    Summary: <one plain-language sentence describing the lesion's appearance and reminding the user this is not a diagnosis>
+    Summary: <one plain-language sentence describing the lesion's appearance>
+    Safety: This is a visual description only, not a diagnosis — see a clinician for any concern.
     """
 }
 
 enum SchemaParser {
     static func parse(_ text: String) -> Analysis? {
+        parseRaw(text)?.normalized
+    }
+
+    static func parseRaw(_ text: String) -> Analysis? {
         guard let lesionType = field("Lesion Type", in: text),
               let colour = field("Colour", in: text) ?? field("Color", in: text),
               let symmetry = field("Symmetry", in: text),
@@ -51,6 +56,7 @@ enum OutputGuardrails {
         "lesion is dangerous", "keratosis", "nevus", "nevi", "dermatofibroma", "risk",
         "urgent", "urgency", "safe to wait", "harmless", "reassur", "concerning",
         "suspicious", "worrisome", "dangerous", "recommend", "should see", "seek care",
+        "<fake_token", "<row_", "<|", "_around_image>",
     ]
 
     static func isClean(_ analysis: Analysis) -> Bool {
@@ -58,6 +64,11 @@ enum OutputGuardrails {
             let lower = value.lowercased()
             return !banned.contains(where: lower.contains)
         }
+    }
+
+    static func isClean(_ text: String) -> Bool {
+        let lower = text.lowercased()
+        return !banned.contains(where: lower.contains)
     }
 }
 
@@ -97,6 +108,10 @@ struct AnalysisCoordinator: Sendable {
         var lastError: AnalysisError = .invalidResponse
         for _ in 0..<2 {
             let raw = try await client.describe(jpeg: jpeg)
+            guard OutputGuardrails.isClean(raw) else {
+                lastError = .rejectedByGuardrail
+                continue
+            }
             guard let analysis = SchemaParser.parse(raw) else {
                 lastError = .invalidResponse
                 continue
@@ -110,4 +125,3 @@ struct AnalysisCoordinator: Sendable {
         throw lastError
     }
 }
-

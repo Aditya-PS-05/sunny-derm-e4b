@@ -35,7 +35,7 @@ enum ReportGenerator {
                     image.draw(in: CGRect(x: 48, y: y, width: 100, height: 100))
                 }
                 var textY = y
-                for (label, value) in observation.analysis.rows {
+                for (label, value) in observation.analysis.normalized.rows {
                     let line = "\(label): \(value)"
                     drawWrapped(line, in: CGRect(x: 166, y: textY, width: 398, height: 40), font: .systemFont(ofSize: 10))
                     textY += min(36, line.count > 75 ? 28 : 16)

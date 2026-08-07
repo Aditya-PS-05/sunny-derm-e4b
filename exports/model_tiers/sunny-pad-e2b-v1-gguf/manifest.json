@@ -1,0 +1,74 @@
+{
+  "format": "sunny-pad-e2b-mobile-gguf-v1",
+  "version": "sunny-pad-e2b-v1-gguf",
+  "architecture": "gemma4",
+  "seed_model": "google/gemma-4-E2B-it",
+  "training": {
+    "dataset": "PAD-UFES-20",
+    "dataset_doi": "10.17632/zr7vgbcyr2.1",
+    "dataset_source": "ISIC collection 406",
+    "dataset_license": "CC BY 4.0",
+    "downloaded_images": 2298,
+    "accepted_images": 2292,
+    "train_images": 2015,
+    "validation_images": 277,
+    "excluded_images": 6,
+    "split_unit": "lesion",
+    "seed": 42,
+    "method": "language-tower QLoRA, merged into Gemma 4 E2B",
+    "changes_notice": "Images were resized and normalized; non-diagnostic descriptions were generated; the language tower was fine-tuned; weights were merged, converted to GGUF, and quantized."
+  },
+  "runtime": {
+    "engine": "llama.cpp+mtmd",
+    "android_llama_cpp_commit": "72874f559c598b8f89fbb24864868337cf5afb4c",
+    "export_llama_cpp_commit": "e3546c7948e3af463d0b401e6421d5a4c2faf565",
+    "abi": "arm64-v8a",
+    "minimum_ram_bytes": 8000000000,
+    "prompt_template": "Gemma 4 canonical single-user-turn image-first template"
+  },
+  "artifacts": [
+    {
+      "file": "sunny-pad-e2b-text-Q4_K_M.gguf",
+      "bytes": 3416119872,
+      "sha256": "679b415a04b7d70fdcc6ece0c2659195a688d114183f3d714db3abcc4bd96d13",
+      "role": "PAD-UFES-20-fine-tuned Gemma 4 E2B text model"
+    },
+    {
+      "file": "sunny-pad-e2b-mmproj-Q8_0.gguf",
+      "bytes": 557367648,
+      "sha256": "1efb3cb2c5ea484dbe3e281773d9325311db0f5f7a5c48a13940fa088abe7de0",
+      "role": "Gemma 4 E2B vision encoder and multimodal projector"
+    },
+    {
+      "file": "THIRD_PARTY_NOTICES.txt",
+      "bytes": 2004,
+      "sha256": "b1b6a410f09eb2214da32aaed5eab2ce04cc8ce31c9bf6d93297b226ef466465",
+      "role": "PAD-UFES-20 attribution and Gemma modification notice"
+    },
+    {
+      "file": "Apache-2.0.txt",
+      "bytes": 11357,
+      "sha256": "84829002701217076a39a84808ec52e45088ddbf9f6623896e5550becd8e09be",
+      "role": "Gemma 4 Apache License 2.0 copy"
+    }
+  ],
+  "total_model_bytes": 3973487520,
+  "decoding": {
+    "temperature": 0,
+    "maximum_new_tokens": 1024,
+    "schema_aware_stop": true
+  },
+  "licenses": [
+    {
+      "component": "PAD-UFES-20",
+      "license": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "source": "https://doi.org/10.17632/zr7vgbcyr2.1"
+    },
+    {
+      "component": "Gemma 4 E2B",
+      "license": "Apache License 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ]
+}

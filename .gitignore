@@ -28,6 +28,7 @@ captures/
 # llama.cpp is fetched on demand (android/scripts/vendor_llama.sh); it carries
 # its own git history and is ~190 MB, so it is not tracked here.
 android/app/src/main/cpp/llama.cpp/
+android/.opencl-sdk/
 
 # ---- On-device model weights & training artifacts (large; not for VCS) ----
 # Pulled/produced separately (see exports/MODELS.md, pull_weights.sh).
@@ -40,6 +41,7 @@ exports/e4b-derm-lora/
 *.onnx
 *.litertlm
 *.ckpt
+android/sunny_model_pack/src/main/assets/sunny_model_pack/
 
 # ---- Datasets (heavy / potentially licensed source imagery) ----
 data/images/
@@ -79,3 +81,4 @@ keystore.properties
 Thumbs.db
 
 .agents/
+UI/

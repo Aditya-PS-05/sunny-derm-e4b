@@ -12,9 +12,12 @@ import com.sunny.skin.subscription.SubscriptionEntitlements
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-/** Coarse state of the on-device model install, surfaced to the setup UI. */
+/** Coarse state of the on-device model preparation, surfaced to the setup UI. */
 sealed interface ModelStatus {
     data object NotConfigured : ModelStatus          // ModelSource.baseUrl not set
     data object Idle : ModelStatus                    // configured, nothing downloaded yet
@@ -33,13 +36,15 @@ sealed interface ModelStatus {
 }
 
 /**
- * Process-wide manager for local model-pack downloads. Access is checked before
- * starting the service. The manager survives navigation, downloads each asset sequentially
- * and resets [ModelProvider] after successful verification.
+ * Process-wide manager for the install-time model pack. Play delivers the pack
+ * with the app; this manager verifies/materializes it and resets [ModelProvider]
+ * after successful preparation. Legacy download states remain for old installs.
  */
 object ModelDownloadManager {
     private lateinit var appContext: Context
     private val progressEstimator = DownloadProgressEstimator()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Volatile private var preparingBundledPack = false
 
     private val _status = MutableStateFlow<ModelStatus>(ModelStatus.Idle)
     val status: StateFlow<ModelStatus> = _status.asStateFlow()
@@ -47,18 +52,18 @@ object ModelDownloadManager {
     fun init(context: Context) {
         appContext = context.applicationContext
         ModelProvider.purgeLegacyLocalPacks(appContext)
-        // Weights present locally (adb push / prior download) win regardless of
-        // whether a download URL is configured — no download is needed then.
         _status.value = currentStatus()
+        prepareBundledPackIfNeeded()
     }
 
     /** Re-check the weight folders (e.g. after an adb push) and refresh status. */
     fun refresh() {
         if (!::appContext.isInitialized) return
         _status.value = currentStatus()
+        prepareBundledPackIfNeeded()
     }
 
-    /** True on unmetered (Wi-Fi/ethernet) connectivity — gate large downloads. */
+    /** Retained for compatibility with the retired network downloader. */
     fun isUnmetered(): Boolean {
         val cm = appContext.getSystemService(ConnectivityManager::class.java) ?: return false
         val caps = cm.getNetworkCapabilities(cm.activeNetwork) ?: return false
@@ -75,9 +80,8 @@ object ModelDownloadManager {
     }
 
     /**
-     * Kick off the download in a foreground service after gating on connectivity
-     * (Wi-Fi or cellular by default) and a storage/RAM preflight. Failures surface
-     * as [ModelStatus.Failed] with a user-facing reason.
+     * Prepare the Play-installed model after a storage/RAM preflight. Failures
+     * surface as [ModelStatus.Failed] with a user-facing reason.
      */
     fun start(
         tier: SunnyModelTier,
@@ -87,7 +91,7 @@ object ModelDownloadManager {
         if (!SunnyAccessPolicy.canDownloadLocal(tier, SubscriptionEntitlements.accessEntitlement(), nowMillis)) {
             _status.value = ModelStatus.Failed(
                 when (tier) {
-                    SunnyModelTier.SUNNY_MOE -> "Sunny MoE download requires verified Pro access."
+                    SunnyModelTier.SUNNY_MOE -> "Sunny Offline requires verified Pro access."
                     SunnyModelTier.PRO_CLOUD -> "Sunny Pro is server-only and cannot be downloaded."
                 },
             )
@@ -100,57 +104,28 @@ object ModelDownloadManager {
             )
             return
         }
+        if (BundledModelInstaller.contains(appContext, pack)) {
+            prepareBundledPack(pack)
+            return
+        }
         startPack(pack, allowMetered)
     }
 
-    /** Keeps adb/developer model setup usable without weakening release access checks. */
+    /** Keeps developer model setup usable without weakening release access checks. */
     fun startCurrentPackForDebug(allowMetered: Boolean = true) {
         check(BuildConfig.DEBUG) { "The development download bypass is debug-only." }
         startPack(ModelPackCatalog.sunnyMoe, allowMetered)
     }
 
     private fun startPack(pack: ModelPack, allowMetered: Boolean) {
-        if (!ModelSource.canAccess(pack.tier)) {
-            _status.value = if (!ModelSource.isConfigured) {
-                ModelStatus.NotConfigured
-            } else {
-                ModelStatus.Failed("The Sunny MoE download source is unavailable.")
-            }
-            return
-        }
-        if (
-            ModelSource.privateBetaOriginConfigured &&
-            SubscriptionEntitlements.modelDownloads.value?.isValid() != true &&
-            com.sunny.skin.data.BetaCredentialStore(appContext).inferenceToken.isBlank()
-        ) {
-            _status.value = ModelStatus.Failed(
-                "Enter the private beta access token in Settings before downloading Sunny MoE.",
-            )
-            return
-        }
-        if (_status.value is ModelStatus.Downloading) return
-        if (!hasInternetConnection()) {
-            _status.value = ModelStatus.Failed(
-                "Connect to Wi-Fi or mobile data to download ${pack.tier.displayName}.",
-            )
-            return
-        }
-        if (!allowMetered && !isUnmetered()) {
-            _status.value = ModelStatus.Failed(
-                "Connect to Wi-Fi to download ${pack.tier.displayName} (${formatBytes(pack.totalBytes)}).",
-            )
-            return
-        }
-        when (val p = DownloadPreflight.check(appContext, pack)) {
-            is Preflight.Blocked -> { _status.value = ModelStatus.Failed(p.reason); return }
-            Preflight.Ok -> {}
-        }
-        progressEstimator.reset()
-        _status.value = ModelStatus.Downloading(pack.tier, 0, pack.totalBytes)
-        ModelDownloadService.start(appContext, pack.tier)
+        @Suppress("UNUSED_VARIABLE") val ignored = allowMetered
+        _status.value = ModelStatus.Failed(
+            "This APK does not contain the Play install-time model pack. " +
+                "Install Sunny from its Google Play App Bundle, or use the developer adb-push script.",
+        )
     }
 
-    fun cancel() = ModelDownloadService.cancel(appContext)
+    fun cancel() = publishIdleIfDownloading()
 
     // --- Called by ModelDownloadService to mirror progress into the UI flow ---
     fun publishDownloading(tier: SunnyModelTier, done: Long, total: Long) {
@@ -173,17 +148,47 @@ object ModelDownloadManager {
         if (_status.value is ModelStatus.Downloading) _status.value = ModelStatus.Idle
     }
 
+    private fun prepareBundledPackIfNeeded() {
+        val pack = ModelPackCatalog.sunnyMoe
+        if (!ModelProvider.packPresent(appContext, pack.tier) &&
+            BundledModelInstaller.contains(appContext, pack)
+        ) {
+            prepareBundledPack(pack)
+        }
+    }
+
+    private fun prepareBundledPack(pack: ModelPack) {
+        if (preparingBundledPack || ModelProvider.packPresent(appContext, pack.tier)) return
+        when (val preflight = DownloadPreflight.check(appContext, pack)) {
+            is Preflight.Blocked -> {
+                _status.value = ModelStatus.Failed(preflight.reason)
+                return
+            }
+            Preflight.Ok -> Unit
+        }
+        preparingBundledPack = true
+        _status.value = ModelStatus.Verifying
+        scope.launch {
+            val result = BundledModelInstaller.install(appContext, pack)
+            preparingBundledPack = false
+            if (result.isSuccess && ModelProvider.packPresent(appContext, pack.tier)) {
+                activateInstalledModel(pack.tier)
+            } else {
+                publishFailed(
+                    result.exceptionOrNull()?.message
+                        ?: "The bundled offline model could not be prepared.",
+                )
+            }
+        }
+    }
+
     private fun currentStatus(): ModelStatus = when {
-        ModelProvider.localModelAvailable(appContext) -> ModelStatus.Ready
-        ModelProvider.packPresent(appContext, SunnyModelTier.SUNNY_MOE) &&
-            !SunnyAccessPolicy.canUse(
-                SunnyModelTier.SUNNY_MOE,
-                SubscriptionEntitlements.accessEntitlement(),
-                System.currentTimeMillis(),
-            ) -> ModelStatus.Failed("Sunny MoE is installed, but Pro access is required to use it.")
+        ModelProvider.weightsPresent(appContext) && ModelProvider.nativeRuntimeAvailable() ->
+            ModelStatus.Ready
         ModelProvider.weightsPresent(appContext) -> ModelStatus.Failed(
-            "The Sunny MoE pack is installed, but its native runtime is unavailable.",
+            "The Sunny Offline pack is installed, but its native runtime is unavailable.",
         )
+        preparingBundledPack -> ModelStatus.Verifying
         !ModelSource.isConfigured -> ModelStatus.NotConfigured
         else -> ModelStatus.Idle
     }

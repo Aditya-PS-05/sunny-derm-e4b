@@ -1,14 +1,18 @@
 package com.sunny.skin.inference
 
 import android.graphics.Bitmap
+import android.os.SystemClock
 import android.util.Base64
+import android.util.Log
 import com.sunny.skin.network.EndpointPolicy
 import com.sunny.skin.network.JsonHttpRequest
 import com.sunny.skin.network.JsonHttpTransport
 import com.sunny.skin.network.UrlConnectionJsonTransport
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -28,7 +32,7 @@ object RemoteInferenceContract {
                 })
             })
         }))
-        put("max_tokens", 1024)
+        put("max_tokens", Prompt.MAX_NEW_TOKENS)
         put("temperature", Prompt.TEMPERATURE.toDouble())
     }.toString().toByteArray(Charsets.UTF_8)
 
@@ -61,7 +65,7 @@ class RemoteSunnyModel(
     private val endpoint = EndpointPolicy.resolve(baseUrl, "/v1/chat/completions")
     private val mirroredAnalysisIds = ConcurrentHashMap.newKeySet<String>()
 
-    override val version: String = "Sunny-Gemma4-E4B (server)"
+    override val version: String = "Sunny PAD SmolVLM 500M v1 (server)"
 
     @Volatile private var ready = false
     override val isReady: Boolean get() = ready
@@ -69,37 +73,69 @@ class RemoteSunnyModel(
     override suspend fun warmUp() { ready = true }
 
     override suspend fun describeRaw(bitmap: Bitmap, analysisId: String): String = withContext(Dispatchers.IO) {
+        val startedAt = SystemClock.elapsedRealtime()
         val jpeg = encodeForServer(bitmap)
         val dataUri = "data:image/jpeg;base64," + Base64.encodeToString(jpeg, Base64.NO_WRAP)
 
         // Image FIRST, then the schema prompt (F-03). The server model reasons
         // before its schema, so it uses a wider internal token budget.
         val payload = RemoteInferenceContract.requestPayload(dataUri)
-        try {
-            val response = transport.post(
-                JsonHttpRequest(
-                    url = endpoint,
-                    payload = payload,
-                    bearerToken = apiToken,
-                    connectTimeoutMs = 20_000,
-                    readTimeoutMs = 180_000,
-                    analysisId = analysisId,
-                ),
-            )
-            if (response.code !in 200..299) {
-                if (response.code == 429) updateQuotaFromError(response.body)
-                throw RuntimeException(
-                    "inference API HTTP ${response.code}: ${response.body.take(200)}",
+        var attempt = 1
+        while (true) {
+            try {
+                val response = transport.post(
+                    JsonHttpRequest(
+                        url = endpoint,
+                        payload = payload,
+                        bearerToken = apiToken,
+                        connectTimeoutMs = 20_000,
+                        // The GPU normally answers in under a second. Bound network,
+                        // proxy, and server failures so the review screen cannot spin
+                        // for several minutes when the cloud path is unhealthy.
+                        readTimeoutMs = 60_000,
+                        analysisId = analysisId,
+                    ),
                 )
+                if (response.code !in 200..299) {
+                    if (response.code == 429) updateQuotaFromError(response.body)
+                    throw RuntimeException(
+                        "inference API HTTP ${response.code}: ${response.body.take(200)}",
+                    )
+                }
+                ready = true
+                Log.i(
+                    "SunnyCloud",
+                    "Cloud analysis completed in ${SystemClock.elapsedRealtime() - startedAt} ms (attempt $attempt)",
+                )
+                return@withContext RemoteInferenceContract.parseResponse(response.body).also {
+                    if (mirroredAnalysisIds.add(analysisId)) onAnalysisConsumed()
+                }
+            } catch (error: IOException) {
+                if (attempt == 1) {
+                    Log.w(
+                        "SunnyCloud",
+                        "Transient cloud connection failure; retrying once: ${error.javaClass.simpleName}",
+                    )
+                    attempt++
+                    delay(400)
+                    continue
+                }
+                ready = false
+                Log.w(
+                    "SunnyCloud",
+                    "Cloud analysis failed after ${SystemClock.elapsedRealtime() - startedAt} ms: ${error.javaClass.simpleName}",
+                )
+                throw error
+            } catch (error: Exception) {
+                ready = false
+                Log.w(
+                    "SunnyCloud",
+                    "Cloud analysis failed after ${SystemClock.elapsedRealtime() - startedAt} ms: ${error.javaClass.simpleName}",
+                )
+                throw error
             }
-            ready = true
-            RemoteInferenceContract.parseResponse(response.body).also {
-                if (mirroredAnalysisIds.add(analysisId)) onAnalysisConsumed()
-            }
-        } catch (error: Exception) {
-            ready = false
-            throw error
         }
+        error("Cloud retry loop exited unexpectedly")
     }
 
     private fun updateQuotaFromError(body: String) {

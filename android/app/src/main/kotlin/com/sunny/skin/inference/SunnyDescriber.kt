@@ -1,6 +1,7 @@
 package com.sunny.skin.inference
 
 import android.graphics.Bitmap
+import android.util.Log
 import com.sunny.skin.data.model.Analysis
 import java.util.UUID
 
@@ -27,29 +28,30 @@ sealed interface DescribeResult {
  *   1. call the model (image first, verbatim prompt, greedy) — [SunnyModel]
  *   2. parse the six fields — [SchemaParser]
  *   3. reject banned disease/verdict language — [Guardrails] (S-03)
- *   4. if parse fails OR a banned word appears, re-run ONCE (F-06); greedy is
- *      deterministic so we nudge with a fresh call, then fall back to Unreadable.
+ *   4. if parsing fails or a banned word appears, fail closed as Unreadable.
+ *      Decoding is greedy, so repeating the same image and prompt would produce
+ *      the same rejected output while doubling mobile latency.
  */
 class SunnyDescriber(private val model: SunnyModel) {
 
     suspend fun describe(bitmap: Bitmap): DescribeResult {
         val analysisId = UUID.randomUUID().toString()
-        repeat(MAX_ATTEMPTS) {
-            val raw = model.describeRaw(bitmap, analysisId)
-            val analysis = SchemaParser.parse(raw)
-            if (analysis != null && Guardrails.isClean(analysis)) {
-                return DescribeResult.Success(analysis, raw, model.version)
-            }
-            // else: truncated/partial parse or banned word -> suppress + retry
+        val raw = model.describeRaw(bitmap, analysisId)
+        // Check the raw response before normalization so controlled wording can
+        // never hide a diagnosis, verdict, or leaked model token.
+        if (!Guardrails.isClean(raw)) return DescribeResult.Unreadable
+        val analysis = SchemaParser.parse(raw)
+        if (analysis != null && Guardrails.isClean(analysis)) {
+            return DescribeResult.Success(analysis, raw, model.version)
         }
+        Log.w(
+            "SunnyAnalysis",
+            "Rejected model output: schemaValid=${analysis != null}, outputLength=${raw.length}",
+        )
         return DescribeResult.Unreadable
     }
 
     suspend fun warmUp() = model.warmUp()
     val isReady: Boolean get() = model.isReady
     fun close() = model.close()
-
-    companion object {
-        private const val MAX_ATTEMPTS = 2   // initial + one re-run (F-06)
-    }
 }

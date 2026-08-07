@@ -30,7 +30,7 @@ class PlayEntitlementVerifierTest {
             "modelDownloads":{
               "expiresAtMillis":${now + 60 * 60_000L},
               "assets":{
-                "sunny-moe-2.2b-v4-gguf/manifest.json":"https://models.example/signed-manifest"
+                "sunny-pad-smolvlm-500m-mobile256-v2-gguf/manifest.json":"https://models.example/signed-manifest"
               }
             }
         }""".trimIndent()

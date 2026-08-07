@@ -12,8 +12,12 @@ final class SchemaParserTests: XCTestCase {
         Summary: A flat two-tone spot with uneven shape; this description is not a diagnosis.
         """
         let result = try XCTUnwrap(SchemaParser.parse(text))
-        XCTAssertEqual(result.colour, "light and dark brown")
-        XCTAssertEqual(result.texture, "smooth")
+        XCTAssertEqual(result.lesionType, "Flat spot")
+        XCTAssertEqual(result.colour, "Light brown and Dark brown")
+        XCTAssertEqual(result.symmetry, "Asymmetric")
+        XCTAssertEqual(result.borders, "Irregular and poorly defined")
+        XCTAssertEqual(result.texture, "Smooth")
+        XCTAssertTrue(result.summary.hasPrefix("This image shows"))
     }
 
     func testRejectsPartialSchema() {
@@ -29,7 +33,7 @@ final class SchemaParserTests: XCTestCase {
         Texture: raised
         Summary: A small raised pink spot; this is not a diagnosis.
         """
-        XCTAssertEqual(SchemaParser.parse(text)?.colour, "pink")
+        XCTAssertEqual(SchemaParser.parse(text)?.colour, "Pink")
     }
 
     func testGuardrailRejectsDiagnosisLanguage() throws {
@@ -42,6 +46,24 @@ final class SchemaParserTests: XCTestCase {
             summary: "A dark spot."
         )
         XCTAssertFalse(OutputGuardrails.isClean(analysis))
+        XCTAssertFalse(OutputGuardrails.isClean("Possible melanoma with irregular borders"))
+    }
+
+    func testContradictoryTextureUsesUnclearControlledValue() throws {
+        let analysis = Analysis(
+            lesionType: "rough scaly patch",
+            colour: "skin-toned and tan",
+            symmetry: "roughly even surface",
+            borders: "ragged",
+            texture: "smooth, even surface",
+            summary: "Generated text is replaced."
+        ).normalized
+
+        XCTAssertEqual(analysis.lesionType, "Patch")
+        XCTAssertEqual(analysis.colour, "Skin-coloured and Tan")
+        XCTAssertEqual(analysis.symmetry, "Symmetric")
+        XCTAssertEqual(analysis.borders, "Irregular")
+        XCTAssertEqual(analysis.texture, "Texture unclear")
+        XCTAssertEqual(analysis, analysis.normalized)
     }
 }
-

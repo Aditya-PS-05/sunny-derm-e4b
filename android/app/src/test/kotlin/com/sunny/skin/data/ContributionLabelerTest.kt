@@ -41,4 +41,16 @@ class ContributionLabelerTest {
         assertEquals(model, labels.modelOutput)
         assertEquals(corrected, labels.correctedOutput)
     }
+
+    @Test
+    fun automaticVocabularyNormalization_isNotAUserCorrection() {
+        val freeFormRaw = raw.replace("Roughly symmetric", "roughly even surface")
+            .replace("Defined", "somewhat ragged borders")
+        val publicOutput = requireNotNull(com.sunny.skin.inference.SchemaParser.parse(freeFormRaw))
+
+        val labels = ContributionLabeler.from(freeFormRaw, publicOutput)
+
+        assertEquals("roughly even surface", labels.modelOutput.symmetry)
+        assertNull(labels.correctedOutput)
+    }
 }

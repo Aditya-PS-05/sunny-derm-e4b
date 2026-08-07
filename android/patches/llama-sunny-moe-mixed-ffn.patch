@@ -1,3 +1,24 @@
+diff --git a/ggml/src/ggml-opencl/ggml-opencl.cpp b/ggml/src/ggml-opencl/ggml-opencl.cpp
+index 10f9cc2..260b130 100644
+--- a/ggml/src/ggml-opencl/ggml-opencl.cpp
++++ b/ggml/src/ggml-opencl/ggml-opencl.cpp
+@@ -9289,10 +9289,16 @@ static ggml_backend_buffer_t ggml_backend_opencl_buffer_type_alloc_buffer(ggml_b
+ 
+     cl_int err;
+     cl_mem mem = clCreateBuffer(backend_ctx->context, CL_MEM_READ_WRITE, size, NULL, &err);
++#if !defined(__ANDROID__)
++    // Older Qualcomm Android drivers expose the large-buffer property but not
++    // the OpenCL 3.0 clCreateBufferWithProperties entry point. Sunny's model
++    // tensors are below the normal allocation limit, so the standard API is
++    // sufficient and keeps the optional backend loadable on Adreno A6xx.
+     if (err != CL_SUCCESS && backend_ctx->adreno_use_large_buffer) {
+         cl_mem_properties props[] = { 0x41A6 /* CL_LARGE_BUFFER_QCOM */, 1, 0 };
+         mem = clCreateBufferWithProperties(backend_ctx->context, props, CL_MEM_READ_WRITE, size, NULL, &err);
+     }
++#endif
+ 
+     if (err != CL_SUCCESS) {
+         GGML_LOG_INFO("%s: failed to allocate %.2f MiB\n", __func__, size / 1024.0 / 1024.0);
 diff --git a/gguf-py/gguf/constants.py b/gguf-py/gguf/constants.py
 index cd4cdef..a85f318 100644
 --- a/gguf-py/gguf/constants.py
@@ -36,9 +57,8 @@ index 4bfebc8..a33be5d 100644
 @@ -76,7 +86,9 @@ void llama_model_llama::load_arch_tensors(llama_model_loader &) {
              layer.ffn_down_b = create_tensor(tn(LLM_TENSOR_FFN_DOWN, "bias", i), {n_embd}, TENSOR_NOT_REQUIRED);
              layer.ffn_up_b   = create_tensor(tn(LLM_TENSOR_FFN_UP,   "bias", i), {n_ff}, TENSOR_NOT_REQUIRED);
--        } else {
+         } else {
 -            layer.ffn_gate_inp  = create_tensor(tn(LLM_TENSOR_FFN_GATE_INP,  "weight", i), {n_embd, n_expert}, 0);
-+        } else {
 +            layer.ffn_exp_probs_b = create_tensor(
 +                    tn(LLM_TENSOR_FFN_EXP_PROBS_B, i),
 +                    {n_expert}, TENSOR_NOT_REQUIRED);
@@ -114,6 +134,30 @@ index 4bfebc8..a33be5d 100644
          cur = build_cvec(cur, il);
          cb(cur, "l_out", il);
  
+diff --git a/tools/mtmd/mtmd-image.cpp b/tools/mtmd/mtmd-image.cpp
+index 01d9b45..5550592 100644
+--- a/tools/mtmd/mtmd-image.cpp
++++ b/tools/mtmd/mtmd-image.cpp
+@@ -1078,9 +1078,16 @@ mtmd_image_preproc_out mtmd_image_preprocessor_idefics3::preprocess(const clip_i
+ 
+     mtmd_image_preproc_out output;
+     output.append_overview(hparams, sliced.overview, true);
+-    output.append(hparams, sliced.slices, true);
+-    output.grid_x = instructions.grid_size.width;
+-    output.grid_y = instructions.grid_size.height;
++#if !defined(SUNNY_MOBILE_GLOBAL_IMAGE_ONLY)
++    // Transformers emits only the global image when resizing produces a
++    // single 1x1 tile. Keeping that tile as a second image duplicates 81
++    // visual tokens and changes every sequence-level Sunny router decision.
++    if (instructions.grid_size.width > 1 || instructions.grid_size.height > 1) {
++        output.append(hparams, sliced.slices, true);
++        output.grid_x = instructions.grid_size.width;
++        output.grid_y = instructions.grid_size.height;
++    }
++#endif
+     return output;
+ }
+ 
 diff --git a/tools/mtmd/mtmd.cpp b/tools/mtmd/mtmd.cpp
 index 724538b..f686339 100644
 --- a/tools/mtmd/mtmd.cpp
@@ -129,25 +173,4 @@ index 724538b..f686339 100644
                      tok_ov_img_end     = {lookup_token("<fake_token_around_image>")};
                      tok_row_end        = {lookup_token("\n")};
                      sli_img_start_tmpl = "<fake_token_around_image><row_%d_col_%d>";
-diff --git a/tools/mtmd/mtmd-image.cpp b/tools/mtmd/mtmd-image.cpp
-index 01d9b45..6023397 100644
---- a/tools/mtmd/mtmd-image.cpp
-+++ b/tools/mtmd/mtmd-image.cpp
-@@ -1078,9 +1078,14 @@ mtmd_image_preproc_out mtmd_image_preprocessor_idefics3::preprocess(const clip_i
- 
-     mtmd_image_preproc_out output;
-     output.append_overview(hparams, sliced.overview, true);
--    output.append(hparams, sliced.slices, true);
--    output.grid_x = instructions.grid_size.width;
--    output.grid_y = instructions.grid_size.height;
-+    // Transformers emits only the global image when resizing produces a
-+    // single 1x1 tile. Keeping that tile as a second image duplicates 81
-+    // visual tokens and changes every sequence-level Sunny router decision.
-+    if (instructions.grid_size.width > 1 || instructions.grid_size.height > 1) {
-+        output.append(hparams, sliced.slices, true);
-+        output.grid_x = instructions.grid_size.width;
-+        output.grid_y = instructions.grid_size.height;
-+    }
-     return output;
- }
- 
+

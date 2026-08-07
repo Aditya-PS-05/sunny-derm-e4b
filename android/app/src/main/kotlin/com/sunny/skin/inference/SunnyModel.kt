@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 
 /**
  * The on-device vision-language model. Implementations wrap a concrete runtime
- * (Sunny-MoE locally or Sunny AI Cloud remotely). The contract is deliberately tiny: one image
+ * (Sunny Offline locally or Sunny AI Cloud remotely). The contract is deliberately tiny: one image
  * in, raw model text out — parsing, guardrails and re-runs live in
  * [SunnyDescriber] so every runtime enforces the same safety boundary.
  *

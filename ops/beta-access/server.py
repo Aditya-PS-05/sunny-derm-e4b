@@ -29,10 +29,13 @@ from typing import Any, Dict, Optional, Tuple
 
 INSTALLATION_RE = re.compile(r"^[A-Za-z0-9._-]{20,128}$")
 REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9._-]{16,128}$")
-MODEL_PREFIX = "sunny-moe-2.2b-v4-gguf/"
+MODEL_PREFIX = "sunny-pad-smolvlm-500m-v1-gguf/"
 MODEL_PATHS = {
-    MODEL_PREFIX + "sunny-moe-text-Q4_K_M.gguf",
-    MODEL_PREFIX + "sunny-moe-mmproj-F16.gguf",
+    MODEL_PREFIX + "sunny-pad-smolvlm-500m-Q4_K_M.gguf",
+    MODEL_PREFIX + "sunny-pad-smolvlm-500m-mmproj-Q8_0.gguf",
+    MODEL_PREFIX + "derm.gbnf",
+    MODEL_PREFIX + "THIRD_PARTY_NOTICES.txt",
+    MODEL_PREFIX + "Apache-2.0.txt",
     MODEL_PREFIX + "manifest.json",
 }
 

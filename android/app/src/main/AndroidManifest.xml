@@ -5,19 +5,13 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
-    <!-- Internet supports Sunny-MoE download, consented Pro Cloud, and optional
-         contribution modes. -->
+    <!-- Internet supports consented AI Cloud and optional contribution modes. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Local skin-check reminders (no network; notifications + reboot re-arm). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
-    <!-- Foreground service so the one-off ~3.08 GB model download survives the app
-         being backgrounded/killed. dataSync type; no network beyond the download. -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".SunnyApp"
@@ -32,6 +26,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Sunny">
+
+        <!-- Optional Qualcomm/Adreno acceleration. Unsupported devices keep the
+             dynamically loaded CPU backend instead of becoming incompatible. -->
+        <uses-native-library
+            android:name="libOpenCL.so"
+            android:required="false" />
 
         <activity
             android:name=".MainActivity"
@@ -48,12 +48,6 @@
         <receiver
             android:name=".reminder.ReminderReceiver"
             android:exported="false" />
-
-        <!-- Runs the ~3.08 GB model download in the foreground so it isn't killed. -->
-        <service
-            android:name=".inference.download.ModelDownloadService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
 
         <!-- Re-arms pending reminders after a device reboot. -->
         <receiver

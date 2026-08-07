@@ -45,6 +45,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.sunny.skin.ui.theme.SunnyMotion
@@ -222,17 +224,26 @@ fun SunnyChip(
 @Composable
 fun MetaChip(label: String, modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier.defaultMinSize(minHeight = 48.dp),
+        modifier = modifier,
         shape = RoundedCornerShape(50),
         color = SunnyColors.Surface,
         border = BorderStroke(1.dp, SunnyColors.Divider),
     ) {
-        Text(
-            label,
-            style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-            color = SunnyColors.TextSecondary,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-        )
+        Box(
+            modifier = Modifier
+                .defaultMinSize(minHeight = 48.dp)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                label,
+                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                color = SunnyColors.TextSecondary,
+                textAlign = TextAlign.Center,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+        }
     }
 }
 

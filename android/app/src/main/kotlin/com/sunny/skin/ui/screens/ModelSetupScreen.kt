@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,11 +55,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sunny.skin.inference.download.ModelDownloadManager
+import com.sunny.skin.inference.download.BundledModelInstaller
 import com.sunny.skin.inference.download.ModelPackCatalog
 import com.sunny.skin.inference.download.ModelSource
 import com.sunny.skin.inference.download.ModelStatus
 import com.sunny.skin.inference.tier.SunnyModelTier
 import com.sunny.skin.inference.tier.SunnyPlan
+import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.DisclaimerCard
 import com.sunny.skin.ui.components.ScreenScaffold
 import com.sunny.skin.ui.components.SunnyCard
@@ -67,25 +71,27 @@ import com.sunny.skin.ui.theme.SunnyMotion
 import com.sunny.skin.ui.theme.rememberSunnyMotionEnabled
 
 /**
- * Sunny-MoE local-pack setup. Downloads are explicit, resumable and verified.
+ * PAD-trained Sunny Offline setup. Play installs the model with the app; Sunny
+ * verifies and prepares it privately before first use.
  * Sunny Pro is represented only by the consented server route.
  */
 @Composable
-fun ModelSetupScreen(onBack: () -> Unit) {
+fun ModelSetupScreen(vm: SunnyViewModel, onBack: () -> Unit) {
     val status by ModelDownloadManager.status.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
-    val settings = remember(context) { com.sunny.skin.data.SettingsStore(context) }
-    var cloudSelected by androidx.compose.runtime.saveable.rememberSaveable {
-        androidx.compose.runtime.mutableStateOf(settings.useServerInference)
-    }
+    val serverSelected by vm.useServerInference.collectAsStateWithLifecycle()
+    var showCloudConsent by remember { mutableStateOf(false) }
     var allowMobileData by androidx.compose.runtime.saveable.rememberSaveable {
         androidx.compose.runtime.mutableStateOf(true)
     }
     var showOfflineDetails by androidx.compose.runtime.saveable.rememberSaveable {
-        androidx.compose.runtime.mutableStateOf(!settings.useServerInference)
+        androidx.compose.runtime.mutableStateOf(!vm.settings.useServerInference)
     }
     val targetTier = SunnyModelTier.SUNNY_MOE
     val targetPack = ModelPackCatalog.sunnyMoe
+    val bundledModelIncluded = remember(context) {
+        BundledModelInstaller.contains(context, targetPack)
+    }
     val storePlans by com.sunny.skin.SunnyApp.instance.billing.plans.collectAsStateWithLifecycle()
     val billingState by com.sunny.skin.SunnyApp.instance.billing.state.collectAsStateWithLifecycle()
     val verifiedEntitlement by com.sunny.skin.subscription.SubscriptionEntitlements.current
@@ -106,12 +112,13 @@ fun ModelSetupScreen(onBack: () -> Unit) {
     val hasProAccess = accessEntitlement.effectivePlan(now) == SunnyPlan.PRO
     val cloudReady = cloudAuthorization?.isValid(now) == true ||
         com.sunny.skin.inference.ModelProvider.serverAvailable(context)
-    val downloadSourceAvailable = modelDownloadAuthorization?.isValid(now) == true ||
+    val localSupported = com.sunny.skin.inference.ModelProvider.localDeviceSupported()
+    val downloadSourceAvailable = bundledModelIncluded ||
+        modelDownloadAuthorization?.isValid(now) == true ||
         ModelSource.privateBetaOriginConfigured
     // Selection is a user preference and must remain visible even while a
     // short-lived authorization is refreshing. Conflating it with readiness was
     // what produced the dead "Not configured" screen.
-    val serverSelected = cloudSelected
     val localOperation = status is ModelStatus.Downloading || status == ModelStatus.Verifying
     // Pick up weights that were adb-pushed onto the device while the app was open.
     androidx.compose.runtime.LaunchedEffect(Unit) { ModelDownloadManager.refresh() }
@@ -127,7 +134,38 @@ fun ModelSetupScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(8.dp))
             StatusHeader(status, serverSelected, cloudReady)
             Spacer(Modifier.height(16.dp))
-            ModelPlanOverview(serverSelected, cloudReady, hasProAccess, cloudAuthorization?.quota)
+            ModelPlanOverview(
+                serverSelected,
+                cloudReady,
+                hasProAccess,
+                bundledModelIncluded,
+                cloudAuthorization?.quota,
+            )
+            if (com.sunny.skin.AppMode.serverMode) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = {
+                        if (serverSelected) {
+                            vm.setUseServerInference(false)
+                            showOfflineDetails = true
+                        } else {
+                            showCloudConsent = true
+                        }
+                    },
+                    enabled = serverSelected || cloudReady,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                ) {
+                    Text(
+                        when {
+                            serverSelected -> "Switch to on-device analysis"
+                            cloudReady -> "Use cloud analysis"
+                            else -> "Cloud analysis unavailable"
+                        },
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
             if (!hasProAccess &&
                 (storePlans.isNotEmpty() || billingState is com.sunny.skin.subscription.BillingState.Error)
             ) {
@@ -154,8 +192,13 @@ fun ModelSetupScreen(onBack: () -> Unit) {
                 ModelPipeline(status, serverSelected)
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Offline analysis uses ${targetPack?.let { formatSize(it.totalBytes) } ?: "about 3 GB"} " +
-                        "and works without internet after installation. Android can preserve it only " +
+                    (if (bundledModelIncluded) {
+                        "Offline analysis is included in the app installation. Sunny verifies and " +
+                            "prepares ${formatSize(targetPack.totalBytes)} privately on this phone. "
+                    } else {
+                        "Offline analysis uses ${formatSize(targetPack.totalBytes)} and works " +
+                            "without internet after installation. "
+                    }) + "Android can preserve it only " +
                         "when you choose “Keep app data” during uninstall.",
                     style = MaterialTheme.typography.bodySmall,
                     color = SunnyColors.TextSecondary,
@@ -187,12 +230,14 @@ fun ModelSetupScreen(onBack: () -> Unit) {
                             style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
                         Spacer(Modifier.height(12.dp))
                     }
-                    ConnectionNote(targetTier, targetPack?.totalBytes)
-                    Spacer(Modifier.height(12.dp))
-                    DownloadNetworkChoice(
-                        allowMobileData = allowMobileData,
-                        onAllowMobileDataChange = { allowMobileData = it },
-                    )
+                    ConnectionNote(targetTier, targetPack.totalBytes, bundledModelIncluded)
+                    if (!bundledModelIncluded) {
+                        Spacer(Modifier.height(12.dp))
+                        DownloadNetworkChoice(
+                            allowMobileData = allowMobileData,
+                            onAllowMobileDataChange = { allowMobileData = it },
+                        )
+                    }
                     if (!downloadSourceAvailable) {
                         Spacer(Modifier.height(12.dp))
                         Text(
@@ -216,12 +261,18 @@ fun ModelSetupScreen(onBack: () -> Unit) {
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Action),
                     ) {
-                        Icon(Icons.Filled.CloudDownload, null, modifier = Modifier.size(20.dp))
+                        Icon(
+                            if (bundledModelIncluded) Icons.Filled.Verified else Icons.Filled.CloudDownload,
+                            null,
+                            modifier = Modifier.size(20.dp),
+                        )
                         Spacer(Modifier.size(8.dp))
                         Text(
                             when {
                                 !downloadSourceAvailable -> "Download service unavailable"
+                                s is ModelStatus.Failed && bundledModelIncluded -> "Retry preparation"
                                 s is ModelStatus.Failed -> "Retry download"
+                                bundledModelIncluded -> "Prepare included model"
                                 else -> "Download offline model"
                             },
                             fontWeight = FontWeight.SemiBold)
@@ -255,28 +306,20 @@ fun ModelSetupScreen(onBack: () -> Unit) {
                     OutlinedButton(onClick = { ModelDownloadManager.cancel() },
                         modifier = Modifier.fillMaxWidth()) { Text("Cancel") }
                 }
-                ModelStatus.Verifying -> InfoRow(text = "Verifying checksums…")
+                ModelStatus.Verifying -> InfoRow(
+                    text = "Preparing and verifying the included offline model…",
+                )
                 ModelStatus.Ready -> {
                     Text(
-                        "Offline analysis is installed and ready.",
+                        if (localSupported) {
+                            "Offline analysis is installed and ready."
+                        } else {
+                            com.sunny.skin.inference.DeviceInferenceCapabilities.unavailableReason()
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = SunnyColors.TextSecondary,
                         textAlign = TextAlign.Center,
                     )
-                    if (serverSelected) {
-                        Spacer(Modifier.height(12.dp))
-                        Button(
-                            onClick = {
-                                cloudSelected = false
-                                settings.useServerInference = false
-                                com.sunny.skin.inference.ModelProvider.reset()
-                                ModelDownloadManager.refresh()
-                            },
-                            modifier = Modifier.fillMaxWidth().height(52.dp),
-                            shape = RoundedCornerShape(26.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Action),
-                        ) { Text("Use offline analysis", fontWeight = FontWeight.SemiBold) }
-                    }
                 }
                     }
                 }
@@ -289,6 +332,36 @@ fun ModelSetupScreen(onBack: () -> Unit) {
                 body = com.sunny.skin.AppMode.aiDescription(serverSelected),
             )
         }
+    }
+
+    if (showCloudConsent) {
+        AlertDialog(
+            onDismissRequest = { showCloudConsent = false },
+            containerColor = SunnyColors.Surface,
+            title = { Text("Use cloud analysis?") },
+            text = {
+                Text(
+                    "Each photo you analyse will be sent over HTTPS to Sunny AI Cloud for a " +
+                        "visual description. Saved photos and notes remain encrypted on this " +
+                        "device. You can switch back to on-device analysis anytime.",
+                    color = SunnyColors.TextSecondary,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.setUseServerInference(true)
+                    showOfflineDetails = false
+                    showCloudConsent = false
+                }) {
+                    Text("Use cloud analysis", color = SunnyColors.OrangeText)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCloudConsent = false }) {
+                    Text("Keep on device", color = SunnyColors.TextSecondary)
+                }
+            },
+        )
     }
 }
 
@@ -374,6 +447,7 @@ private fun ModelPlanOverview(
     serverSelected: Boolean,
     cloudReady: Boolean,
     hasProAccess: Boolean,
+    bundledModelIncluded: Boolean,
     quota: com.sunny.skin.subscription.CloudQuota?,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -390,7 +464,7 @@ private fun ModelPlanOverview(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Use the cloud without a download, or install private offline analysis with Pro.",
+                "Use the cloud, or choose private offline analysis with Pro.",
                 style = MaterialTheme.typography.bodySmall,
                 color = SunnyColors.TextSecondary,
             )
@@ -404,7 +478,7 @@ private fun ModelPlanOverview(
                             "${quota.dailyRemaining}/${quota.dailyLimit} today"
                     serverSelected && cloudReady -> "Selected · Cloud ready"
                     serverSelected -> "Selected · service connection unavailable"
-                    else -> "Available · select in Settings"
+                    else -> "Available · explicit opt-in required"
                 },
                 stateColor = when {
                     quota?.exhausted == true -> SunnyColors.Review
@@ -420,14 +494,20 @@ private fun ModelPlanOverview(
                 state = when {
                     localInstalled && hasProAccess -> "Installed"
                     localInstalled -> "Installed · Pro required to use"
-                    hasProAccess -> "Ready to download · 3.08 GB"
+                    bundledModelIncluded && hasProAccess -> "Included with app · ready to prepare"
+                    bundledModelIncluded -> "Included with app · Pro required to use"
+                    hasProAccess -> "Ready to download · 605 MB"
                     else -> "Pro required"
                 },
                 stateColor = if (localInstalled) SunnyColors.OrangeText else SunnyColors.TextSecondary,
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Cloud analysis does not download a model. Offline analysis stores 3.08 GB privately on this phone.",
+                if (bundledModelIncluded) {
+                    "The offline model arrives with the app installation; no second network download is required."
+                } else {
+                    "Cloud analysis does not download a model. Offline analysis stores 605 MB privately on this phone."
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = SunnyColors.TextTertiary,
             )
@@ -468,7 +548,7 @@ private fun ModelPlanRow(
                 if (tier == SunnyModelTier.PRO_CLOUD) {
                     "Fast analysis using Sunny's secure server."
                 } else {
-                    "Private analysis that works without internet after download."
+                    "Private analysis that works without internet after preparation."
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = SunnyColors.TextSecondary,
@@ -528,18 +608,20 @@ private fun StatusHeader(status: ModelStatus, serverSelected: Boolean, cloudRead
     } else when (status) {
         ModelStatus.Ready -> "Offline analysis installed"
         is ModelStatus.Downloading -> "Downloading model"
-        ModelStatus.Verifying -> "Verifying"
-        ModelStatus.NotConfigured -> "Offline download unavailable"
-        is ModelStatus.Failed -> "Download paused"
+        ModelStatus.Verifying -> "Preparing offline model"
+        ModelStatus.NotConfigured -> "Offline model unavailable"
+        is ModelStatus.Failed -> "Setup paused"
         ModelStatus.Idle -> "Offline analysis available"
     }
     Text(label, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 }
 
 @Composable
-private fun ConnectionNote(tier: SunnyModelTier, bytes: Long?) {
+private fun ConnectionNote(tier: SunnyModelTier, bytes: Long?, bundled: Boolean) {
     InfoRow(
-        text = if (bytes == null) {
+        text = if (bundled && bytes != null) {
+            "Included with the app · ${formatSize(bytes)} · no network download."
+        } else if (bytes == null) {
             "${tier.displayName} is awaiting publication."
         } else {
             "${formatSize(bytes)}. Downloads over Wi-Fi or mobile data and resumes if interrupted."
@@ -629,7 +711,7 @@ private fun ModelPipeline(status: ModelStatus, serverSelected: Boolean) {
             if (serverSelected) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Cloud is selected. Installing offline analysis is optional for Pro users.",
+                    "Cloud is selected. Preparing offline analysis is optional for Pro users.",
                     style = MaterialTheme.typography.bodySmall,
                     color = SunnyColors.TextSecondary,
                 )
@@ -640,7 +722,7 @@ private fun ModelPipeline(status: ModelStatus, serverSelected: Boolean) {
                 verticalAlignment = Alignment.Top,
             ) {
                 PipelineStep(
-                    label = "Download",
+                    label = "Prepare",
                     icon = Icons.Filled.CloudDownload,
                     state = status.downloadStepState(serverSelected),
                     modifier = Modifier.weight(1f),
@@ -674,7 +756,7 @@ private fun ModelPipeline(status: ModelStatus, serverSelected: Boolean) {
                         modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        if (status is ModelStatus.NotConfigured) "Secure model download is unavailable"
+                        if (status is ModelStatus.NotConfigured) "Offline model setup is unavailable"
                         else "Setup paused · retry when ready",
                         style = MaterialTheme.typography.bodySmall,
                         color = SunnyColors.TextSecondary,

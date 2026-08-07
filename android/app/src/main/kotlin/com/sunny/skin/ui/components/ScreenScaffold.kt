@@ -1,6 +1,8 @@
 package com.sunny.skin.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.defaultMinSize
@@ -21,12 +23,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.ui.theme.sunnyPressScale
 
 /**
  * Standard detail-screen frame: a circular back button, centred title, and an
@@ -66,8 +70,16 @@ fun ScreenScaffold(
 
 @Composable
 fun CircleButton(onClick: () -> Unit, content: @Composable () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
     Surface(
-        Modifier.size(48.dp).clip(CircleShape).clickable(onClick = onClick),
+        Modifier.size(48.dp)
+            .sunnyPressScale(interactionSource)
+            .clip(CircleShape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClick = onClick,
+            ),
         shape = CircleShape, color = SunnyColors.Surface, shadowElevation = 2.dp,
     ) {
         Box(contentAlignment = Alignment.Center) { content() }

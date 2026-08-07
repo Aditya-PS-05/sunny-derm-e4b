@@ -48,10 +48,13 @@ interface QuotaState {
 const encoder = new TextEncoder();
 const GOOGLE_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const MODEL_PREFIX = "sunny-moe-2.2b-v4-gguf/";
+const MODEL_PREFIX = "sunny-pad-smolvlm-500m-v1-gguf/";
 const MODEL_PATHS = new Set([
-  `${MODEL_PREFIX}sunny-moe-text-Q4_K_M.gguf`,
-  `${MODEL_PREFIX}sunny-moe-mmproj-F16.gguf`,
+  `${MODEL_PREFIX}sunny-pad-smolvlm-500m-Q4_K_M.gguf`,
+  `${MODEL_PREFIX}sunny-pad-smolvlm-500m-mmproj-Q8_0.gguf`,
+  `${MODEL_PREFIX}derm.gbnf`,
+  `${MODEL_PREFIX}THIRD_PARTY_NOTICES.txt`,
+  `${MODEL_PREFIX}Apache-2.0.txt`,
   `${MODEL_PREFIX}manifest.json`,
 ]);
 const ACTIVE_STATES = new Set([

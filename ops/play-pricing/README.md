@@ -20,4 +20,4 @@ then review conversion and retention by country after 8–12 weeks.
 
 The annual price is approximately 37–40% below twelve monthly payments. Do not
 create a zero-cost trial for the downloadable model: the paid introductory month
-establishes a verified purchase before the private 3.08 GB pack is exposed.
+establishes a verified purchase before the private 393 MiB pack is exposed.

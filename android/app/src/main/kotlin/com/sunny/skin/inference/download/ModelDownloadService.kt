@@ -24,7 +24,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
- * Runs the ~3.08 GB Sunny-MoE download as a foreground service so it survives the app
+ * Runs the ~605 MB Sunny Offline download as a foreground service so it survives the app
  * being backgrounded or killed. Progress is mirrored into
  * [ModelDownloadManager.status] (the UI's source of truth) and an ongoing
  * notification. The underlying [WeightDownloader] resumes partial transfers, so
@@ -63,7 +63,7 @@ class ModelDownloadService : Service() {
                 System.currentTimeMillis(),
             )
         ) {
-            ModelDownloadManager.publishFailed("Verified Pro access is required to download Sunny MoE.")
+            ModelDownloadManager.publishFailed("Verified Pro access is required to download Sunny Offline.")
             stopSelfSafe()
             return
         }

@@ -67,7 +67,7 @@ server {
         proxy_buffering off;
     }
 
-    location ~ ^/models/(sunny-moe-2\.2b-v4-gguf/(?:sunny-moe-text-Q4_K_M\.gguf|sunny-moe-mmproj-F16\.gguf|manifest\.json))$ {
+    location ~ ^/models/(sunny-pad-smolvlm-500m-v1-gguf/(?:sunny-pad-smolvlm-500m-Q4_K_M\.gguf|sunny-pad-smolvlm-500m-mmproj-Q8_0\.gguf|derm\.gbnf|THIRD_PARTY_NOTICES\.txt|Apache-2\.0\.txt|manifest\.json))$ {
         if ($sunny_authorized = 0) { return 401; }
         limit_conn sunny_model_connections 2;
         limit_except GET HEAD { deny all; }

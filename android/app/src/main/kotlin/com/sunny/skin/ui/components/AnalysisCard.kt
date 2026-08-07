@@ -18,12 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sunny.skin.data.model.Analysis
+import com.sunny.skin.data.model.normalized
 import com.sunny.skin.ui.theme.SunnyColors
 
 /**
  * The "Sunny Analysis" card — the six parsed fields in fixed order, each a
- * labelled row (design.md §4). Values are rendered verbatim; the UI never
- * paraphrases. A persistent inline disclaimer sits directly under the header.
+ * labelled row (design.md §4). Values use the controlled public vocabulary.
+ * A persistent inline disclaimer sits directly under the header.
  */
 @Composable
 fun AnalysisCard(
@@ -54,7 +55,7 @@ fun AnalysisCard(
 
         SunnyCard {
             Column(Modifier.padding(horizontal = 16.dp)) {
-                val rows = analysis.rows()
+                val rows = analysis.normalized().rows()
                 rows.forEachIndexed { i, (label, value) ->
                     FieldRow(label, value, changed = label in changedLabels)
                     if (i != rows.lastIndex) HorizontalDivider(color = SunnyColors.Divider)

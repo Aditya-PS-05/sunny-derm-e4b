@@ -69,6 +69,7 @@ fun CheckSessionScreen(
     vm: SunnyViewModel,
     onBack: () -> Unit,
     onCapture: () -> Unit,
+    onAddPhoto: () -> Unit,
 ) {
     val scans by vm.scans.collectAsStateWithLifecycle()
     val session by vm.checkSession.collectAsStateWithLifecycle()
@@ -125,6 +126,7 @@ fun CheckSessionScreen(
                     hasScans = scans.any { it.latest != null },
                     modifier = Modifier.fillMaxSize().padding(inner),
                     onStart = { vm.startCheckSession() },
+                    onAddPhoto = onAddPhoto,
                 )
                 return@ScreenScaffold
             }
@@ -304,7 +306,12 @@ fun CheckSessionScreen(
 }
 
 @Composable
-private fun EmptySession(hasScans: Boolean, modifier: Modifier, onStart: () -> Unit) {
+private fun EmptySession(
+    hasScans: Boolean,
+    modifier: Modifier,
+    onStart: () -> Unit,
+    onAddPhoto: () -> Unit,
+) {
     Column(
         modifier.padding(28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -328,13 +335,13 @@ private fun EmptySession(hasScans: Boolean, modifier: Modifier, onStart: () -> U
             color = SunnyColors.TextSecondary,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
-        if (hasScans) {
-            Spacer(Modifier.height(18.dp))
-            Button(
-                onClick = onStart,
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Action),
-            ) { Text("Start photo check") }
+        Spacer(Modifier.height(18.dp))
+        Button(
+            onClick = if (hasScans) onStart else onAddPhoto,
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = SunnyColors.Action),
+        ) {
+            Text(if (hasScans) "Start photo check" else "Add first photo")
         }
     }
 }

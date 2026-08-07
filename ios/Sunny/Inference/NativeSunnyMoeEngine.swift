@@ -17,19 +17,23 @@ enum NativeRuntimeAvailability {
 final class NativeSunnyMoeEngine: @unchecked Sendable, InferenceClient {
     let textModelURL: URL
     let projectorURL: URL
-    var modelVersion: String { "Sunny-MoE-2.2B-v4 (on-device)" }
+    let grammarURL: URL
+    var modelVersion: String { "Sunny PAD SmolVLM 500M v1 (on-device)" }
 
     #if SUNNY_MOE_RUNTIME
     private var handle: OpaquePointer?
     #endif
 
-    init(textModelURL: URL, projectorURL: URL) throws {
+    init(textModelURL: URL, projectorURL: URL, grammarURL: URL) throws {
         self.textModelURL = textModelURL
         self.projectorURL = projectorURL
+        self.grammarURL = grammarURL
         #if SUNNY_MOE_RUNTIME
         handle = textModelURL.path.withCString { textPath in
             projectorURL.path.withCString { projectorPath in
-                sunny_moe_create(textPath, projectorPath)
+                grammarURL.path.withCString { grammarPath in
+                    sunny_moe_create(textPath, projectorPath, grammarPath)
+                }
             }
         }
         guard handle != nil else { throw AnalysisError.serviceUnavailable }
@@ -65,7 +69,11 @@ final class NativeSunnyMoeEngine: @unchecked Sendable, InferenceClient {
 
 #if SUNNY_MOE_RUNTIME
 @_silgen_name("sunny_moe_create")
-private func sunny_moe_create(_ textModel: UnsafePointer<CChar>, _ projector: UnsafePointer<CChar>) -> OpaquePointer?
+private func sunny_moe_create(
+    _ textModel: UnsafePointer<CChar>,
+    _ projector: UnsafePointer<CChar>,
+    _ grammar: UnsafePointer<CChar>
+) -> OpaquePointer?
 
 @_silgen_name("sunny_moe_describe")
 private func sunny_moe_describe(

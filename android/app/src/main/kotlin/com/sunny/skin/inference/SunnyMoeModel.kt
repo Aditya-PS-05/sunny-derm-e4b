@@ -7,12 +7,13 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 
-/** The sole downloadable on-device engine. Pro remains a [RemoteSunnyModel]. */
+/** The bundled PAD-UFES-20-trained on-device engine. */
 class SunnyMoeModel(
     private val packDirectory: String,
-    private val threads: Int = Runtime.getRuntime().availableProcessors().coerceIn(2, 4),
+    private val nativeLibraryDirectory: String,
+    private val threads: Int = Runtime.getRuntime().availableProcessors().coerceIn(4, 8),
 ) : SunnyModel {
-    override val version = "sunny-moe-2.2b-v4-gguf"
+    override val version = "sunny-pad-smolvlm-500m-mobile256-v2-gguf"
     private var handle = 0L
     private val mutex = Mutex()
 
@@ -23,10 +24,14 @@ class SunnyMoeModel(
             if (handle != 0L) return@withContext
             require(SunnyMoeBridge.ensureLibrary()) { "libsunny_moe is not available" }
             require(File(packDirectory, "manifest.json").isFile) {
-                "Sunny-MoE manifest is missing from $packDirectory"
+                "Sunny Offline manifest is missing from $packDirectory"
             }
-            handle = SunnyMoeBridge.nativeInit(packDirectory, threads)
-            check(handle != 0L) { "Sunny-MoE native initialization failed" }
+            handle = SunnyMoeBridge.nativeInit(
+                packDirectory = packDirectory,
+                nativeLibraryDirectory = nativeLibraryDirectory,
+                threads = threads,
+            )
+            check(handle != 0L) { "Sunny Offline native initialization failed" }
         }
     }
 
@@ -48,11 +53,11 @@ class SunnyMoeModel(
                     handle = handle,
                     bitmap = nativeBitmap,
                     prompt = Prompt.SCHEMA_PROMPT,
-                    maxNewTokens = Prompt.MAX_NEW_TOKENS,
+                    maxNewTokens = Prompt.DEVICE_MAX_NEW_TOKENS,
                     temperature = Prompt.TEMPERATURE,
                 ).also { output ->
                     check(output.isNotBlank()) {
-                        "Sunny-MoE did not produce output"
+                        "Sunny Offline did not produce output"
                     }
                 }
             }

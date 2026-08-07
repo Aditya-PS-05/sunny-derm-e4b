@@ -1,0 +1,96 @@
+{
+  "format": "sunny-pad-smolvlm-mobile-gguf-v2",
+  "version": "sunny-pad-smolvlm-500m-mobile256-v2-gguf",
+  "architecture": "idefics3",
+  "seed_model": "HuggingFaceTB/SmolVLM-500M-Instruct",
+  "training": {
+    "dataset": "PAD-UFES-20",
+    "dataset_doi": "10.17632/zr7vgbcyr2.1",
+    "dataset_source": "ISIC collection 406",
+    "dataset_license": "CC BY 4.0",
+    "downloaded_images": 2298,
+    "accepted_images": 2292,
+    "train_images": 2015,
+    "validation_images": 277,
+    "excluded_images": 6,
+    "split_unit": "lesion",
+    "seed": 42,
+    "method": "3-epoch LoRA fine-tune (r=16, alpha=16), merged into SmolVLM 500M",
+    "changes_notice": "Images were resized and normalized; non-diagnostic descriptions were generated; SmolVLM was fine-tuned; weights were merged and converted to GGUF. The Android text model uses Q8_0. The Android vision projector uses F16 at a fixed 256 px input with position embeddings selected from the trained 512 px grid using SmolVLM's bucket rule."
+  },
+  "runtime": {
+    "engine": "llama.cpp+mtmd",
+    "android_llama_cpp_commit": "72874f559c598b8f89fbb24864868337cf5afb4c",
+    "export_llama_cpp_commit": "e3546c7948e3af463d0b401e6421d5a4c2faf565",
+    "abi": "arm64-v8a",
+    "minimum_ram_bytes": 3000000000,
+    "input_image_size": 256,
+    "source_position_grid": "32x32",
+    "mobile_position_grid": "16x16",
+    "visual_tokens": 16,
+    "prompt_template": "SmolVLM canonical single-user-turn image-first template",
+    "grammar_root": "root"
+  },
+  "artifacts": [
+    {
+      "file": "sunny-pad-smolvlm-500m-Q8_0.gguf",
+      "bytes": 436805632,
+      "sha256": "36bfbd253ea5edec715a510d97546085001c843f6616aeef5bfa818b36ce69df",
+      "role": "PAD-UFES-20-fine-tuned SmolVLM 500M Q8_0 language model for ARM acceleration"
+    },
+    {
+      "file": "sunny-pad-smolvlm-500m-mmproj-mobile256-F16.gguf",
+      "bytes": 197108288,
+      "sha256": "c084c1c8259c3eb239f0303e2ba10d7db6585a22c1f44b7880774f331a00ce9a",
+      "role": "SmolVLM 500M fixed-256 px F16 vision encoder and multimodal projector"
+    },
+    {
+      "file": "derm.gbnf",
+      "bytes": 303,
+      "sha256": "ffc98c058fdf0f34e9d529231e7572be5ee77893a997584e1670cdef31940f09",
+      "role": "bounded six-field non-diagnostic output grammar"
+    },
+    {
+      "file": "THIRD_PARTY_NOTICES.txt",
+      "bytes": 2088,
+      "sha256": "ded7a876f2e6501c7a263e3fafaef98684165ae325eac5c81fcb8b5aeb352866",
+      "role": "PAD-UFES-20 attribution and SmolVLM modification notice"
+    },
+    {
+      "file": "Apache-2.0.txt",
+      "bytes": 11357,
+      "sha256": "84829002701217076a39a84808ec52e45088ddbf9f6623896e5550becd8e09be",
+      "role": "SmolVLM Apache License 2.0 copy"
+    }
+  ],
+  "total_model_bytes": 633913920,
+  "decoding": {
+    "temperature": 0,
+    "maximum_new_tokens": 128,
+    "grammar_file": "derm.gbnf",
+    "schema_aware_stop": true,
+    "required_disclaimer": "This is a visual description only, not a diagnosis — see a clinician for any concern."
+  },
+  "validation": {
+    "mobile_projector_comparison_images": 20,
+    "format_compliance": 1.0,
+    "safety_compliance": 1.0,
+    "grammar_constrained_smoke_images": 1,
+    "grammar_constrained_format_compliance": 1.0,
+    "grammar_constrained_safety_compliance": 1.0
+  },
+  "licenses": [
+    {
+      "component": "PAD-UFES-20",
+      "license": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "source": "https://doi.org/10.17632/zr7vgbcyr2.1"
+    },
+    {
+      "component": "SmolVLM 500M",
+      "license": "Apache License 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "source": "https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct"
+    }
+  ]
+}

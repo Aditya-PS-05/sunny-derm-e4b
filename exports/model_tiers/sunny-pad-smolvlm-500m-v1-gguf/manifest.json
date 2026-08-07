@@ -1,0 +1,90 @@
+{
+  "format": "sunny-pad-smolvlm-mobile-gguf-v1",
+  "version": "sunny-pad-smolvlm-500m-v1-gguf",
+  "architecture": "idefics3",
+  "seed_model": "HuggingFaceTB/SmolVLM-500M-Instruct",
+  "training": {
+    "dataset": "PAD-UFES-20",
+    "dataset_doi": "10.17632/zr7vgbcyr2.1",
+    "dataset_source": "ISIC collection 406",
+    "dataset_license": "CC BY 4.0",
+    "downloaded_images": 2298,
+    "accepted_images": 2292,
+    "train_images": 2015,
+    "validation_images": 277,
+    "excluded_images": 6,
+    "split_unit": "lesion",
+    "seed": 42,
+    "method": "3-epoch LoRA fine-tune (r=16, alpha=16), merged into SmolVLM 500M",
+    "changes_notice": "Images were resized and normalized; non-diagnostic descriptions were generated; SmolVLM was fine-tuned; weights were merged, converted to GGUF, and quantized."
+  },
+  "runtime": {
+    "engine": "llama.cpp+mtmd",
+    "android_llama_cpp_commit": "72874f559c598b8f89fbb24864868337cf5afb4c",
+    "export_llama_cpp_commit": "e3546c7948e3af463d0b401e6421d5a4c2faf565",
+    "abi": "arm64-v8a",
+    "minimum_ram_bytes": 3000000000,
+    "prompt_template": "SmolVLM canonical single-user-turn image-first template",
+    "grammar_root": "root"
+  },
+  "artifacts": [
+    {
+      "file": "sunny-pad-smolvlm-500m-Q4_K_M.gguf",
+      "bytes": 303250432,
+      "sha256": "fb64c371d4044c7556966bf5dbf12d8aa5fb3b628a8be9ba0841189dbffe4d64",
+      "role": "PAD-UFES-20-fine-tuned SmolVLM 500M language model"
+    },
+    {
+      "file": "sunny-pad-smolvlm-500m-mmproj-Q8_0.gguf",
+      "bytes": 108782144,
+      "sha256": "ac585ec2ee776eab23c4502f1a71d9d90a4057752057c05ed2487d47dc31798f",
+      "role": "SmolVLM 500M vision encoder and multimodal projector"
+    },
+    {
+      "file": "derm.gbnf",
+      "bytes": 304,
+      "sha256": "bb7668aafa0c3b87cb5b10ecf9bd01037c6ad3ed8fdf01bc53e7b267538c2f09",
+      "role": "bounded six-field non-diagnostic output grammar"
+    },
+    {
+      "file": "THIRD_PARTY_NOTICES.txt",
+      "bytes": 2088,
+      "sha256": "ded7a876f2e6501c7a263e3fafaef98684165ae325eac5c81fcb8b5aeb352866",
+      "role": "PAD-UFES-20 attribution and SmolVLM modification notice"
+    },
+    {
+      "file": "Apache-2.0.txt",
+      "bytes": 11357,
+      "sha256": "84829002701217076a39a84808ec52e45088ddbf9f6623896e5550becd8e09be",
+      "role": "SmolVLM Apache License 2.0 copy"
+    }
+  ],
+  "total_model_bytes": 412032576,
+  "decoding": {
+    "temperature": 0,
+    "maximum_new_tokens": 256,
+    "grammar_file": "derm.gbnf",
+    "schema_aware_stop": true,
+    "required_disclaimer": "This is a visual description only, not a diagnosis — see a clinician for any concern."
+  },
+  "validation": {
+    "images": 277,
+    "format_compliance": 1.0,
+    "safety_compliance": 1.0,
+    "grammar_benchmark_mean_tokens_per_second": 354.60464615817517
+  },
+  "licenses": [
+    {
+      "component": "PAD-UFES-20",
+      "license": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "source": "https://doi.org/10.17632/zr7vgbcyr2.1"
+    },
+    {
+      "component": "SmolVLM 500M",
+      "license": "Apache License 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0",
+      "source": "https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct"
+    }
+  ]
+}

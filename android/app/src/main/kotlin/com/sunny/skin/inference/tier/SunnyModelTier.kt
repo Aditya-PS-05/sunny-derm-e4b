@@ -6,7 +6,7 @@ enum class SunnyPlan(val displayName: String, internal val rank: Int) {
     PRO("Pro", 1),
 }
 
-/** The two inference products: included server AI and Pro on-device Sunny-MoE. */
+/** The two inference products: included server AI and Pro on-device analysis. */
 enum class SunnyModelTier(
     val displayName: String,
     val requiredPlan: SunnyPlan,
@@ -14,10 +14,10 @@ enum class SunnyModelTier(
     val summary: String,
 ) {
     SUNNY_MOE(
-        displayName = "Sunny MoE",
+        displayName = "Sunny Offline",
         requiredPlan = SunnyPlan.PRO,
-        localSizeLabel = "3.08 GB",
-        summary = "The Pro downloadable model. Runs privately and offline after installation.",
+        localSizeLabel = "605 MB",
+        summary = "The Pro PAD-trained model. Runs privately and offline after installation.",
     ),
     PRO_CLOUD(
         displayName = "Sunny AI Cloud",

@@ -22,9 +22,9 @@ MODEL_URL_TTL_SECONDS = "43200"
 # database_id = "<D1_DATABASE_ID>"
 # migrations_dir = "migrations"
 #
-# [[r2_buckets]]
-# binding = "MODEL_BUCKET"
-# bucket_name = "sunny-models-private"
+[[r2_buckets]]
+binding = "MODEL_BUCKET"
+bucket_name = "sunny-models-private"
 
 # Configure these only with `wrangler secret put`:
 # GOOGLE_SERVICE_ACCOUNT_EMAIL

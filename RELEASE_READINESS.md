@@ -1,8 +1,9 @@
 # Release readiness gates
 
-Sunny is currently an engineering/research build. Public release, monetization,
-and model-weight publication are blocked until both gates below have written
-evidence and an accountable reviewer has approved them.
+Sunny is currently an engineering/research build. The former training-data
+rights blocker is resolved for the PAD-trained model described below. Public
+release remains blocked on clinical, real-device, operational, store, and
+regulatory readiness.
 
 The temporary GPU inference and contribution services are beta-only. Release
 builds additionally fail unless device inference and disabled contribution are
@@ -20,20 +21,32 @@ Before enabling freemium in a public build, additionally verify that:
 - `sunny_pro` has monthly and annual base plans and the reviewed country prices;
 - Google Play purchase tokens are verified by the entitlement Worker;
 - D1 quota migrations and the 62-day inactive-counter cleanup are active;
-- the three checksum-pinned Sunny-MoE objects live only in the private R2 bucket;
-- only verified Pro sessions can mint expiring, allow-listed model URLs;
-- Free/Pro quota and model-download abuse tests pass with Play license testers.
+- the six checksum-pinned Sunny PAD SmolVLM 500M objects are present in the
+  install-time Play Asset Delivery pack;
+- the AAB build verifies every bundled size and hash before packaging;
+- Free/Pro quota and offline-entitlement tests pass with Play license testers.
 
-## 1. Data and model rights
+## 1. Data and model rights — resolved for `sunny-pad-smolvlm-500m-v1-gguf`
 
-The current fine-tune used `marmal88/skin_cancer`, a HAM10000 mirror whose card
-does not grant a license, describes academic use, and says the uploader owns no
-rights to the images. Before setting `dataRightsCleared=true`:
+The shipping candidate was retrained exclusively on PAD-UFES-20 smartphone
+images obtained from ISIC collection 406. The download record contains 2,298
+images and reports `CC-BY` for every image; six unusable images were excluded,
+leaving 2,015 training and 277 lesion-grouped validation records. The original
+PAD-UFES-20 publication records ethics approval, patient consent, and a
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) license, which permits
+commercial use and adaptation with attribution.
 
-- obtain written commercial rights covering training, derived weights, and
-  distribution, or retrain on a dataset with compatible documented rights;
-- record all source datasets, versions, licenses, attribution, and consent terms;
-- have qualified counsel approve the intended business and distribution model.
+The base `HuggingFaceTB/SmolVLM-500M-Instruct` model is provided under Apache License 2.0.
+Sunny's attribution, modification notice, complete Apache license, source DOI,
+artifact hashes, split counts, and runtime provenance are recorded in:
+
+- `licenses/THIRD_PARTY_NOTICES.txt`;
+- `licenses/Apache-2.0.txt`;
+- `exports/model_tiers/sunny-pad-smolvlm-500m-v1-gguf/manifest.json`.
+
+These files ship in the install-time model pack. The
+Gradle release gate verifies that this evidence is present. A future dataset,
+base model, or model version requires a new rights review and manifest.
 
 ## 2. Clinical and real-world validation
 
@@ -55,7 +68,6 @@ For an approved release build only:
 ./gradlew bundleRelease \
   -PentitlementApiUrl=https://entitlements.example/ \
   -PprivacyContact=privacy@example.com \
-  -PdataRightsCleared=true \
   -PclinicalValidationComplete=true
 ```
 
@@ -63,6 +75,7 @@ Command-line flags are attestations, not substitutes for the evidence above.
 The `release` build type is the public distribution mode: it hard-codes empty
 inference/contribution endpoints and tokens, enables shrinking, and uses public
 on-device/privacy copy. Debug builds retain the environment-controlled beta mode.
-The build also refuses a release without the pinned vendored Sunny-MoE runtime
-source, HTTPS model and Play-entitlement services. CMake compiles the arm64
-`libsunny_moe.so`; full model-file digests are pinned in the signed catalog.
+The build also refuses a release without the pinned vendored SmolVLM runtime
+source, licensing evidence, HTTPS model and Play-entitlement services. CMake
+retains the arm64 `libsunny_moe.so` filename for upgrade compatibility; full
+PAD-model and notice-file digests are pinned in the signed catalog.

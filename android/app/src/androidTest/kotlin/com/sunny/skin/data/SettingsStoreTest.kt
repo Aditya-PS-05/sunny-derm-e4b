@@ -24,6 +24,7 @@ class SettingsStoreTest {
     @After fun tearDown() {
         store.clearPin()
         store.improveSunny = false
+        store.useServerInference = false
         store.seenOnboarding = false
     }
 
@@ -66,9 +67,39 @@ class SettingsStoreTest {
     fun inferenceSource_roundTrips() {
         store.useServerInference = false
         assertFalse(store.useServerInference)
+        assertEquals(0L, store.cloudAnalysisConsentAt)
 
         store.useServerInference = true
         assertTrue(store.useServerInference)
+        assertTrue(store.cloudAnalysisConsentAt > 0L)
+    }
+
+    @Test
+    fun missingAnalysisPreference_defaultsToPrivateDeviceMode() {
+        ctx.getSharedPreferences("sunny_settings", Context.MODE_PRIVATE).edit()
+            .remove("use_server_inference")
+            .remove("analysis_placement_version")
+            .remove("cloud_analysis_consent_at")
+            .commit()
+
+        val fresh = SettingsStore(ctx)
+
+        assertFalse(fresh.useServerInference)
+        assertEquals(0L, fresh.cloudAnalysisConsentAt)
+    }
+
+    @Test
+    fun legacyCloudSelection_isResetToPrivateDeviceDefault() {
+        ctx.getSharedPreferences("sunny_settings", Context.MODE_PRIVATE).edit()
+            .putBoolean("use_server_inference", true)
+            .remove("analysis_placement_version")
+            .remove("cloud_analysis_consent_at")
+            .commit()
+
+        val migrated = SettingsStore(ctx)
+
+        assertFalse(migrated.useServerInference)
+        assertEquals(0L, migrated.cloudAnalysisConsentAt)
     }
 
     @Test

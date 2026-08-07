@@ -344,6 +344,8 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                 ),
                 modifier = Modifier.height(440.dp),
             )
+            val completeRange = state.selectedStartDateMillis != null &&
+                state.selectedEndDateMillis != null
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.End,
@@ -353,14 +355,23 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
                     Text("Cancel", color = SunnyColors.TextSecondary)
                 }
                 Spacer(Modifier.width(4.dp))
-                TextButton(onClick = {
-                    val s = state.selectedStartDateMillis
-                    val e = state.selectedEndDateMillis
-                    if (s != null && e != null) {
-                        pendingDateRange = s to e
-                    }
-                    requestDismiss()
-                }) { Text("Apply", color = SunnyColors.OrangeText, fontWeight = FontWeight.SemiBold) }
+                TextButton(
+                    enabled = completeRange,
+                    onClick = {
+                        val s = state.selectedStartDateMillis
+                        val e = state.selectedEndDateMillis
+                        if (s != null && e != null) {
+                            pendingDateRange = s to e
+                        }
+                        requestDismiss()
+                    },
+                ) {
+                    Text(
+                        "Apply",
+                        color = if (completeRange) SunnyColors.OrangeText else SunnyColors.TextTertiary,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         }
     }
@@ -370,7 +381,7 @@ fun GenerateReportScreen(vm: SunnyViewModel, onDismiss: () -> Unit, onOpenReport
             onDismissRequest = { showConfirm = false },
             title = { Text("Save Report to Device?") },
             text = {
-                Text("A clinician-ready visual tracking PDF containing aligned comparisons, " +
+                Text("A shareable visual tracking PDF containing aligned comparisons, " +
                     "automated-description provenance and uncropped originals will be saved on " +
                     "this device. It is not a medical diagnosis.")
             },

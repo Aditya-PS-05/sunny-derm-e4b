@@ -1,0 +1,44 @@
+Sunny model third-party notices
+=================================
+
+PAD-UFES-20 training images
+---------------------------
+
+Sunny PAD SmolVLM 500M was fine-tuned using 2,292 accepted smartphone
+clinical images from PAD-UFES-20. The source dataset contains 2,298 images;
+six images were excluded because the automated feature extractor could not
+identify a usable lesion region.
+
+Dataset: PAD-UFES-20: a skin lesion dataset composed of patient data and
+clinical images collected from smartphones
+Creators: Andre G. C. Pacheco, Gustavo R. Lima, Amanda S. Salomao,
+Breno A. Krohling, Igor P. Biral, Gabriel G. de Angelo, Fabio C. R. Alves Jr,
+Jose G. M. Esgario, Alana C. Simora, Pedro B. C. Castro,
+Felipe B. Rodrigues, Patricia H. L. Frasson, Renato A. Krohling,
+Helder Knidel, Maria C. S. Santos, Rachel B. Espirito Santo,
+Telma L. S. G. Macedo, Tania R. P. Canuto, and Luiz F. S. de Barros.
+Source: https://doi.org/10.17632/zr7vgbcyr2.1
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+License link: https://creativecommons.org/licenses/by/4.0/
+
+Changes made: Sunny resized and normalized the images, generated
+non-diagnostic appearance descriptions, split records by lesion for training
+and validation, fine-tuned SmolVLM 500M with a LoRA adapter, merged the adapter,
+converted the result to GGUF, and quantized the language model and vision
+projector for deployment. The original creators and institutions do not
+endorse Sunny.
+
+SmolVLM 500M
+-------------
+
+Sunny PAD SmolVLM 500M is a modified model derived from
+HuggingFaceTB/SmolVLM-500M-Instruct. SmolVLM is provided by Hugging Face under
+the Apache License, Version 2.0.
+Source: https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct
+License: https://www.apache.org/licenses/LICENSE-2.0
+
+Sunny modified SmolVLM 500M by fine-tuning it on PAD-UFES-20-derived
+non-diagnostic description records, merging the adapter into the base weights,
+and converting and quantizing the result to GGUF. Hugging Face does not endorse
+Sunny. A complete copy of the Apache License 2.0 accompanies this notice as
+Apache-2.0.txt.

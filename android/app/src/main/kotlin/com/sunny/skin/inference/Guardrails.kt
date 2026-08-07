@@ -19,6 +19,9 @@ object Guardrails {
         "risk", "urgent", "urgency", "safe to wait", "harmless", "reassur",
         "concerning", "suspicious", "worrisome", "dangerous", "recommend",
         "should see", "seek care",
+        // Never surface leaked tokenizer/control markers or a corrupted backend
+        // result as a valid visual description.
+        "<fake_token", "<row_", "<|", "_around_image>",
     )
 
     /** True if the text is clean (no banned terms). */

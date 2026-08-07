@@ -82,6 +82,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.i18n.SunnyLanguage
 import com.sunny.skin.ui.i18n.SunnyLanguageController
+import com.sunny.skin.ui.i18n.UntranslatedText
 import com.sunny.skin.ui.components.DisclaimerCard
 import com.sunny.skin.ui.components.LiquidGlassDialog
 import com.sunny.skin.ui.components.SectionHeader
@@ -110,6 +111,7 @@ fun SettingsScreen(
     val contributionStatus by vm.contributionStatus.collectAsStateWithLifecycle()
     val useServer by vm.useServerInference.collectAsStateWithLifecycle()
     val language by SunnyLanguageController.selection.collectAsStateWithLifecycle()
+    val languageModelState by SunnyLanguageController.modelState.collectAsStateWithLifecycle()
     val modelStatus by com.sunny.skin.inference.download.ModelDownloadManager.status
         .collectAsStateWithLifecycle()
     val cloudAuthorization by com.sunny.skin.subscription.SubscriptionEntitlements.cloudInference
@@ -117,6 +119,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val motionEnabled = rememberSunnyMotionEnabled()
     var showContributionConsent by remember { mutableStateOf(false) }
+    var showCloudConsent by remember { mutableStateOf(false) }
     var showExport by remember { mutableStateOf(false) }
     var showDeleteAll by remember { mutableStateOf(false) }
     var showDeleteSuccess by remember { mutableStateOf(false) }
@@ -128,6 +131,7 @@ fun SettingsScreen(
             com.sunny.skin.inference.tier.SunnyModelTier.SUNNY_MOE,
         )
     val localReady = com.sunny.skin.inference.ModelProvider.localModelAvailable(context)
+    val localSupported = com.sunny.skin.inference.ModelProvider.localDeviceSupported()
     val hasProAccess = com.sunny.skin.subscription.SubscriptionEntitlements.accessEntitlement()
         .effectivePlan(now) == com.sunny.skin.inference.tier.SunnyPlan.PRO
     val cloudReady = cloudAuthorization?.isValid(now) == true ||
@@ -306,10 +310,14 @@ fun SettingsScreen(
             cloudReady = cloudReady,
             localInstalled = localInstalled,
             localReady = localReady,
+            localSupported = localSupported,
             hasProAccess = hasProAccess,
-            onSelectCloud = { vm.setUseServerInference(true) },
+            onSelectCloud = {
+                if (!useServer) showCloudConsent = true
+            },
             onSelectLocal = {
-                if (localReady) vm.setUseServerInference(false) else onOpenModelSetup()
+                vm.setUseServerInference(false)
+                if (!localReady) onOpenModelSetup()
             },
             onManageCurrent = onOpenModelSetup,
         )
@@ -408,6 +416,32 @@ fun SettingsScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { showContributionConsent = false }) { Text("Cancel") }
+                },
+            )
+        }
+
+        if (showCloudConsent) {
+            AlertDialog(
+                onDismissRequest = { showCloudConsent = false },
+                containerColor = SunnyColors.Surface,
+                titleContentColor = SunnyColors.TextPrimary,
+                textContentColor = SunnyColors.TextSecondary,
+                title = { Text("Use cloud analysis?") },
+                text = {
+                    Text(
+                        "While Cloud is selected, each photo you analyse is sent over HTTPS to " +
+                            "Sunny AI Cloud for a visual description. Saved photos and notes remain " +
+                            "encrypted on this device. You can switch back to on-device analysis anytime.",
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        vm.setUseServerInference(true)
+                        showCloudConsent = false
+                    }) { Text("Use cloud analysis") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showCloudConsent = false }) { Text("Keep on device") }
                 },
             )
         }
@@ -616,6 +650,7 @@ fun SettingsScreen(
                     "App language",
                     language.nativeName,
                     onClick = { showLanguagePicker = true },
+                    valueIsAlreadyLocalized = true,
                 )
             }
         }
@@ -632,10 +667,10 @@ fun SettingsScreen(
                             Row(
                                 modifier = Modifier.fillMaxWidth().selectable(
                                     selected = language == option,
+                                    enabled = languageModelState.preparing == null,
                                     role = Role.RadioButton,
                                     onClick = {
                                         SunnyLanguageController.select(context, option)
-                                        showLanguagePicker = false
                                     },
                                 ).padding(vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -645,8 +680,28 @@ fun SettingsScreen(
                                     onClick = null,
                                 )
                                 Spacer(Modifier.width(10.dp))
-                                Text(option.nativeName, style = MaterialTheme.typography.bodyLarge)
+                                UntranslatedText(
+                                    option.nativeName,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
                             }
+                        }
+                        if (languageModelState.preparing != null) {
+                            Row(
+                                Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                                Spacer(Modifier.width(10.dp))
+                                Text("Downloading language model…")
+                            }
+                        }
+                        languageModelState.error?.let {
+                            Text(
+                                "The language model could not be downloaded. Check your connection and try again.",
+                                color = SunnyColors.Danger,
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
                     }
                 },
@@ -681,6 +736,7 @@ private fun AnalysisPreferenceCard(
     cloudReady: Boolean,
     localInstalled: Boolean,
     localReady: Boolean,
+    localSupported: Boolean,
     hasProAccess: Boolean,
     onSelectCloud: () -> Unit,
     onSelectLocal: () -> Unit,
@@ -721,7 +777,16 @@ private fun AnalysisPreferenceCard(
                     modifier = Modifier.weight(1f),
                     selected = !cloudSelected,
                     label = "On device",
+                    enabled = localSupported,
                     onClick = onSelectLocal,
+                )
+            }
+            if (!localSupported) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    com.sunny.skin.inference.DeviceInferenceCapabilities.unavailableReason(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SunnyColors.TextSecondary,
                 )
             }
             Spacer(Modifier.height(14.dp))
@@ -737,7 +802,7 @@ private fun AnalysisPreferenceCard(
                         if (cloudSelected) {
                             if (cloudReady) "Cloud analysis is ready" else "Cloud setup needed"
                         } else {
-                            if (localReady) "Offline analysis is ready" else "Download offline analysis"
+                            if (localReady) "Offline analysis is ready" else "Prepare offline analysis"
                         },
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
@@ -759,9 +824,9 @@ private fun AnalysisPreferenceCard(
                             localInstalled && !hasProAccess ->
                                 "The offline model is installed. A Pro plan is required to use it."
                             hasProAccess ->
-                                "Requires a one-time 3.08 GB download, then works without internet."
+                                "Included with the app. Prepare once, then use without internet."
                             else ->
-                                "Available with Pro after a one-time 3.08 GB download."
+                                "Included with the app and available to use with Pro."
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = SunnyColors.TextSecondary,
@@ -783,6 +848,7 @@ private fun AnalysisModeChoice(
     modifier: Modifier,
     selected: Boolean,
     label: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Row(
@@ -791,6 +857,7 @@ private fun AnalysisModeChoice(
             .background(if (selected) SunnyColors.OrangeSoft else SunnyColors.SurfaceMuted)
             .selectable(
                 selected = selected,
+                enabled = enabled,
                 role = Role.RadioButton,
                 onClick = onClick,
             )
@@ -802,7 +869,11 @@ private fun AnalysisModeChoice(
             label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-            color = if (selected) SunnyColors.OrangeText else SunnyColors.TextSecondary,
+            color = when {
+                !enabled -> SunnyColors.TextTertiary
+                selected -> SunnyColors.OrangeText
+                else -> SunnyColors.TextSecondary
+            },
         )
     }
 }
@@ -897,7 +968,13 @@ private fun VaultConnector() {
 }
 
 @Composable
-private fun AboutRow(icon: ImageVector, label: String, value: String, onClick: (() -> Unit)? = null) {
+private fun AboutRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    onClick: (() -> Unit)? = null,
+    valueIsAlreadyLocalized: Boolean = false,
+) {
     Row(
         Modifier.fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
@@ -909,15 +986,27 @@ private fun AboutRow(icon: ImageVector, label: String, value: String, onClick: (
         Text(label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold,
             modifier = Modifier.weight(1f))
         if (value.isNotEmpty()) {
-            Text(
-                value,
-                style = MaterialTheme.typography.bodyLarge,
-                color = SunnyColors.TextSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.End,
-                modifier = Modifier.weight(1f),
-            )
+            if (valueIsAlreadyLocalized) {
+                UntranslatedText(
+                    value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = SunnyColors.TextSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
+                Text(
+                    value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = SunnyColors.TextSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
         if (onClick != null) {
             Spacer(Modifier.size(6.dp))

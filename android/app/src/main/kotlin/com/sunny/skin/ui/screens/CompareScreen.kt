@@ -72,10 +72,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ObservationEntity
-import com.sunny.skin.data.model.Analysis
+import com.sunny.skin.data.model.AnalysisComparison
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.ScreenScaffold
 import com.sunny.skin.ui.components.ScreenLoadingState
+import com.sunny.skin.ui.components.ChangeSummaryCard
 import com.sunny.skin.ui.components.SunnyCard
 import com.sunny.skin.ui.components.SunnyChip
 import com.sunny.skin.ui.theme.SunnyColors
@@ -310,27 +311,21 @@ fun CompareScreen(vm: SunnyViewModel, scanId: String, onBack: () -> Unit) {
             Spacer(Modifier.height(20.dp))
 
             // What changed between the two selected photos
-            val changed = changedFieldsBetween(before.analysis.toAnalysis(), after.analysis.toAnalysis())
-            SunnyCard {
-                Column(Modifier.padding(16.dp)) {
-                    Text("What changed", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(6.dp))
-                    if (changed.isEmpty()) {
-                        Text("Sunny describes both photos the same way. This is appearance " +
-                            "tracking only — not a medical assessment.",
-                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
-                    } else {
-                        Text("Sunny's description differs on: ${changed.joinToString(", ")}.",
-                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextPrimary)
-                        Spacer(Modifier.height(6.dp))
-                        Text("Changes here are a prompt to show a clinician — never a verdict.",
-                            style = MaterialTheme.typography.bodyMedium, color = SunnyColors.TextSecondary)
-                    }
+            val descriptionChanges = AnalysisComparison.changes(
+                before.analysis.toAnalysis(),
+                after.analysis.toAnalysis(),
+            )
+            ChangeSummaryCard(
+                sinceDate = Format.date(before.capturedAt),
+                changes = descriptionChanges,
+            )
 
-                    val beforeSize = before.approximateSizeMm
-                    val afterSize = after.approximateSizeMm
-                    if (beforeSize != null || afterSize != null) {
-                        Spacer(Modifier.height(12.dp))
+            val beforeSize = before.approximateSizeMm
+            val afterSize = after.approximateSizeMm
+            if (beforeSize != null || afterSize != null) {
+                Spacer(Modifier.height(12.dp))
+                SunnyCard {
+                    Column(Modifier.padding(16.dp)) {
                         Text("Reference-based estimates", style = MaterialTheme.typography.labelLarge,
                             color = SunnyColors.TextSecondary)
                         Spacer(Modifier.height(4.dp))
@@ -718,8 +713,3 @@ private fun formatMillimetres(value: Float): String {
     val rounded = kotlin.math.round(value * 10f) / 10f
     return if (rounded % 1f == 0f) "${rounded.toInt()} mm" else "$rounded mm"
 }
-
-private fun changedFieldsBetween(prev: Analysis, curr: Analysis): List<String> =
-    Analysis.FIELDS.filterIndexed { i, _ ->
-        prev.rows()[i].second.trim() != curr.rows()[i].second.trim()
-    }

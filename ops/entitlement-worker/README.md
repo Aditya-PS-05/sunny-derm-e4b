@@ -5,7 +5,7 @@ The Android client never grants itself quota, Pro access, or model URLs.
 
 ## Product contract
 
-| Plan | Cloud allowance | On-device Sunny MoE |
+| Plan | Cloud allowance | On-device Sunny Offline |
 |---|---:|---|
 | Free | 5/month, maximum 2/day | No |
 | Pro | 100/month, maximum 25/day | Yes, unlimited local use |
@@ -43,14 +43,18 @@ trial that exposes the model pack without a verified payment.
 The R2 bucket must remain private. Upload these exact keys:
 
 ```text
-sunny-moe-2.2b-v4-gguf/sunny-moe-text-Q4_K_M.gguf
-sunny-moe-2.2b-v4-gguf/sunny-moe-mmproj-F16.gguf
-sunny-moe-2.2b-v4-gguf/manifest.json
+sunny-pad-smolvlm-500m-v1-gguf/sunny-pad-smolvlm-500m-Q4_K_M.gguf
+sunny-pad-smolvlm-500m-v1-gguf/sunny-pad-smolvlm-500m-mmproj-Q8_0.gguf
+sunny-pad-smolvlm-500m-v1-gguf/derm.gbnf
+sunny-pad-smolvlm-500m-v1-gguf/THIRD_PARTY_NOTICES.txt
+sunny-pad-smolvlm-500m-v1-gguf/Apache-2.0.txt
+sunny-pad-smolvlm-500m-v1-gguf/manifest.json
 ```
 
 Only a verified Pro purchase receives per-file HMAC-signed HTTPS URLs. URLs
-expire after at most 12 hours (and never after the verified purchase), are allow-listed to those three paths and support HTTP
-Range resume. Android still enforces the APK-pinned size and SHA-256 before
+expire after at most 12 hours (and never after the verified purchase), are
+allow-listed to these six paths, and support HTTP Range resume. Android still
+enforces the APK-pinned size and SHA-256 before
 activating a file. The URLs raise extraction effort but cannot make weights
 secret from a determined device owner.
 
@@ -63,7 +67,8 @@ npx wrangler r2 bucket create sunny-models-private
 ```
 
 Copy the returned D1 ID into the commented `[[d1_databases]]` block in
-`wrangler.toml`, uncomment both D1 and R2 bindings, then apply the migration:
+`wrangler.toml`, uncomment that D1 binding, then apply the migration. The R2
+binding is already configured for `sunny-models-private`:
 
 ```bash
 npx wrangler d1 migrations apply sunny-entitlements --remote
@@ -87,14 +92,23 @@ Upload the checksum-verified model pack only when deployment is authorized:
 
 ```bash
 npx wrangler r2 object put \
-  sunny-models-private/sunny-moe-2.2b-v4-gguf/sunny-moe-text-Q4_K_M.gguf \
-  --file ../../exports/model_tiers/sunny-moe-2.2b-v4-gguf/sunny-moe-text-Q4_K_M.gguf
+  sunny-models-private/sunny-pad-smolvlm-500m-v1-gguf/sunny-pad-smolvlm-500m-Q4_K_M.gguf \
+  --file /path/to/smolvlm-derm-pad-Q4_K_M.gguf
 npx wrangler r2 object put \
-  sunny-models-private/sunny-moe-2.2b-v4-gguf/sunny-moe-mmproj-F16.gguf \
-  --file ../../exports/model_tiers/sunny-moe-2.2b-v4-gguf/sunny-moe-mmproj-F16.gguf
+  sunny-models-private/sunny-pad-smolvlm-500m-v1-gguf/sunny-pad-smolvlm-500m-mmproj-Q8_0.gguf \
+  --file /path/to/mmproj-smolvlm-derm-pad-Q8_0.gguf
 npx wrangler r2 object put \
-  sunny-models-private/sunny-moe-2.2b-v4-gguf/manifest.json \
-  --file ../../exports/model_tiers/sunny-moe-2.2b-v4-gguf/manifest.json
+  sunny-models-private/sunny-pad-smolvlm-500m-v1-gguf/derm.gbnf \
+  --file ../../exports/model_tiers/sunny-pad-smolvlm-500m-v1-gguf/derm.gbnf
+npx wrangler r2 object put \
+  sunny-models-private/sunny-pad-smolvlm-500m-v1-gguf/THIRD_PARTY_NOTICES.txt \
+  --file ../../licenses/THIRD_PARTY_NOTICES.txt
+npx wrangler r2 object put \
+  sunny-models-private/sunny-pad-smolvlm-500m-v1-gguf/Apache-2.0.txt \
+  --file ../../licenses/Apache-2.0.txt
+npx wrangler r2 object put \
+  sunny-models-private/sunny-pad-smolvlm-500m-v1-gguf/manifest.json \
+  --file ../../exports/model_tiers/sunny-pad-smolvlm-500m-v1-gguf/manifest.json
 ```
 
 Validate and deploy:

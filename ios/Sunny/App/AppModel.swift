@@ -110,7 +110,8 @@ final class AppModel: ObservableObject {
                     }
                     client = try NativeSunnyMoeEngine(
                         textModelURL: modelDownload.textModelURL,
-                        projectorURL: modelDownload.projectorURL
+                        projectorURL: modelDownload.projectorURL,
+                        grammarURL: modelDownload.grammarURL
                     )
                 }
                 let result = try await AnalysisCoordinator(client: client).analyze(jpeg: jpeg)

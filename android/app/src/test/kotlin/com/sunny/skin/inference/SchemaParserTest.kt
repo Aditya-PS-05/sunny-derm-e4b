@@ -11,19 +11,23 @@ class SchemaParserTest {
         val parsed = SchemaParser.parse(VALID)
 
         assertNotNull(parsed)
-        assertEquals("pigmented macule", parsed!!.lesionType)
-        assertEquals("light brown", parsed.colour)
-        assertEquals("roughly symmetric", parsed.symmetry)
-        assertEquals("smooth, well-defined", parsed.borders)
-        assertEquals("smooth", parsed.texture)
-        assertEquals("A visual description only, not a diagnosis.", parsed.summary)
+        assertEquals("Flat spot", parsed!!.lesionType)
+        assertEquals("Light brown", parsed.colour)
+        assertEquals("Symmetric", parsed.symmetry)
+        assertEquals("Smooth and well defined", parsed.borders)
+        assertEquals("Smooth", parsed.texture)
+        assertEquals(
+            "This image shows a light brown flat spot. Its shape appears symmetric. " +
+                "The border appears smooth and well defined. The surface appears smooth.",
+            parsed.summary,
+        )
     }
 
     @Test
     fun acceptsAmericanColorLabel() {
         val parsed = SchemaParser.parse(VALID.replace("Colour:", "Color:"))
 
-        assertEquals("light brown", parsed?.colour)
+        assertEquals("Light brown", parsed?.colour)
     }
 
     @Test

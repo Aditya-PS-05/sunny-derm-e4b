@@ -38,6 +38,13 @@ class GuardrailsTest {
         assertFalse(Guardrails.isClean(cleanAnalysis().copy(summary = "Urgent review recommended.")))
     }
 
+    @Test
+    fun rejectsLeakedModelControlTokens() {
+        assertFalse(Guardrails.isClean(cleanAnalysis().copy(
+            lesionType = "<row_1_col_1> <fake_token_around_image>",
+        )))
+    }
+
     private fun cleanAnalysis() = Analysis(
         lesionType = "pigmented macule",
         colour = "light brown",

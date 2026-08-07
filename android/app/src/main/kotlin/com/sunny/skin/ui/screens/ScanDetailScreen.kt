@@ -51,6 +51,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import com.sunny.skin.ui.i18n.Text
+import com.sunny.skin.ui.i18n.UntranslatedText
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,7 +79,7 @@ import com.sunny.skin.data.AbcdeAnswer
 import com.sunny.skin.data.AbcdeItem
 import com.sunny.skin.data.crypto.EncryptedImage
 import com.sunny.skin.data.db.ObservationEntity
-import com.sunny.skin.data.model.Analysis
+import com.sunny.skin.data.model.AnalysisComparison
 import com.sunny.skin.ui.SunnyViewModel
 import com.sunny.skin.ui.components.AbcdeCard
 import com.sunny.skin.ui.components.AnalysisCard
@@ -182,10 +183,10 @@ fun ScanDetailScreen(
         val previous = timeline.getOrNull(1)
 
         // Literal field differences only. No risk, stability, or urgency score.
-        val changedFieldsSet = previous?.let {
-            changedFields(it.analysis.toAnalysis(), latest.analysis.toAnalysis())
-        } ?: emptySet()
-        val aspectLabels = changedFieldsSet.filter { it != "Summary" }
+        val descriptionChanges = previous?.let {
+            AnalysisComparison.changes(it.analysis.toAnalysis(), latest.analysis.toAnalysis())
+        }.orEmpty()
+        val changedFieldsSet = descriptionChanges.mapTo(mutableSetOf()) { it.label }
 
         val context = LocalContext.current
 
@@ -238,7 +239,10 @@ fun ScanDetailScreen(
             ObservationImage(latest, data.scan.bodyPart.label)
             Spacer(Modifier.height(12.dp))
 
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 MetaChip(data.scan.bodyPart.locationLine)
                 MetaChip(Format.date(latest.capturedAt))
                 MetaChip(Format.time(latest.capturedAt))
@@ -250,7 +254,7 @@ fun ScanDetailScreen(
             if (previous != null) {
                 ChangeSummaryCard(
                     sinceDate = Format.date(previous.capturedAt),
-                    changedAspects = aspectLabels,
+                    changes = descriptionChanges,
                 )
                 Spacer(Modifier.height(12.dp))
             }
@@ -351,12 +355,21 @@ fun ScanDetailScreen(
                     Spacer(Modifier.size(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text("Private note", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            data.scan.notes.ifBlank { "Add context you want to remember" },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = SunnyColors.TextSecondary,
-                            maxLines = 2,
-                        )
+                        if (data.scan.notes.isBlank()) {
+                            Text(
+                                "Add context you want to remember",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = SunnyColors.TextSecondary,
+                                maxLines = 2,
+                            )
+                        } else {
+                            UntranslatedText(
+                                data.scan.notes,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = SunnyColors.TextSecondary,
+                                maxLines = 2,
+                            )
+                        }
                     }
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null,
                         tint = SunnyColors.TextTertiary)
@@ -696,12 +709,6 @@ private fun HistoryRow(
         }
     }
 }
-
-/** Labels whose value differs between two observations (ordinal, plain compare). */
-private fun changedFields(prev: Analysis, curr: Analysis): Set<String> =
-    Analysis.FIELDS.filterIndexed { i, _ ->
-        prev.rows()[i].second.trim() != curr.rows()[i].second.trim()
-    }.toSet()
 
 private fun formatApproximateMm(value: Float): String {
     val rounded = kotlin.math.round(value * 10f) / 10f

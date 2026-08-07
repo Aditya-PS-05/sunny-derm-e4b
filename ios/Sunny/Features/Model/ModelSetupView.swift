@@ -29,12 +29,12 @@ struct ModelSetupView: View {
 
                 SunnyCard {
                     HStack {
-                        Label("Sunny MoE", systemImage: "iphone.and.arrow.forward")
+                        Label("Sunny Offline", systemImage: "iphone.and.arrow.forward")
                             .font(.headline)
                         Spacer()
                         Text("PRO").font(.caption.bold()).foregroundStyle(SunnyTheme.orange)
                     }
-                    Text("3.08 GB · on this iPhone")
+                    Text("393 MB · on this iPhone")
                         .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                     Text("Runs privately and offline after installation. A supported native runtime must be linked to the iOS target.")
                         .foregroundStyle(.secondary).padding(.vertical, 5)
@@ -83,7 +83,7 @@ struct ModelSetupView: View {
                 .font(.subheadline).foregroundStyle(.secondary)
         case .idle:
             Toggle("Allow mobile data", isOn: $model.allowsCellular)
-            Button(subscription.hasProAccess ? "Download Sunny MoE" : "Get Pro to download") {
+            Button(subscription.hasProAccess ? "Download Sunny Offline" : "Get Pro to download") {
                 if subscription.hasProAccess { model.start(hasProAccess: true) }
                 else { showingPro = true }
             }
@@ -126,4 +126,3 @@ private extension TimeInterval {
         return "About \(seconds / 3_600)h \((seconds % 3_600) / 60)m left"
     }
 }
-

@@ -1,10 +1,10 @@
 # Archived Android experiment — Gemma 4 E4B
 
-> **Superseded (July 2026).** This is retained only to reproduce the legacy
+> **Superseded (August 2026).** This is retained only to reproduce the legacy
 > export experiment. The Sunny Android app must not bundle or download this
-> approximately 5.86–6 GB Pro model, LiteRT conversion, ONNX tiers, or the old
-> llama.cpp JNI bridge. Android now downloads only Sunny-MoE; Sunny Pro runs only
-> behind the verified server-inference route. The current contract is
+> approximately 5.86–6 GB Pro model, LiteRT conversion, or ONNX tiers. Android
+> now downloads the 393 MiB PAD-trained SmolVLM 500M pack through the current
+> llama.cpp JNI bridge, and Sunny AI Cloud runs the same model family. The contract is
 > `docs/model_tier_delivery.md`.
 
 Historical notes for the former on-device Pro prototype follow. They are not
@@ -170,7 +170,7 @@ same boundary the data does:
 5. **Change-tracking, not alerting**: compare a lesion's fields/photos over time
    and show the user the visual history; do NOT auto-flag "this looks worse."
 
-## 6. Known limitation to design around — domain gap
+## 6. Historical domain gap
 
 The training data (HAM10000) is **dermatoscopic** imagery (captured through a
 dermatoscope: circular vignette, immersion fluid, polarized detail). Real app
@@ -179,4 +179,6 @@ capture is **macro phone photos**. Expect a distribution shift. Before shipping:
 - Constrain the app to a clip-on dermatoscope accessory (matches training), or
 - Validate description quality on real phone photos and set expectations in-app.
 
-This is the single biggest gap between this pipeline and a production model.
+This gap is closed in the current PAD-UFES-20 training candidate, which uses
+smartphone clinical images. Independent patient-level, skin-tone, device, and
+lighting validation remains outstanding.

@@ -1,6 +1,7 @@
 import java.util.Properties
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
+import java.security.MessageDigest
 
 plugins {
     id("com.android.application")
@@ -43,11 +44,12 @@ fun requirePrivatePermissions(file: File) {
 requirePrivatePermissions(keystorePropsFile)
 if (signingConfigured) requirePrivatePermissions(project.file(signingStoreFile))
 
-// Public release is deliberately blocked until these external obligations have
-// written evidence. Debug builds remain available for engineering and research.
-val dataRightsCleared = providers.gradleProperty("dataRightsCleared")
-    .map { it.toBoolean() }
-    .getOrElse(false)
+// PAD-UFES-20/SmolVLM rights are documented and shipped with the app. Keep this
+// evidence check fail-closed so a future artifact cannot silently omit it.
+val dataRightsEvidenceReady =
+    rootProject.file("../licenses/THIRD_PARTY_NOTICES.txt").isFile &&
+        rootProject.file("../licenses/Apache-2.0.txt").isFile &&
+        rootProject.file("../exports/model_tiers/sunny-pad-smolvlm-500m-mobile256-v2-gguf/manifest.json").isFile
 val clinicalValidationComplete = providers.gradleProperty("clinicalValidationComplete")
     .map { it.toBoolean() }
     .getOrElse(false)
@@ -152,9 +154,9 @@ checkHttpsEndpoint("contributeUrl", contributeUrl)
 tasks.configureEach {
     if (name == "preReleaseBuild") {
         doFirst {
-            check(dataRightsCleared) {
-                "Release blocked: document commercial training-data/model rights, then pass " +
-                    "-PdataRightsCleared=true. See RELEASE_READINESS.md."
+            check(dataRightsEvidenceReady) {
+                "Release blocked: PAD-UFES-20/Gemma attribution or model provenance is missing. " +
+                    "See RELEASE_READINESS.md."
             }
             check(clinicalValidationComplete) {
                 "Release blocked: complete clinician-labelled phone-photo, skin-tone, safety, " +
@@ -179,13 +181,22 @@ tasks.configureEach {
 android {
     namespace = "com.sunny.skin"
     compileSdk = 36
+    assetPacks += listOf(":sunny_model_pack")
+
+    sourceSets {
+        getByName("main") {
+            // Ship the same attribution and Apache 2.0 copy that accompany the
+            // downloadable PAD-trained model pack.
+            assets.srcDir(rootProject.file("../licenses"))
+        }
+    }
 
     defaultConfig {
         applicationId = "com.sunny.skin"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
         buildConfigField("String", "SUNNY_MODEL_BASE_URL", "\"$escapedModelBaseUrl\"")
@@ -297,14 +308,66 @@ android {
     }
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        // Downloaded model files live in app-private storage, outside the APK.
-        jniLibs.useLegacyPackaging = false
+        // This is a link-time SDK artifact only. At runtime the optional ggml
+        // backend resolves Android's public Qualcomm libOpenCL implementation.
+        jniLibs.excludes += "**/libOpenCL.so"
+        // llama.cpp discovers optional CPU/OpenCL backends by enumerating the
+        // native-library directory. Extract the modules at install time so that
+        // directory is real instead of an empty APK-backed namespace.
+        jniLibs.useLegacyPackaging = true
     }
     androidResources {
-        // Do NOT compress the on-device model weights.
-        noCompress += listOf("safetensors")
+        // The bundled model is already quantized and must be copied byte-for-byte.
+        noCompress += listOf("safetensors", "gguf", "gbnf")
     }
 }
+
+val bundledModelDir = rootProject.file(
+    "sunny_model_pack/src/main/assets/sunny_model_pack/sunny-pad-smolvlm-500m-mobile256-v2-gguf",
+)
+val bundledModelFiles = mapOf(
+    "sunny-pad-smolvlm-500m-Q8_0.gguf" to
+        (436_805_632L to "36bfbd253ea5edec715a510d97546085001c843f6616aeef5bfa818b36ce69df"),
+    "sunny-pad-smolvlm-500m-mmproj-mobile256-F16.gguf" to
+        (197_108_288L to "c084c1c8259c3eb239f0303e2ba10d7db6585a22c1f44b7880774f331a00ce9a"),
+    "derm.gbnf" to
+        (303L to "ffc98c058fdf0f34e9d529231e7572be5ee77893a997584e1670cdef31940f09"),
+    "THIRD_PARTY_NOTICES.txt" to
+        (2_088L to "ded7a876f2e6501c7a263e3fafaef98684165ae325eac5c81fcb8b5aeb352866"),
+    "Apache-2.0.txt" to
+        (11_357L to "84829002701217076a39a84808ec52e45088ddbf9f6623896e5550becd8e09be"),
+    "manifest.json" to
+        (3_696L to "e6f264af36b4b16f25e50bc37520ace15ccbfb8a9084377650b57f6df035fa21"),
+)
+val verifyBundledModelPack by tasks.registering {
+    group = "verification"
+    description = "Checks the install-time Sunny model pack before building an AAB."
+    inputs.files(bundledModelFiles.keys.map { bundledModelDir.resolve(it) })
+    doLast {
+        bundledModelFiles.forEach { (name, expected) ->
+            val file = bundledModelDir.resolve(name)
+            check(file.isFile) {
+                "Bundled model asset is missing: $file. Run scripts/stage_bundled_model.sh."
+            }
+            check(file.length() == expected.first) {
+                "Bundled model asset has the wrong size: $name"
+            }
+            val digest = MessageDigest.getInstance("SHA-256")
+            file.inputStream().buffered().use { input ->
+                val buffer = ByteArray(1 shl 20)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    digest.update(buffer, 0, count)
+                }
+            }
+            val actual = digest.digest().joinToString("") { "%02x".format(it) }
+            check(actual == expected.second) { "Bundled model checksum mismatch: $name" }
+        }
+    }
+}
+tasks.matching { it.name in setOf("bundleDebug", "bundleBeta", "bundleRelease") }
+    .configureEach { dependsOn(verifyBundledModelPack) }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.12.01")
@@ -340,6 +403,10 @@ dependencies {
 
     // Coil for on-device image thumbnails
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    // Google ML Kit translates the English source UI and normalized analysis
+    // locally. Per-language models are downloaded before a language is applied.
+    implementation("com.google.mlkit:translate:17.0.3")
 
     // Store purchases are never trusted locally; tokens are verified by Sunny's backend.
     implementation("com.android.billingclient:billing:9.1.0")

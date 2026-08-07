@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sunny"
 include(":app")
+include(":sunny_model_pack")

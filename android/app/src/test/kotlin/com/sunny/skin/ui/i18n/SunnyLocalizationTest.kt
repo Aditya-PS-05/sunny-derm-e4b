@@ -1,27 +1,31 @@
 package com.sunny.skin.ui.i18n
 
+import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class SunnyLocalizationTest {
     @Test
-    fun primaryNavigationTranslates() {
-        assertEquals("अवलोकन", translateFor(SunnyLanguage.HINDI, "Overview"))
-        assertEquals("Ajustes", translateFor(SunnyLanguage.SPANISH, "Settings"))
-    }
-
-    @Test
-    fun dynamicCountsTranslate() {
-        assertEquals("3 चयनित", translateFor(SunnyLanguage.HINDI, "3 selected"))
-        assertEquals("2 fotos", translateFor(SunnyLanguage.SPANISH, "2 photos"))
-    }
-
-    @Test
-    fun unknownUserContentIsNeverModified() {
+    fun supportedDeviceLocalesResolveToMlKitLanguages() {
+        assertEquals(SunnyLanguage.HINDI, languageForLocale(Locale.forLanguageTag("hi-IN")))
+        assertEquals(SunnyLanguage.SPANISH, languageForLocale(Locale.forLanguageTag("es-MX")))
         assertEquals(
-            "Left shoulder birthmark",
-            translateFor(SunnyLanguage.HINDI, "Left shoulder birthmark"),
+            SunnyLanguage.PORTUGUESE_BRAZIL,
+            languageForLocale(Locale.forLanguageTag("pt-BR")),
         )
+        assertEquals(
+            SunnyLanguage.CHINESE_TRADITIONAL,
+            languageForLocale(Locale.forLanguageTag("zh-Hant-TW")),
+        )
+        assertEquals(SunnyLanguage.ENGLISH, languageForLocale(Locale.forLanguageTag("ru-RU")))
+    }
+
+    @Test
+    fun placeholdersNeverLeakEnglishDuringTranslation() {
+        assertEquals("…", translationPlaceholder("Scanned"))
+        assertEquals("…", translationPlaceholder("This image shows a brown flat spot."))
+        assertEquals("9%", translationPlaceholder("9%"))
+        assertEquals("0", translationPlaceholder("0"))
     }
 
     @Test

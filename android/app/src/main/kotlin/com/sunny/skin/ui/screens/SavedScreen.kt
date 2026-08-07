@@ -53,6 +53,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -131,6 +132,7 @@ fun SavedScreen(
     vm: SunnyViewModel,
     contentPadding: PaddingValues,
     onScanClick: (String) -> Unit,
+    onAddPhoto: () -> Unit,
     onGenerateReport: () -> Unit,
     proReportsEnabled: Boolean,
     onOpenReports: () -> Unit,
@@ -366,6 +368,15 @@ fun SavedScreen(
                 EmptyScans(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     noMatches = scans.isNotEmpty(),
+                    onAction = if (scans.isNotEmpty()) {
+                        {
+                            animateItemPlacement = true
+                            query = ""
+                            filter = null
+                        }
+                    } else {
+                        onAddPhoto
+                    },
                 )
             } else {
                 if (!selecting) {
@@ -998,7 +1009,11 @@ private fun SelectionDot(selected: Boolean) {
 }
 
 @Composable
-private fun EmptyScans(modifier: Modifier, noMatches: Boolean) {
+private fun EmptyScans(
+    modifier: Modifier,
+    noMatches: Boolean,
+    onAction: () -> Unit,
+) {
     Box(modifier.padding(32.dp), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             EmptyScansIllustration(noMatches = noMatches)
@@ -1008,10 +1023,18 @@ private fun EmptyScans(modifier: Modifier, noMatches: Boolean) {
                 color = SunnyColors.TextSecondary)
             Spacer(Modifier.height(6.dp))
             Text(if (noMatches) "Try another search or body-area filter."
-                else "Tap + to add a photo, then re-check the area in a\nfew weeks to see any change.",
+                else "Add a photo, then re-check the same area later to build a useful timeline.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = SunnyColors.TextTertiary,
                 textAlign = TextAlign.Center)
+            Spacer(Modifier.height(16.dp))
+            Button(
+                onClick = onAction,
+                modifier = Modifier.heightIn(min = 48.dp),
+                shape = RoundedCornerShape(24.dp),
+            ) {
+                Text(if (noMatches) "Clear search and filters" else "Add first photo")
+            }
         }
     }
 }

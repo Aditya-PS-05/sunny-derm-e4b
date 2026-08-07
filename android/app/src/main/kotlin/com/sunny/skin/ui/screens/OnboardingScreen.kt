@@ -147,7 +147,8 @@ private fun OnboardingWalkthrough(
             OnboardingPage(
                 if (serverBuild) "Private records, clear choices" else "Private by design",
                 if (serverBuild) {
-                    "Saved records stay encrypted here. Beta analysis sends the selected photo to Sunny's configured server."
+                    "Analysis starts privately on this phone. Saved records stay encrypted here, " +
+                        "and photos go to Sunny AI Cloud only if you choose Cloud later."
                 } else {
                     "The AI model runs on this phone. Your saved photos and notes stay encrypted in Sunny."
                 },

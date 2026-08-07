@@ -168,13 +168,41 @@ class SettingsStore(context: Context) {
         get() = prefs.getLong(KEY_IMPROVE_CONSENT_AT, 0L)
 
     /**
-     * Beta "analysis source" switch: when true, scans run on the configured remote
-     * inference server; when false, on the on-device model. Server analysis is
-     * the included default; Pro users can switch to Sunny-MoE after installing it.
+     * Analysis placement. On-device is the privacy-preserving default. Cloud is
+     * enabled only by an explicit user action, which also records a consent time.
+     * Version 2 resets older implicit/automatic Cloud selections once so an app
+     * upgrade can never retain a choice that was not clearly consented to.
      */
     var useServerInference: Boolean
-        get() = prefs.getBoolean(KEY_USE_SERVER, true)
-        set(v) = prefs.edit().putBoolean(KEY_USE_SERVER, v).apply()
+        get() {
+            migrateAnalysisPlacementDefault()
+            return prefs.getBoolean(KEY_USE_SERVER, false) &&
+                prefs.getLong(KEY_CLOUD_ANALYSIS_CONSENT_AT, 0L) > 0L
+        }
+        set(v) {
+            prefs.edit()
+                .putBoolean(KEY_USE_SERVER, v)
+                .putLong(KEY_CLOUD_ANALYSIS_CONSENT_AT, if (v) System.currentTimeMillis() else 0L)
+                .putInt(KEY_ANALYSIS_PLACEMENT_VERSION, ANALYSIS_PLACEMENT_VERSION)
+                .apply()
+        }
+
+    val cloudAnalysisConsentAt: Long
+        get() {
+            migrateAnalysisPlacementDefault()
+            return prefs.getLong(KEY_CLOUD_ANALYSIS_CONSENT_AT, 0L)
+        }
+
+    private fun migrateAnalysisPlacementDefault() {
+        if (prefs.getInt(KEY_ANALYSIS_PLACEMENT_VERSION, 0) >= ANALYSIS_PLACEMENT_VERSION) return
+        check(
+            prefs.edit()
+                .putBoolean(KEY_USE_SERVER, false)
+                .putLong(KEY_CLOUD_ANALYSIS_CONSENT_AT, 0L)
+                .putInt(KEY_ANALYSIS_PLACEMENT_VERSION, ANALYSIS_PLACEMENT_VERSION)
+                .commit(),
+        ) { "Could not migrate the analysis privacy default." }
+    }
 
     private companion object {
         const val KEY_PIN = "app_lock_pin"       // legacy plaintext key (cleared on migration)
@@ -198,7 +226,10 @@ class SettingsStore(context: Context) {
         const val KEY_IMPROVE_CONSENT_AT = "improve_sunny_consent_at"
         const val KEY_IMPROVE_CONSENT_VERSION = "improve_sunny_consent_version"
         const val KEY_USE_SERVER = "use_server_inference"
-        const val ONBOARDING_CONSENT_VERSION = 2
+        const val KEY_CLOUD_ANALYSIS_CONSENT_AT = "cloud_analysis_consent_at"
+        const val KEY_ANALYSIS_PLACEMENT_VERSION = "analysis_placement_version"
+        const val ANALYSIS_PLACEMENT_VERSION = 2
+        const val ONBOARDING_CONSENT_VERSION = 3
         const val IMPROVE_CONSENT_VERSION = 1
     }
 }

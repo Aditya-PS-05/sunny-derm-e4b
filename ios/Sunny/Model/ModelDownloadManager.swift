@@ -10,22 +10,37 @@ struct ModelAsset: Identifiable, Sendable {
 }
 
 enum SunnyModelCatalog {
-    static let version = "sunny-moe-2.2b-v4-gguf"
+    static let version = "sunny-pad-smolvlm-500m-v1-gguf"
     static let assets = [
         ModelAsset(
-            fileName: "sunny-moe-text-Q4_K_M.gguf",
-            byteCount: 2_210_067_936,
-            sha256: "7e7aa651986473c94988ac99978cd5c51a7bb7b8a1e4092cd41ed835c38fd28b"
+            fileName: "sunny-pad-smolvlm-500m-Q4_K_M.gguf",
+            byteCount: 303_250_432,
+            sha256: "fb64c371d4044c7556966bf5dbf12d8aa5fb3b628a8be9ba0841189dbffe4d64"
         ),
         ModelAsset(
-            fileName: "sunny-moe-mmproj-F16.gguf",
-            byteCount: 872_300_704,
-            sha256: "c4149a795d2c4af070d94e2130e2e1026d96bb912bbac1595b6fd12d376b91f4"
+            fileName: "sunny-pad-smolvlm-500m-mmproj-Q8_0.gguf",
+            byteCount: 108_782_144,
+            sha256: "ac585ec2ee776eab23c4502f1a71d9d90a4057752057c05ed2487d47dc31798f"
+        ),
+        ModelAsset(
+            fileName: "derm.gbnf",
+            byteCount: 304,
+            sha256: "bb7668aafa0c3b87cb5b10ecf9bd01037c6ad3ed8fdf01bc53e7b267538c2f09"
+        ),
+        ModelAsset(
+            fileName: "THIRD_PARTY_NOTICES.txt",
+            byteCount: 2_088,
+            sha256: "ded7a876f2e6501c7a263e3fafaef98684165ae325eac5c81fcb8b5aeb352866"
+        ),
+        ModelAsset(
+            fileName: "Apache-2.0.txt",
+            byteCount: 11_357,
+            sha256: "84829002701217076a39a84808ec52e45088ddbf9f6623896e5550becd8e09be"
         ),
         ModelAsset(
             fileName: "manifest.json",
-            byteCount: 1_037,
-            sha256: "1a8ce0012e240b3e2e3c6b8a2eec376396986b4fbda858dabd8ccc8b686c13ad"
+            byteCount: 3_230,
+            sha256: "972c9d0544bddebed21506616f4bbce56ef18c78e4b7681fa870e297f5111712"
         ),
     ]
     static let totalBytes = assets.reduce(Int64(0)) { $0 + $1.byteCount }
@@ -65,12 +80,15 @@ final class ModelDownloadManager: NSObject, ObservableObject, URLSessionDownload
         )) ?? FileManager.default.temporaryDirectory
         installDirectory = base.appending(path: "SunnyModels/\(SunnyModelCatalog.version)", directoryHint: .isDirectory)
         super.init()
+        let legacy = base.appending(path: "SunnyModels/sunny-moe-2.2b-v4-gguf", directoryHint: .isDirectory)
+        try? FileManager.default.removeItem(at: legacy)
         reconnectBackgroundSession()
         refresh()
     }
 
     var textModelURL: URL { installDirectory.appending(path: SunnyModelCatalog.assets[0].fileName) }
     var projectorURL: URL { installDirectory.appending(path: SunnyModelCatalog.assets[1].fileName) }
+    var grammarURL: URL { installDirectory.appending(path: SunnyModelCatalog.assets[2].fileName) }
 
     func refresh() {
         DispatchQueue.global(qos: .utility).async { [weak self] in
@@ -90,7 +108,7 @@ final class ModelDownloadManager: NSObject, ObservableObject, URLSessionDownload
     func start(hasProAccess: Bool) {
         precondition(Thread.isMainThread)
         guard hasProAccess else {
-            state = .failed("Sunny MoE requires an active Pro subscription.")
+            state = .failed("Sunny Offline requires an active Pro subscription.")
             return
         }
         guard configuration.modelBaseURL != nil else {
@@ -98,7 +116,7 @@ final class ModelDownloadManager: NSObject, ObservableObject, URLSessionDownload
             return
         }
         guard Self.availableCapacity() >= SunnyModelCatalog.totalBytes + 750_000_000 else {
-            state = .failed("Free at least 3.9 GB of storage before downloading Sunny MoE.")
+            state = .failed("Free at least 1.2 GB of storage before downloading Sunny Offline.")
             return
         }
         try? FileManager.default.createDirectory(at: installDirectory, withIntermediateDirectories: true)

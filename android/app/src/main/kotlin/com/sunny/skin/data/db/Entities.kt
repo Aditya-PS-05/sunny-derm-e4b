@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.sunny.skin.data.model.Analysis
 import com.sunny.skin.data.model.BodyPart
+import com.sunny.skin.data.model.normalized
 
 /**
  * A tracked entity (a "scan" in the UI, a "lesion" in design.md). A SINGLE scan
@@ -75,7 +76,7 @@ data class AnalysisColumns(
     val texture: String,
     val summary: String,
 ) {
-    fun toAnalysis() = Analysis(lesionType, colour, symmetry, borders, texture, summary)
+    fun toAnalysis() = Analysis(lesionType, colour, symmetry, borders, texture, summary).normalized()
 
     companion object {
         fun from(a: Analysis) =

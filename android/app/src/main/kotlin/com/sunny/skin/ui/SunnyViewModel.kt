@@ -98,7 +98,7 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     private val betaCredentials = BetaCredentialStore(app)
 
     val modelAvailable: StateFlow<Boolean> = ModelDownloadManager.status
-        .map { it is ModelStatus.Ready || ModelProvider.realModelAvailable(appCtx) }
+        .map { ModelProvider.realModelAvailable(appCtx) }
         .stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
@@ -174,22 +174,8 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
     private val _contributionStatus = MutableStateFlow(ContributionStatus.IDLE)
     val contributionStatus: StateFlow<ContributionStatus> = _contributionStatus.asStateFlow()
 
-    // ---- Beta "analysis source" switch (server vs on-device) ----
-    /**
-     * Cloud is the safe fallback when an older install selected on-device mode
-     * without ever completing the model download. Keeping that stale preference
-     * made the app open a dead "Not configured" route with no visible way back.
-     */
-    private fun initialCloudSelection(): Boolean {
-        val selected = settings.useServerInference || !ModelProvider.packPresent(
-            appCtx,
-            com.sunny.skin.inference.tier.SunnyModelTier.SUNNY_MOE,
-        )
-        if (selected != settings.useServerInference) settings.useServerInference = selected
-        return selected
-    }
-
-    private val _useServerInference = MutableStateFlow(initialCloudSelection())
+    // ---- Analysis placement (on-device by default; Cloud requires opt-in) ----
+    private val _useServerInference = MutableStateFlow(settings.useServerInference)
     val useServerInference: StateFlow<Boolean> = _useServerInference.asStateFlow()
     private val _hasInferenceCredential = MutableStateFlow(betaCredentials.inferenceToken.isNotBlank())
     val hasInferenceCredential: StateFlow<Boolean> = _hasInferenceCredential.asStateFlow()
@@ -471,8 +457,8 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
         settings.useServerInference && ModelProvider.serverAvailable(appCtx) -> "Sunny AI · Cloud"
         settings.useServerInference -> "Sunny AI Cloud · Connecting"
         ModelProvider.packPresent(appCtx, com.sunny.skin.inference.tier.SunnyModelTier.SUNNY_MOE) ->
-            "Sunny MoE · Offline"
-        else -> "Sunny MoE · Setup required"
+            "Sunny Offline · Installed"
+        else -> "Sunny Offline · Setup required"
     }
 
     // ---- Capture flow ----
@@ -733,12 +719,16 @@ class SunnyViewModel(app: Application) : AndroidViewModel(app) {
             if (server && quota?.exhausted == true) {
                 if (quota.monthlyRemaining <= 0) {
                     "Your monthly cloud analysis allowance is used. Upgrade to Pro or use " +
-                        "Sunny MoE on-device."
+                        "Sunny Offline on-device."
                 } else {
                     "Today's cloud analysis allowance is used. Try again after the daily reset."
                 }
             } else {
-                com.sunny.skin.AppMode.unavailableMessage(server)
+                if (!server && !ModelProvider.localDeviceSupported()) {
+                    com.sunny.skin.inference.DeviceInferenceCapabilities.unavailableReason()
+                } else {
+                    com.sunny.skin.AppMode.unavailableMessage(server)
+                }
             },
         )
     }

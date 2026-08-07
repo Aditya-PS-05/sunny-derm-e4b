@@ -2,8 +2,8 @@ package com.sunny.skin.data.model
 
 /**
  * The six-field structured description the model produces (USING_THE_MODEL.md §2).
- * Fixed order, fixed field names — the UI renders these verbatim and never
- * paraphrases (design.md §4).
+ * Fixed order and fixed field names. Raw model text is normalized into the
+ * controlled public vocabulary before this value is presented or persisted.
  */
 data class Analysis(
     val lesionType: String,

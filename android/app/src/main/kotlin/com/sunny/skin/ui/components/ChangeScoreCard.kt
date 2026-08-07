@@ -3,9 +3,7 @@ package com.sunny.skin.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,15 +12,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.sunny.skin.ui.i18n.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.sunny.skin.ui.theme.SunnyColors
+import com.sunny.skin.data.model.AnalysisChange
 
 /**
  * Reports only literal differences between two generated descriptions. It does
@@ -31,35 +32,32 @@ import com.sunny.skin.ui.theme.SunnyColors
 @Composable
 fun ChangeSummaryCard(
     sinceDate: String,
-    changedAspects: List<String>,
+    changes: List<AnalysisChange>,
     modifier: Modifier = Modifier,
 ) {
     SunnyCard(modifier = modifier) {
         Column(Modifier.padding(16.dp)) {
             Text(
-                "Description comparison since $sinceDate",
+                "What changed since $sinceDate",
                 style = MaterialTheme.typography.bodyMedium,
                 color = SunnyColors.TextSecondary,
             )
             Spacer(Modifier.size(4.dp))
             Text(
-                if (changedAspects.isEmpty()) {
-                    "No text-field differences detected"
+                if (changes.isEmpty()) {
+                    "No description differences found"
                 } else {
-                    "Description differences noted"
+                    "${changes.size} ${if (changes.size == 1) "detail looks" else "details look"} different"
                 },
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = SunnyColors.TextPrimary,
             )
 
-            if (changedAspects.isNotEmpty()) {
+            if (changes.isNotEmpty()) {
                 Spacer(Modifier.size(12.dp))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    changedAspects.forEach { AspectChip(it) }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    changes.forEach { ChangeRow(it) }
                 }
             }
 
@@ -78,12 +76,12 @@ fun ChangeSummaryCard(
                 )
                 Spacer(Modifier.size(10.dp))
                 Text(
-                    if (changedAspects.isEmpty()) {
-                        "This does not show that the spot is stable, safe, or unchanged. " +
-                            "Photos and AI descriptions can miss important changes."
+                    if (changes.isEmpty()) {
+                        "No description difference does not prove the area is unchanged. " +
+                            "Lighting, framing, and AI descriptions can miss visual changes."
                     } else {
-                        "Consider showing the photos to a clinician. Differences are visual notes, " +
-                            "not a risk or urgency assessment."
+                        "This compares AI-generated visual descriptions, not medical risk. " +
+                            "Review the photos side by side or share them with a clinician."
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = SunnyColors.TextSecondary,
@@ -94,16 +92,42 @@ fun ChangeSummaryCard(
 }
 
 @Composable
-private fun AspectChip(label: String) {
-    Box(
-        Modifier.clip(RoundedCornerShape(50)).background(SunnyColors.Surface)
-            .border(1.dp, SunnyColors.Divider, RoundedCornerShape(50))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+private fun ChangeRow(change: AnalysisChange) {
+    Column(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+            .background(SunnyColors.Surface)
+            .border(1.dp, SunnyColors.Divider, RoundedCornerShape(12.dp))
+            .padding(12.dp),
     ) {
         Text(
-            label,
-            style = MaterialTheme.typography.bodyMedium,
+            change.label,
+            style = MaterialTheme.typography.labelLarge,
             color = SunnyColors.Orange,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(Modifier.size(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ChangeValue("Previous", change.previous, Modifier.weight(1f))
+            Icon(
+                Icons.AutoMirrored.Rounded.ArrowForward,
+                contentDescription = "changed to",
+                tint = SunnyColors.TextTertiary,
+                modifier = Modifier.padding(horizontal = 8.dp).size(18.dp),
+            )
+            ChangeValue("Current", change.current, Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun ChangeValue(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier) {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = SunnyColors.TextTertiary)
+        Spacer(Modifier.size(2.dp))
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = SunnyColors.TextPrimary,
             fontWeight = FontWeight.Medium,
         )
     }

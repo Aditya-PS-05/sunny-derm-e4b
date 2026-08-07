@@ -74,8 +74,10 @@ Renders the six parsed fields in fixed order, each as a labelled row:
 │     diagnosis. See a clinician for concerns. │  ← persistent banner
 └─────────────────────────────────────────────┘
 ```
-Field values come straight from the model's controlled vocabulary (see
-`docs/USING_THE_MODEL.md` §2) — the UI does not paraphrase them.
+The model's raw six fields pass through one shared presentation vocabulary on
+Android and iOS. Free-form synonyms map to stable observable terms, conflicting
+terms become `unclear`, and Summary is templated from those controlled fields.
+Raw output is retained for audit but never presented directly.
 
 ## 5. Data model (on-device, e.g. SQLite + file store)
 ```

@@ -122,7 +122,7 @@ fun SunnyNavHost(
             nav.navigate(Routes.GENERATE_REPORT)
         } else {
             proFeatureRequest = ProFeatureRequest(
-                title = "Create clinician-ready reports",
+                title = "Create shareable visual reports",
                 description = "Pro creates encrypted PDF reports with selected photos, dates and visual comparisons.",
                 destination = Routes.GENERATE_REPORT,
             )
@@ -266,6 +266,9 @@ fun SunnyNavHost(
                     vm,
                     contentPadding = padding,
                     onScanClick = { nav.navigate(Routes.scanDetail(it)) },
+                    onAddPhoto = {
+                        nav.navigate(if (modelAvailable) Routes.CAPTURE else Routes.MODEL_SETUP)
+                    },
                     onGenerateReport = ::openReportGenerator,
                     proReportsEnabled = proFeaturesAvailable,
                     onOpenReports = { nav.navigate(Routes.REPORTS) },
@@ -282,7 +285,7 @@ fun SunnyNavHost(
                     onOpenPrivacy = { nav.navigate(Routes.PRIVACY) })
             }
             composable(Routes.MODEL_SETUP) {
-                ModelSetupScreen(onBack = {
+                ModelSetupScreen(vm = vm, onBack = {
                     if (!proFeaturesAvailable) pendingProDestination = null
                     nav.popBackStack()
                 })
@@ -305,7 +308,12 @@ fun SunnyNavHost(
                 CheckSessionScreen(
                     vm = vm,
                     onBack = { nav.popBackStack() },
-                    onCapture = { nav.navigate(Routes.CAMERA) },
+                    onCapture = {
+                        nav.navigate(if (modelAvailable) Routes.CAMERA else Routes.MODEL_SETUP)
+                    },
+                    onAddPhoto = {
+                        nav.navigate(if (modelAvailable) Routes.CAPTURE else Routes.MODEL_SETUP)
+                    },
                 )
             }
 
@@ -416,7 +424,7 @@ private fun NavGraphBuilder.captureGraph(
                 onBack = { nav.popBackStack() },
             )
         } else {
-            ModelSetupScreen(onBack = { nav.popBackStack() })
+            ModelSetupScreen(vm = vm, onBack = { nav.popBackStack() })
         }
     }
     composable(Routes.BODY_GUIDE) {
@@ -483,6 +491,7 @@ private fun NavGraphBuilder.captureGraph(
                     popUpTo(Routes.REVIEW) { inclusive = true }
                 }
             },
+            onOpenAnalysisSetup = { nav.navigate(Routes.MODEL_SETUP) },
         )
     }
     composable(Routes.GENERATE_REPORT) {
@@ -498,7 +507,7 @@ private fun NavGraphBuilder.captureGraph(
                 nav.popBackStack()
                 onRequirePro(
                     ProFeatureRequest(
-                        title = "Create clinician-ready reports",
+                        title = "Create shareable visual reports",
                         description = "Pro creates encrypted PDF reports with selected photos, dates and visual comparisons.",
                         destination = Routes.GENERATE_REPORT,
                     ),

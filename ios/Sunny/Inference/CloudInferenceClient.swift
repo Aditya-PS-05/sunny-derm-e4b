@@ -3,7 +3,7 @@ import Foundation
 struct CloudInferenceClient: InferenceClient {
     let baseURL: URL
     let bearerToken: String
-    var modelVersion: String { "Sunny-Gemma4-E4B (server)" }
+    var modelVersion: String { "Sunny PAD SmolVLM 500M v1 (server)" }
 
     func describe(jpeg: Data) async throws -> String {
         let endpoint = baseURL.appending(path: "v1/chat/completions")
@@ -18,14 +18,14 @@ struct CloudInferenceClient: InferenceClient {
                     ["type": "text", "text": SunnyPrompt.schema],
                 ],
             ]],
-            "max_tokens": 1024,
+            "max_tokens": 256,
             "temperature": 0.0,
         ]
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.timeoutInterval = 180
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue(UUID().uuidString, forHTTPHeaderField: "X-Analysis-ID")
+        request.setValue(UUID().uuidString, forHTTPHeaderField: "X-Sunny-Analysis-Id")
         if !bearerToken.isEmpty {
             request.setValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
         }
@@ -54,4 +54,3 @@ struct CloudInferenceClient: InferenceClient {
         ).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
-

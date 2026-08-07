@@ -10,9 +10,10 @@ Group=ec2-user
 WorkingDirectory=/home/ec2-user/llama.cpp
 Environment=CUDA_VISIBLE_DEVICES=0
 ExecStart=/home/ec2-user/llama.cpp/build/bin/llama-server \
-    -m /home/ec2-user/models/e4b-derm-Q4_K_M.gguf \
-    --mmproj /home/ec2-user/models/mmproj-e4b-derm-f16.gguf \
+    -m /home/ec2-user/models/smolvlm-derm-pad-Q4_K_M.gguf \
+    --mmproj /home/ec2-user/models/mmproj-smolvlm-derm-pad-Q8_0.gguf \
     -ngl 99 --host 127.0.0.1 --port 8080 -c 4096 \
+    --grammar-file /etc/sunny-inference/derm.gbnf \
     --jinja --reasoning-format none --no-warmup
 # llama-server exits with status 0 when it handles a termination signal. Treat
 # that like any other unexpected exit so the public broker cannot be left

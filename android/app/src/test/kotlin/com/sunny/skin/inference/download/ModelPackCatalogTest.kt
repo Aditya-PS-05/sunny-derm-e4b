@@ -17,14 +17,17 @@ class ModelPackCatalogTest {
     fun catalogPinsTheCompleteMobileGgufPack() {
         val pack = ModelPackCatalog.sunnyMoe
         val expectedFiles = setOf(
-            "sunny-moe-text-Q4_K_M.gguf",
-            "sunny-moe-mmproj-F16.gguf",
+            "sunny-pad-smolvlm-500m-Q8_0.gguf",
+            "sunny-pad-smolvlm-500m-mmproj-mobile256-F16.gguf",
+            "derm.gbnf",
+            "THIRD_PARTY_NOTICES.txt",
+            "Apache-2.0.txt",
             "manifest.json",
         )
 
-        assertEquals(3, pack.assets.size)
+        assertEquals(6, pack.assets.size)
         assertEquals(expectedFiles, pack.assets.map { it.fileName }.toSet())
-        assertEquals(3_082_369_677L, pack.totalBytes)
+        assertEquals(633_931_364L, pack.totalBytes)
         assertTrue(pack.assets.all { it.sha256.matches(Regex("[0-9a-f]{64}")) })
         assertTrue(pack.assets.all {
             it.remotePath == "${pack.version}/${it.fileName}"

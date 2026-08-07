@@ -32,13 +32,11 @@ object AppMode {
     /** The engine actually selected right now: server toggle on AND configured. */
     fun serverActive(context: Context): Boolean = ModelProvider.useServer(context)
 
-    // ---- First-run disclosures: shown whenever the build CAN use a server ----
-    // (Onboarding happens before the toggle is reachable and the toggle defaults
-    //  to server, so these disclose the server path conservatively by capability.)
+    // ---- First-run disclosures: on-device is always the initial placement ----
 
     /** The privacy promise line on the onboarding screen (icon rendered separately). */
     val photoPrivacyLine: String = if (serverMode) {
-        "Scan photos are sent to Sunny AI Cloud for visual description."
+        "Analysis starts on this device. Photos are sent to Sunny AI Cloud only if you choose Cloud."
     } else {
         "Scan photos are processed and stored on this phone."
     }
@@ -46,7 +44,8 @@ object AppMode {
     /** Explicit first-run acknowledgement, adjusted to the build capability. */
     val onboardingAcknowledgement: String = if (serverMode) {
         "I understand Sunny does not diagnose, assess risk, or tell me when it is safe to wait. " +
-            "My scan photos will be sent to Sunny AI Cloud for processing."
+            "By default, my scan photos are analysed on this device. They are sent to Sunny AI Cloud " +
+            "only if I later choose Cloud analysis."
     } else {
         "I understand Sunny does not diagnose, assess risk, or tell me when it is safe to wait. " +
             "I will seek professional care for concerns."
@@ -91,7 +90,7 @@ object AppMode {
         "Sunny AI Cloud inference. Scan photos are sent to the configured server and " +
             "the structured visual description is returned."
     } else {
-        "Sunny MoE on-device describer. The verified 3.08 GB pack runs fully offline once installed."
+        "Sunny Offline uses a PAD-UFES-20-trained model. The verified 605 MB pack runs fully offline once installed."
     }
 
     /** Shown when the selected engine cannot produce a result. */

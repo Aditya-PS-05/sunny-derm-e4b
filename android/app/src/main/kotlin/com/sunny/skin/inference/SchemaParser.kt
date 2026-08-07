@@ -1,6 +1,7 @@
 package com.sunny.skin.inference
 
 import com.sunny.skin.data.model.Analysis
+import com.sunny.skin.data.model.normalized
 
 /**
  * Parses raw model text into the six fields (F-05). Returns null if ANY field
@@ -19,6 +20,11 @@ object SchemaParser {
             ?.takeIf { it.isNotEmpty() && it.length <= MAX_FIELD_CHARS }
 
     fun parse(text: String): Analysis? {
+        return parseRaw(text)?.normalized()
+    }
+
+    /** Exact parsed fields for audit/training labels; never present these directly. */
+    fun parseRaw(text: String): Analysis? {
         val lesionType = field(text, "Lesion Type") ?: return null
         val colour = field(text, "Colour") ?: field(text, "Color") ?: return null
         val symmetry = field(text, "Symmetry") ?: return null

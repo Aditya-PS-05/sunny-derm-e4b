@@ -29,6 +29,17 @@ struct AreaDetailView: View {
                                 .padding(.top, 3)
                         }
 
+                        if area.timeline.count > 1 {
+                            let previous = area.timeline[1]
+                            AnalysisChangesCard(
+                                since: previous.capturedAt,
+                                changes: AnalysisComparison.changes(
+                                    previous: previous.analysis,
+                                    current: latest.analysis
+                                )
+                            )
+                        }
+
                         AnalysisCard(analysis: latest.analysis)
 
                         DisclosureGroup("Photo history (\(area.observations.count))", isExpanded: $showingHistory) {

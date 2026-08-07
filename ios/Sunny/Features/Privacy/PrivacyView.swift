@@ -15,7 +15,7 @@ struct PrivacyView: View {
         (
             "On-device analysis",
             "iphone",
-            "When Sunny MoE is installed and selected, analysis runs locally and the photo does not leave this iPhone. The approximately 3.08 GB model pack is stored inside Sunny’s protected app container."
+            "When Sunny Offline is installed and selected, analysis runs locally and the photo does not leave this iPhone. The approximately 393 MB model pack is stored inside Sunny’s protected app container. PAD-UFES-20 attribution and the SmolVLM Apache 2.0 license accompany the download."
         ),
         (
             "Helping improve Sunny",
@@ -60,4 +60,3 @@ struct PrivacyView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
-
